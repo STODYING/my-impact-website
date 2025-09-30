@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IMPACT</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Arial','Malgun Gothic',sans-serif;
+      background: #0a0a0a; color: #fff; line-height: 1.6;
+    }
+    /* Header */
+    .header {
+      position: sticky; top: 0; background:#0a0a0a; z-index: 100;
+      padding:20px; border-bottom:1px solid #333;
+    }
+    .header-content {
+      max-width:1400px; margin:0 auto; display:flex; justify-content:space-between; align-items:center;
+    }
+    .logo { font-size:36px; font-weight:bold; color:#fff; cursor:pointer; transition:opacity 0.3s; }
+    .logo:hover { opacity:0.7; }
+    .menu-toggle { background:none; border:none; font-size:24px; cursor:pointer; color:#fff; }
+
+    /* Magazine Container */
+    .magazine-container { max-width:1400px; margin:0 auto; padding:40px 20px; }
+    .empty-main-state { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; text-align:center; padding:60px 20px; }
+    .empty-main-icon { font-size:80px; margin-bottom:30px; opacity:0.3; }
+    .empty-main-title { font-size:36px; font-weight:bold; margin-bottom:20px; }
+    .empty-main-description { font-size:18px; color:#999; line-height:1.8; max-width:600px; }
+
+    /* Footer */
+    .footer { background:#000; color:#fff; padding:60px 20px 40px; margin-top:80px; border-top:1px solid #fff; }
+    .footer-content { max-width:1400px; margin:0 auto; }
+    .footer-nav { display:flex; gap:30px; margin-bottom:40px; font-size:14px; font-weight:bold; }
+    .footer-nav a { color:#fff; text-decoration:none; transition:opacity 0.3s; }
+    .footer-nav a:hover { opacity:0.7; }
+    .footer-logo { font-size:48px; font-weight:bold; font-style:italic; margin-bottom:30px; }
+    .footer-info { font-size:13px; line-height:1.8; color:#999; margin-bottom:10px; }
+    .footer-info a { color:#999; text-decoration:none; }
+    .footer-info a:hover { color:#fff; text-decoration:underline; }
+    .footer-copyright { font-size:12px; color:#666; margin-top:30px; }
+
+    /* Nav Overlay */
+    .nav-overlay {
+      position:fixed; top:0; right:-50%; width:50%; height:100vh;
+      background:rgba(255,255,255,0.98); z-index:200; transition:right 0.3s;
+      display:flex; flex-direction:column; padding:60px 40px;
+    }
+    .nav-overlay.active { right:0; }
+    .nav-close { position:absolute; top:30px; right:30px; background:none; border:none; font-size:32px; cursor:pointer; }
+    .nav-search { margin-bottom:40px; }
+    .search-input { width:100%; border:none; border-bottom:3px solid #000; background:transparent; padding:15px 0; font-size:18px; outline:none; }
+    .nav-menu { list-style:none; }
+    .nav-menu li { margin-bottom:25px; }
+    .nav-menu a { text-decoration:none; color:#000; font-size:36px; font-weight:bold; transition:color 0.3s; cursor:pointer; }
+    .nav-menu a:hover { color:#ff7f50; }
+    .nav-footer { margin-top:auto; display:flex; flex-direction:column; gap:15px; }
+    .nav-footer a { text-decoration:none; color:#666; font-size:12px; font-weight:bold; cursor:pointer; }
+
+    /* Category Pages */
+    .category-page { display:none; position:fixed; top:0; left:0; width:100%; height:100vh; background:#0a0a0a; z-index:150; overflow-y:auto; }
+    .category-page.active { display:block; }
+    .category-header { background:#000; color:#fff; padding:30px 20px; position:sticky; top:0; }
+    .category-header-content { max-width:1400px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; }
+    .category-title { font-size:48px; font-weight:bold; }
+    .category-close { background:none; border:none; color:#fff; font-size:32px; cursor:pointer; }
+    .category-subtitle { font-size:14px; opacity:0.7; margin-top:10px; }
+    .category-grid { max-width:1400px; margin:0 auto; padding:40px 20px 80px; display:grid; grid-template-columns:repeat(auto-fill, minmax(320px,1fr)); gap:20px; }
+    .loading { text-align:center; padding:60px 20px; font-size:18px; color:#666; }
+
+    /* Responsive */
+    @media (max-width:768px){
+      .nav-overlay{ width:100%; right:-100%; padding:40px 20px; }
+      .nav-menu a{ font-size:28px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <div class="logo" onclick="goToHome()">IMPACT</div>
+      <button class="menu-toggle" onclick="toggleNav()">☰</button>
+    </div>
+  </header>
+
+  <!-- Home Empty State -->
+  <div class="magazine-container">
+    <div class="empty-main-state">
+      <div class="empty-main-icon">📰</div>
+      <h1 class="empty-main-title">아직 게시된 글이 없습니다</h1>
+      <p class="empty-main-description">IP-CEO 학생들의 창의적인 아이디어와 통찰력 있는 글이 곧 이곳에 게시됩니다.<br>첫 번째 콘텐츠를 기대해 주세요.</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <nav class="footer-nav">
+        <a href="#" onclick="showPage('about')">ABOUT</a>
+        <a href="#" onclick="showPage('editors')">EDITORS</a>
+        <a href="#" onclick="showPage('newsletter')">NEWSLETTER</a>
+        <a href="https://www.instagram.com/ceo_impact_official?igsh=MW5lMXFmY2Qzcm1ldw==" target="_blank">INSTAGRAM</a>
+      </nav>
+      <div class="footer-logo">IMPACT</div>
+      <div class="footer-info">광고 제휴 문의 | <a href="mailto:hello@impact.com">hello@impact.com</a></div>
+      <div class="footer-info">보도자료 | <a href="mailto:press@impact.com">press@impact.com</a></div>
+      <div class="footer-copyright">IMPACT CEO. ALL RIGHTS RESERVED.</div>
+    </div>
+  </footer>
+
+  <!-- Navigation Overlay -->
+  <div class="nav-overlay" id="navOverlay">
+    <button class="nav-close" onclick="toggleNav()">×</button>
+    <div class="nav-search"><input type="text" class="search-input" placeholder="검색어 입력"></div>
+    <ul class="nav-menu">
+      <li><a onclick="showCategoryPage('tech')">TECH</a></li>
+      <li><a onclick="showCategoryPage('eat')">EAT</a></li>
+      <li><a onclick="showCategoryPage('style')">STYLE</a></li>
+      <li><a onclick="showCategoryPage('culture')">CULTURE</a></li>
+      <li><a onclick="showCategoryPage('life')">LIFE</a></li>
+      <li><a onclick="showCategoryPage('editors-pick')">EDITOR'S PICK</a></li>
+    </ul>
+    <div class="nav-footer">
+      <a onclick="showPage('about')">ABOUT</a>
+      <a onclick="showPage('editors')">EDITORS</a>
+      <a onclick="showPage('newsletter')">NEWSLETTER</a>
+      <a href="https://www.instagram.com/ceo_impact_official?igsh=MW5lMXFmY2Qzcm1ldw==" target="_blank">INSTAGRAM</a>
+    </div>
+  </div>
+
+  <!-- Category Pages -->
+  <div class="category-page" id="tech-page">
+    <div class="category-header">
+      <div class="category-header-content">
+        <div><div class="category-title">TECH</div><div class="category-subtitle">기술의 최전선에서</div></div>
+        <button class="category-close" onclick="closeCategoryPage()">×</button>
+      </div>
+    </div>
+    <div class="category-grid" id="tech-grid"><div class="loading">아직 이 카테고리에 글이 없습니다.</div></div>
+  </div>
+
+  <div class="category-page" id="eat-page">
+    <div class="category-header"><div class="category-header-content">
+      <div><div class="category-title">EAT</div><div class="category-subtitle">맛있는 이야기들</div></div>
+      <button class="category-close" onclick="closeCategoryPage()">×</button></div></div>
+    <div class="category-grid" id="eat-grid"><div class="loading">아직 이 카테고리에 글이 없습니다.</div></div>
+  </div>
+
+  <div class="category-page" id="style-page">
+    <div class="category-header"><div class="category-header-content">
+      <div><div class="category-title">STYLE</div><div class="category-subtitle">스타일과 디자인의 세계</div></div>
+      <button class="category-close" onclick="closeCategoryPage()">×</button></div></div>
+    <div class="category-grid" id="style-grid"><div class="loading">아직 이 카테고리에 글이 없습니다.</div></div>
+  </div>
+
+  <div class="category-page" id="culture-page">
+    <div class="category-header"><div class="category-header-content">
+      <div><div class="category-title">CULTURE</div><div class="category-subtitle">문화와 예술의 공간</div></div>
+      <button class="category-close" onclick="closeCategoryPage()">×</button></div></div>
+    <div class="category-grid" id="culture-grid"><div class="loading">아직 이 카테고리에 글이 없습니다.</div></div>
+  </div>
+
+  <div class="category-page" id="life-page">
+    <div class="category-header"><div class="category-header-content">
+      <div><div class="category-title">LIFE</div><div class="category-subtitle">일상 속 특별한 순간들</div></div>
+      <button class="category-close" onclick="closeCategoryPage()">×</button></div></div>
+    <div class="category-grid" id="life-grid"><div class="loading">아직 이 카테고리에 글이 없습니다.</div></div>
+  </div>
+
+  <div class="category-page" id="editors-pick-page">
+    <div class="category-header"><div class="category-header-content">
+      <div><div class="category-title">EDITOR'S PICK</div><div class="category-subtitle">편집진이 선별한 특별한 콘텐츠</div></div>
+      <button class="category-close" onclick="closeCategoryPage()">×</button></div></div>
+    <div class="category-grid" id="editors-pick-grid"><div class="loading">아직 이 카테고리에 글이 없습니다.</div></div>
+  </div>
+
+  <script>
+    let currentCategoryPage = null;
+    function goToHome(){ if(currentCategoryPage){ closeCategoryPage(); } window.scrollTo({top:0,behavior:'smooth'}); }
+    function toggleNav(){ document.getElementById('navOverlay').classList.toggle('active'); }
+    function showCategoryPage(category){
+      toggleNav();
+      if(currentCategoryPage) document.getElementById(currentCategoryPage).classList.remove('active');
+      currentCategoryPage = category + '-page';
+      document.getElementById(currentCategoryPage).classList.add('active');
+      document.body.style.overflow='hidden';
+    }
+    function closeCategoryPage(){ if(currentCategoryPage){ document.getElementById(currentCategoryPage).classList.remove('active'); currentCategoryPage=null; } document.body.style.overflow='auto'; }
+    function showPage(pageId){ toggleNav(); alert(pageId+' 페이지 (추후 구현 예정)'); }
+  </script>
+</body>
+</html>
