@@ -3,725 +3,1708 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>IMPACT</title>
+  <title>IMPACT — MAKE A IMPACT</title>
+  <meta name="description" content="IMPACT — WordPress 기반의 학생 저자 콘텐츠를 불러와 자체 포스트 페이지로 보여주는 통합 페이지 (에디터, 프로필, 카테고리 배지, 무한스크롤, 포스트/ABOUT 오버레이 포함)">
+  <!-- 사이트 아이콘 (사용자 제공 logo.png가 동일 폴더에 있다고 가정) -->
+  <link rel="icon" href="logo.png" type="image/png">
+
   <style>
-    /* 기본 리셋 */
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%}
-    body {
-      font-family: 'Arial','Malgun Gothic',sans-serif;
-      background:#0a0a0a;color:#fff;line-height:1.6;
-      -webkit-font-smoothing:antialiased;scroll-behavior:smooth;
-    }
+  /* ============================
+     IMPACT — 확장판 스타일
+     (주석/섹션을 길게 늘려 가독성 및 확장성 확보)
+     ============================ */
 
-    /* 레이아웃 */
-    .container { max-width:1400px;margin:0 auto;padding:24px; }
-    .header {
-      position:sticky;top:0;background:#050505;z-index:120;padding:18px;border-bottom:1px solid rgba(255,255,255,0.04);
-    }
-    .header .header-inner { display:flex;align-items:center;justify-content:space-between; gap:16px; max-width:1400px;margin:0 auto; }
-    .logo { font-size:36px;font-weight:800;color:#fff;cursor:pointer; letter-spacing:1px; }
-    .menu-toggle { background:none;border:1px solid rgba(255,255,255,0.06);color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer }
+  /* 기본 리셋 */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Segoe UI", Roboto, Arial, sans-serif;
+    background: #f5f5f5; /* 전체 밝은 톤 */
+    color: #111;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+  a { color: inherit; text-decoration: none; }
+  img { display: block; max-width: 100%; height: auto; }
 
-    /* 메인 그리드 */
-    .magazine-container { padding:32px 20px 80px; }
-    .grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(320px,1fr)); gap:20px; max-width:1400px;margin:0 auto; }
-    /* 피처드 */
-    .post-featured { grid-column:1/-1; display:grid; grid-template-columns: 1fr 1fr; gap:0; background:#111;border-radius:12px; overflow:hidden; }
-    .post-featured .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
-    .post-featured .body { padding:30px; display:flex;flex-direction:column; gap:10px; }
-    .post-title { font-size:26px; font-weight:800; color:#fff; text-decoration:none; }
-    .post-excerpt { font-size:16px; color:#bbb; line-height:1.6; }
+  /* 컨테이너 */
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
 
-    /* 카드 */
-    .post-card { background:#111; border-radius:10px; overflow:hidden; display:flex; flex-direction:column; transition:transform .18s; cursor:pointer; }
-    .post-card:hover{ transform:translateY(-6px); }
-    .post-card .thumb img{ width:100%; height:200px; object-fit:cover; display:block; }
-    .post-card .body { padding:14px; display:flex;flex-direction:column; gap:10px; min-height:140px; }
-    .meta { display:flex; align-items:center; gap:10px; justify-content:space-between; font-size:12px; color:#aaa; }
-    .author { display:flex; align-items:center; gap:10px; }
-    .author img{ width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.06) }
-    .excerpt-small{ color:#999;font-size:14px;line-height:1.5 }
+  /* 헤더(상단 고정) */
+  header.header {
+    position: sticky;
+    top: 0;
+    z-index: 1200;
+    background: #ffffff;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    backdrop-filter: blur(5px);
+    transition: box-shadow .25s ease;
+  }
+  header.header.scrolled { box-shadow: 0 8px 30px rgba(0,0,0,0.06); }
 
-    /* 카테고리 배지 (직사각형 색상) */
-    .cat-badge { display:inline-block;padding:6px 10px;border-radius:6px;font-weight:700;font-size:12px;color:#fff;letter-spacing:0.3px }
-    .cat-row{display:flex;gap:8px;flex-wrap:wrap}
+  .header-inner {
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
 
-    /* 내비게이션 오버레이 */
-    .nav-overlay { position:fixed; top:0; right:-420px; width:360px; height:100vh; background:rgba(255,255,255,0.98); color:#000; z-index:200; transition:right .28s; padding:40px; overflow:auto; box-shadow:-12px 0 40px rgba(0,0,0,.6); }
-    .nav-overlay.active{ right:0; }
-    .nav-overlay h3{ font-size:20px; margin-bottom:12px }
-    .nav-list{ list-style:none; margin-top:10px }
-    .nav-list li{ margin-bottom:12px; font-weight:800; font-size:18px; cursor:pointer; color:#000 }
-    .nav-close{ position:absolute; top:14px; right:14px; background:none;border:none;font-size:28px; cursor:pointer }
+  .brand {
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+  .brand .logo {
+    font-weight:900;
+    font-size:28px;
+    letter-spacing:1px;
+    color:#000;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .brand .tag {
+    font-size:12px;
+    color:#666;
+    font-weight:700;
+  }
 
-    /* 카테고리 전체 페이지 (전체 화면) */
-    .category-page { display:none; position:fixed; inset:0; background:#050505; z-index:150; overflow-y:auto; padding-top:60px; }
-    .category-page.active{ display:block; }
-    .category-header { position:sticky; top:0; background:#050505; padding:18px 22px; border-bottom:1px solid rgba(255,255,255,0.04); display:flex; align-items:center; justify-content:space-between; z-index:160 }
-    .category-title { font-size:36px; font-weight:900; color:#fff }
-    .category-sub { color:#aaa; font-size:14px; margin-top:6px }
+  .header-actions {
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .btn {
+    border-radius:10px;
+    background:#fff;
+    padding:8px 12px;
+    border:1px solid rgba(0,0,0,0.08);
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary {
+    background: linear-gradient(135deg,#2e8b57,#1f7a6f);
+    color:#fff;
+    border: none;
+  }
 
-    /* 포스트 페이지 */
-    .post-page { display:none; position:fixed; inset:0; background:#0a0a0a; overflow:auto; z-index:220; padding:32px; }
-    .post-page.active{ display:block; }
-    .post-article { max-width:900px;margin:0 auto;background:#071014;padding:28px;border-radius:12px; color:#fff; }
-    .post-article h1{ font-size:32px;margin-bottom:12px }
-    .post-meta-row{ display:flex;align-items:center;gap:12px;margin-bottom:18px;color:#cfcfcf }
-    .post-content { color:#ddd; line-height:1.8; margin-top:16px }
-    .close-post{ position:fixed; right:28px; top:28px; background:transparent;border:2px solid rgba(255,255,255,.06); color:#fff;padding:8px 10px;border-radius:8px; cursor:pointer }
+/* Navigation Overlay */
+.nav-overlay {
+  position: fixed;
+  top: 0;
+  right: -50%;
+  width: 50%;
+  height: 100vh;
+  background: rgba(255,255,255,0.98);
+  z-index: 2000;
+  transition: right 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  padding: 60px 40px;
+  box-shadow: -5px 0 20px rgba(0,0,0,0.1);
+}
+.nav-overlay.active { right: 0; }
 
-    /* 상단으로 버튼 */
-    .to-top { position:fixed; right:22px; bottom:22px; width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#ff7f50,#ffb86b);display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;cursor:pointer; box-shadow:0 8px 24px rgba(0,0,0,.5); opacity:0; transform:translateY(20px); transition:all .28s; z-index:300 }
-    .to-top.show{ opacity:1; transform:translateY(0); }
+@media (max-width: 900px) {
+  .nav-overlay { width: 100%; right: -100%; padding: 40px 20px; }
+  .nav-overlay.active { right: 0; }
+}
 
-    /* ABOUT 패널 */
-    .about-page{ display:none; position:fixed; inset:0; background:rgba(5,5,5,0.96); z-index:210; padding:40px; overflow:auto; }
-    .about-page.active{ display:block; }
-    .about-card{ max-width:900px;margin:40px auto;background:#081018;padding:28px;border-radius:12px; color:#fff }
-    .about-card h2{ font-size:28px; margin-bottom:12px }
-    .about-mission{ font-size:20px; font-weight:800; color:#ffb86b; margin-top:14px }
+.nav-close {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #000;
+  cursor: pointer;
+}
 
-    /* 반응형 */
-    @media(max-width:900px){
-      .post-featured{ grid-template-columns:1fr; }
-      .grid{ grid-template-columns: 1fr 1fr }
-    }
-    @media(max-width:640px){
-      .grid{ grid-template-columns: 1fr }
-      .menu-toggle{ padding:8px }
-      .logo{ font-size:28px }
-    }
+/* 검색창 */
+.nav-search {
+  margin-bottom: 40px;
+}
+.nav-search .search-input {
+  width: 100%;
+  border: none;
+  border-bottom: 3px solid #000;
+  background: transparent;
+  padding: 15px 0;
+  font-size: 18px;
+  font-weight: 600;
+  outline: none;
+}
+/* 🔥 네비 검색창 */
+.nav-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 40px;
+}
+.nav-search .search-icon {
+  font-size: 18px;
+  color: #111;
+}
+.nav-search input[type="search"] {
+  flex: 1;
+  border: none;
+  border-bottom: 2px solid #111;
+  font-size: 18px;
+  font-weight: 600;
+  padding: 10px 6px;
+  outline: none;
+  background: transparent;
+}
+.nav-search input::placeholder {
+  color: #aaa;
+  font-weight: 500;
+}
 
-    /* 로딩 */
-    .loading { text-align:center;padding:40px;color:#888 }
+/* 🔥 카테고리 메뉴 */
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.nav-list li {
+  font-size: 36px;     /* ✅ 큼직하게 */
+  font-weight: 900;    /* ✅ 굵게 */
+  color: #111;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.nav-list li:hover {
+  color: #c6ff00;
+}
+
+/* 🔥 푸터 링크 */
+.nav-footer-links {
+  margin-top: auto;
+  display: flex;
+  gap: 18px;           /* ✅ 띄어쓰기 */
+  font-size: 14px;
+  font-weight: 800;
+}
+.nav-footer-links a {
+  color: #111;
+  text-decoration: none;
+}
+.nav-footer-links a:hover {
+  text-decoration: underline;
+}
+
+/* 🔥 푸터 설명 */
+.nav-extra {
+  margin-top: 16px;
+  font-size: 13px;
+  color: #777;
+}
+
+
+/* 카테고리 메뉴 */
+.nav-menu {
+  list-style: none;
+}
+.nav-menu li { margin-bottom: 25px; }
+.nav-menu a {
+  text-decoration: none;
+  color: #000;
+  font-size: 36px;       /* ✅ 큼직하게 */
+  font-weight: 900;      /* ✅ Bold */
+  transition: color 0.3s ease;
+  cursor: pointer;
+}
+.nav-menu a:hover { color: #c6ff00; }
+
+/* Footer */
+.nav-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.nav-footer a {
+  text-decoration: none;
+  color: #666;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+
+/* 🔍 검색창 */
+.nav-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 40px 0 12px;
+}
+.nav-search .search-icon {
+  font-size: 18px;
+  color: #111;
+}
+.nav-search input[type="search"] {
+  flex: 1;
+  border: none;
+  border-bottom: 2px solid #111;
+  font-size: 15px;
+  padding: 6px 4px;
+  outline: none;
+  font-weight: 600;
+  color: #111;
+}
+.nav-search input::placeholder {
+  color: #aaa;
+  font-weight: 600;
+}
+
+/* 구분선 */
+.nav-divider {
+  border: none;
+  border-bottom: 1px solid #111;
+  margin: 8px 0 24px;
+}
+
+/* 카테고리 리스트 */
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.nav-list li {
+  font-size: 20px;
+  font-weight: 900; /* 굵은 글씨 */
+  color: #111;
+  cursor: pointer;
+  transition: color .2s ease;
+}
+.nav-list li:hover {
+  color: #555;
+}
+
+/* 하단 푸터 링크 */
+.nav-footer-links {
+  margin-top: auto;
+  font-size: 13px;
+  font-weight: 900;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.nav-footer-links a {
+  color: #111;
+  text-decoration: none;
+}
+.nav-footer-links span {
+  color: #999;
+}
+
+
+  /* 메인 홈 레이아웃 (좌1 + 우4 반복) */
+  .home {
+    max-width: 1400px;
+    margin: 28px auto;
+    display:flex;
+    flex-direction:column;
+    gap:26px;
+    padding: 0 20px 80px;
+  }
+
+  .row { display:grid; grid-template-columns: 2fr 1fr; gap:20px; align-items:start; }
+  /* 오른쪽: 4개의 카드 블록 -> vstack of 4 */
+  .col-left {
+    background: transparent;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    min-height: 320px;
+  }
+  .col-left .hero {
+    width:100%;
+    height:100%;
+    min-height:320px;
+    display:block;
+    object-fit:cover;
+    background:#ddd;
+  }
+  /* overlay area that ensures title contrast */
+  .col-left .hero-overlay {
+    position:absolute;
+    inset:auto 0 0 0;
+    padding:20px;
+    padding-bottom:28px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    /* gradient to ensure readability by default; overridden by JS if possible */
+    background: linear-gradient(180deg, rgba(255,255,255,0.0), rgba(0,0,0,0.45));
+    transition: background .28s ease;
+  }
+  .col-left .hero-title {
+    margin:0;
+    font-size:26px;
+    font-weight:900;
+    line-height:1.05;
+    color: #fff; /* default white; JS may switch to black */
+    transition: color .18s ease, text-shadow .18s ease;
+    max-width: 92%;
+  }
+  .col-left .meta {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color: #fff;
+    font-size: 13px;
+    opacity:0.95;
+  }
+  .col-left .meta img { width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,0.9); }
+
+  .col-right {
+    display:grid;
+    gap:12px;
+    grid-auto-rows: 1fr;
+  }
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.06);
+    transition: transform .16s ease, box-shadow .16s ease;
+    cursor:pointer;
+  }
+  .card:hover { transform: translateY(-6px); box-shadow: 0 10px 30px rgba(0,0,0,0.06); }
+  .card .thumb { width:100%; height:120px; overflow:hidden; background:#eee; }
+  .card .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .card .card-body { padding:12px; }
+  .card h3 { font-size:15px; font-weight:800; margin-bottom:8px; color:#111; }
+  .card .meta { display:flex; align-items:center; gap:8px; color:#666; font-size:13px; }
+
+  /* 카드 내부 에디터 이름 — 사용자가 '에디터' 라는 단어는 빼달라고 요청했으므로 이름만 표시 */
+  .meta .author-name { font-weight:700; color:#111; }
+
+  /* 카테고리 배지(직사각형) */
+  .cat-badge {
+    display:inline-block;
+    padding:6px 10px;
+    border-radius:6px;
+    font-weight:800;
+    font-size:12px;
+    color:#fff;
+  }
+  .hero-cats {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  gap: 6px;
+}
+
+  .cat-tech{ background:#1e90ff; color:#fff; }
+  .cat-eat{ background:#ff6347; color:#fff; }
+  .cat-style{ background:#32cd32; color:#fff; }
+  .cat-culture{ background:#8a2be2; color:#fff; }
+  .cat-life{ background:#ffa500; color:#000; }
+  .cat-editors-pick{ background:#ff1493; color:#fff; }
+
+  /* 카테고리 페이지 (전체 화면 오버레이) */
+  .category-overlay {
+    display:none;
+    position:fixed;
+    inset:0;
+    background:#fff;
+    z-index: 1500;
+    overflow:auto;
+    padding: 20px;
+    animation: overlayIn .28s ease;
+  }
+  .category-overlay.active { display:block; }
+  .category-top {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    border-bottom:1px solid rgba(0,0,0,0.06);
+    padding-bottom:12px;
+  }
+  .category-title { font-size:24px; font-weight:900; color:#111; }
+  .category-sub { color:#666; font-size:14px; }
+
+  .category-grid {
+    margin-top:18px;
+    display:grid;
+    gap:18px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    padding: 20px 0 80px;
+  }
+
+  /* 포스트 페이지 (오버레이) */
+  .post-overlay {
+    display:none;
+    position: fixed;
+    inset: 0;
+    background: #ffffff;
+    z-index: 1800;
+    overflow-y: auto;
+    padding: 32px;
+    align-items: start;
+    animation: overlayIn .28s ease;
+  }
+  .post-overlay.active { display:flex; }
+  .post-article {
+    margin: 0 auto;
+    max-width: 900px;
+    background: transparent;
+  }
+  .post-article h1 { font-size:32px; font-weight:900; color:#111; margin-bottom:12px; }
+  .post-article .post-meta {
+    display:flex;
+    align-items:center;
+    gap:12px;
+    color:#444;
+    margin-bottom:18px;
+  }
+  .post-article .post-meta img { width:52px; height:52px; border-radius:50%; }
+
+  .post-article .post-content {
+    color:#222;
+    line-height:1.9;
+  }
+/* ABOUT 전체 페이지 */
+.about-page {
+  display: none;   /* 기본은 숨김 */
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  z-index: 1700;
+  overflow: auto;
+  padding: 40px;
+}
+.about-page.active {
+  display: block;  /* router.openAbout() 호출될 때 표시 */
+}
+
+
+  /* 검색 오버레이 (전체화면) */
+  .search-overlay {
+    display:none;
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.98);
+    z-index: 1600;
+    overflow:auto;
+    padding:28px;
+  }
+  .search-overlay.active { display:block; }
+ 
+
+  /* 상단으로 버튼 (흰 배경 + 검정 화살표) */
+  .to-top {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    background: #fff;
+    color:#000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    z-index: 2500;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all .28s cubic-bezier(.2,.9,.2,1);
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+  .to-top.show { opacity:1; transform: translateY(0); }
+
+  /* FOOTER */
+  footer.site-footer {
+    background: #111;
+    color: #eee;
+    padding: 40px 20px;
+    margin-top: 20px;
+  }
+  .footer-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display:flex;
+    justify-content: space-between;
+    gap:20px;
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+  .footer-brand { font-size:40px; font-weight:900; color:#fff; font-style:italic; }
+  .footer-links { display:flex; gap:14px; flex-direction:column; font-weight:800; }
+  .footer-right { color:#999; font-size:13px; }
+  .footer-right .promote { font-weight:900; color:#fff; margin-top:10px; }
+
+  /* 애니메이션 보조 */
+  @keyframes overlayIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
+
+  /* 반응형 */
+  @media (max-width: 1100px) {
+    .row { grid-template-columns: 1fr; }
+    .col-right { grid-auto-rows: unset; grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 680px) {
+    .header-inner { padding: 12px; height:64px; }
+    .brand .logo { font-size:20px; }
+    .nav-overlay { padding: 20px; }
+    .col-left .hero-overlay { padding:14px; }
+    .card .thumb { height: 140px; }
+    .to-top { right: 12px; bottom: 12px; }
+  }
+/* ===== 모던 검색창 ===== */
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 50px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  padding: 6px 14px;
+}
+.search-bar input[type="search"] {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  padding: 12px 14px;
+  border-radius: 50px;
+}
+.search-bar .search-btn {
+  background: #111;        /* ✅ 검은색 배경 */
+  color: #fff;             /* ✅ 글자는 흰색 */
+  border: none;
+  border-radius: 50px;
+  padding: 10px 18px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.search-bar .search-btn:hover {
+  background: #333;        /* ✅ hover 시 약간 밝은 검정 */
+}
+.search-bar .close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  margin-left: 8px;
+  cursor: pointer;
+  color: #666;
+}
+
+  /* 긴 주석 (확장판 문서성 주석을 더해 파일 길이 확장) */
+  /* 
+     파일: index.html (IMPACT 통합)
+     목적: 하나의 정적 HTML 파일에서 WordPress.com의 public-api를 사용해 글 목록, 포스트, 작성자 아바타, 카테고리 등을 불러와 자체 포스트 오버레이로 표시
+     주요 구현 포인트:
+       - 모든 posts 호출에 _embed 파라미터 포함하여 작성자/카테고리/미디어를 함께 가져옴.
+       - 에디터(작성자) 이름과 프로필 이미지를 카드 및 포스트에서 직접 표시.
+       - 더보기(카테고리 네비)는 데스크탑에서 오른쪽 반 오버레이, 모바일에서는 전체 화면.
+       - 검색, 무한 스크롤(메인/카테고리), 상단으로 버튼, 포스트 내부 보기, ABOUT 페이지 포함.
+     보안 주의:
+       - 토큰(access token)을 파일내에 직접 삽입했습니다. 실서비스에서는 Netlify Functions 또는 서버사이드로 토큰을 숨겨 주세요.
+  */
+/* ============================
+   ✅ 더보기(nav overlay) 최종 덮어쓰기
+   ============================ */
+.nav-list li {
+  font-size: 36px !important;   /* 큼직하게 */
+  font-weight: 900 !important;  /* 두껍게 */
+  color: #111 !important;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.nav-list li:hover {
+  color: #c6ff00 !important;
+}
+
+.nav-footer-links {
+  margin-top: auto !important;
+  display: flex !important;
+  gap: 20px !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+}
+.nav-footer-links a {
+  color: #111 !important;
+  text-decoration: none !important;
+}
+.nav-footer-links a:hover {
+  text-decoration: underline !important;
+}
+
+/* 클릭 가능한 요소 커서 변경 */
+#logoBtn {
+  cursor: pointer;
+}
+
+.col-left, 
+.card {
+  cursor: pointer;  /* 카드/히어로 큰 게시물 */
+}
+
+.to-top {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: #fff;
+  color:#000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  z-index: 2500;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all .28s cubic-bezier(.2,.9,.2,1);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+.to-top.show {
+  opacity:1;
+  transform: translateY(0);
+}
   </style>
 </head>
 <body>
-  <!-- Header -->
-  <header class="header">
-    <div class="header-inner container">
-      <div style="display:flex;align-items:center;gap:16px">
-        <div class="logo" onclick="router.goHome()">IMPACT</div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <div style="font-size:13px;color:#aaa">IMPACT</div>
+
+  <!-- HEADER -->
+  <header class="header" id="siteHeader" role="banner">
+    <div class="header-inner wrap">
+      <div class="brand" aria-hidden="false">
+        <div class="logo" id="logoBtn" onclick="router.goHome()">
+          IMPACT
+          <span style="font-size:12px;color:#777;font-weight:800">MAKE A IMPACT</span>
         </div>
       </div>
-      <div style="display:flex;gap:12px;align-items:center">
-        <button class="menu-toggle" onclick="ui.toggleNav()">메뉴</button>
-        <button class="menu-toggle" onclick="ui.openAbout()">ABOUT</button>
-      </div>
+
+      <div class="header-actions" role="navigation" aria-label="상단 메뉴">
+  <button class="btn" onclick="
+  document.getElementById('navOverlay').classList.remove('active');
+  ui.openSearch();
+">검색</button>
+  <button class="btn" aria-controls="navOverlay" aria-expanded="false" onclick="ui.toggleNav()">더보기</button>
+</div>
     </div>
   </header>
 
-  <!-- 메인 컨텐츠 -->
-  <main class="magazine-container container" id="home">
-    <div id="mainGridWrapper">
-      <div id="mainLoading" class="loading">로딩 중...</div>
-      <div id="mainGrid" class="grid" aria-live="polite"></div>
+  <!-- NAV OVERLAY (오른쪽 반) -->
+  <aside class="nav-overlay" id="navOverlay" aria-hidden="true" aria-label="카테고리 네비">
+    <button class="nav-close" aria-label="네비게이션 닫기" onclick="ui.toggleNav()">×</button>
+<div>
+  <!-- 검색창 -->
+  <div class="nav-search">
+    <span class="search-icon">🔍</span>
+    <input type="search" id="globalSearchInput" placeholder="검색어 입력">
+  </div>
+  <!-- 카테고리 리스트 -->
+  <ul class="nav-list" id="navList" role="menu" aria-label="카테고리 목록">
+    <!-- JS에서 채움 -->
+  </ul>
+
+<!-- 푸터 링크 -->
+<div class="nav-footer-links">
+  <a href="javascript:void(0)" onclick="ui.toggleNav(); router.openAbout()">ABOUT</a>
+  <a href="javascript:void(0)" onclick="alert('EDITORS 페이지는 추후 구현됩니다')">EDITORS</a>
+  <a href="javascript:void(0)" onclick="alert('NEWSLETTER 페이지는 추후 구현됩니다')">NEWSLETTER</a>
+  <a href="https://www.instagram.com/ceo_impact_official" target="_blank" rel="noopener">INSTAGRAM</a>
+</div>
+</div>
+
     </div>
-  </main>
-
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="container">
-      <nav class="footer-nav" style="display:flex;gap:24px;margin-bottom:18px">
-        <a href="#" style="color:#fff;text-decoration:none" onclick="ui.openAbout()">ABOUT</a>
-        <a href="#" style="color:#fff;text-decoration:none" onclick="alert('EDITORS 페이지는 추후 구현됩니다')">EDITORS</a>
-        <a href="#" style="color:#fff;text-decoration:none" onclick="alert('NEWSLETTER 페이지는 추후 구현됩니다')">NEWSLETTER</a>
-        <a href="https://www.instagram.com/ceo_impact_official" target="_blank" style="color:#fff;text-decoration:none">INSTAGRAM</a>
-      </nav>
-      <div style="font-size:48px;font-weight:900;font-style:italic;margin-bottom:10px">IMPACT</div>
-      <div style="color:#999;font-size:13px;margin-bottom:6px">광고 제휴 문의 | <a href="mailto:ceo.impact.official@gmail.com" style="color:#999;text-decoration:none">ceo.impact.official@gmail.com</a></div>
-      <div style="color:#999;font-size:13px">보도자료 | <a href="mailto:ceo.impact.official@gmail.com" style="color:#999;text-decoration:none">ceo.impact.official@gmail.com</a></div>
-      <div style="color:#666;font-size:12px;margin-top:20px">IMPACT CEO. ALL RIGHTS RESERVED.</div>
-    </div>
-  </footer>
-
-  <!-- 내비 오버레이 -->
-  <aside class="nav-overlay" id="navOverlay" aria-hidden="true">
-    <button class="nav-close" onclick="ui.toggleNav()">×</button>
-    <h3 style="margin-bottom:6px">카테고리</h3>
-    <div style="color:#555;margin-bottom:18px">원하시는 카테고리를 선택하세요</div>
-    <ul class="nav-list" id="navList">
-      <!-- JS에서 채움 -->
-    </ul>
-
-    <div style="margin-top:28px">
-      <h3>검색</h3>
-      <input id="searchInput" placeholder="검색어 입력" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd" />
-      <div style="margin-top:12px">
-        <button class="menu-toggle" onclick="ui.searchPosts()">검색</button>
-      </div>
-    </div>
-
-    <div style="margin-top:auto;color:#888;font-size:13px">
-      <div style="margin-top:22px">IMPACT는 WordPress 기반으로 콘텐츠를 받아와 사이트 내에서 자체 포스트 페이지로 표시합니다.</div>
+    <div class="nav-extra">
+      <div style="color:#777;font-size:13px">IMPACT는 WordPress 기반으로 콘텐츠를 받아와 사이트 내에서 자체 포스트 페이지로 표시합니다.</div>
     </div>
   </aside>
 
-  <!-- 카테고리 전체 페이지 (모든 카테고리 재사용) -->
-  <section class="category-page" id="categoryPage">
-    <div class="category-header">
-      <div>
-        <div class="category-title" id="categoryTitle">CATEGORY</div>
-        <div class="category-sub" id="categorySubtitle">카테고리 설명</div>
+  <!-- MAIN: 홈 영역 -->
+  <main class="home" id="home" role="main" aria-live="polite">
+
+    <!-- 컨텐츠이 모두 채워질 JS 영역 -->
+    <!-- 각 row는 JS가 채운다 -->
+    <div id="rowsContainer"></div>
+
+    <!-- 로딩 표시 -->
+    <div id="homeLoading" style="text-align:center;color:#666;padding:36px 0">로딩 중...</div>
+  </main>
+
+  <!-- CATEGORY 오버레이 (전체 화면) -->
+  <section class="category-overlay" id="categoryOverlay" aria-hidden="true" role="region">
+    <div class="wrap">
+      <div class="category-top">
+        <div>
+          <div class="category-title" id="categoryOverlayTitle">CATEGORY</div>
+          <div class="category-sub" id="categoryOverlaySubtitle">카테고리에 대한 설명</div>
+        </div>
+        <div>
+          <button class="btn" onclick="router.closeCategory()">닫기</button>
+        </div>
       </div>
-      <div>
-        <button class="menu-toggle" onclick="router.closeCategory()">닫기</button>
-      </div>
-    </div>
-    <div style="padding:22px;">
-      <div id="categoryGrid" class="grid"></div>
-      <div id="categoryLoading" class="loading">아직 불러온 글이 없습니다.</div>
+
+      <div class="category-grid" id="categoryGrid" aria-live="polite"></div>
+
+      <div id="categoryLoading" style="text-align:center;color:#666;padding:28px 0"></div>
     </div>
   </section>
 
-  <!-- 포스트 페이지 -->
-  <article class="post-page" id="postPage" role="article" aria-live="polite">
-    <button class="close-post" onclick="router.closePost()">닫기 ×</button>
-    <div class="post-article" id="postArticle">
-      <!-- JS가 채움 -->
+ <!-- POST 오버레이 (내부 포스트 뷰) -->
+<article class="post-overlay" id="postOverlay" aria-hidden="true" role="article">
+  <div style="width:100%;max-width:1200px;margin:0 auto;">
+    <div style="display:flex;justify-content:flex-end;align-items:center;gap:12px;margin-bottom:18px">
+      <button class="btn" onclick="router.closePost()">닫기</button>
     </div>
-  </article>
+    <div class="post-article" id="postArticle"></div>
+  </div>
+</article>
 
-  <!-- ABOUT -->
-  <section class="about-page" id="aboutPage">
-    <div class="about-card">
-      <h2>ABOUT</h2>
-      <p style="color:#ddd;font-size:15px">IMPACT는 학생들의 창의적 아이디어와 실행을 위한 플랫폼입니다.</p>
-      <div class="about-mission">Innovation - 혁신 · Management - 관리 · Passion - 열정 · Acceleration - 혁신 가속화 · Creativity - 창의성 · Technology - 기술</div>
-      <div style="margin-top:18px;font-size:28px;font-weight:900;color:#fff">MAKE A <span style="color:#ffb86b">IMPACT.</span></div>
-      <p style="color:#bbb;margin-top:12px;line-height:1.6">IMPACT는 WordPress에서 게시된 콘텐츠를 실시간으로 불러와 IMPACT 사이트 내에서 자체 포스트 페이지로 생성합니다. 글꼴, 본문 구성, 이미지 등을 원문과 가깝게 유지하며 자연스러운 스크롤 경험을 제공합니다.</p>
-      <div style="margin-top:18px"><button class="menu-toggle" onclick="ui.closeAbout()">닫기</button></div>
+
+  <!-- SEARCH 오버레이 -->
+  <section class="search-overlay" id="searchOverlay" aria-hidden="true" role="search">
+    <div class="wrap" style="max-width:1100px;margin:0 auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px">
+        <div style="flex:1">
+          <div class="search-bar">
+  <input type="search" class="search-input" placeholder="검색어 입력 (Enter로 검색)" aria-label="검색어">
+  <button type="button" class="search-btn" id="globalSearchBtn">검색</button>
+  <button type="button" class="close-btn" onclick="ui.closeSearch()">×</button>
+</div>
+        </div>
+      </div>
+      <div id="searchResults" class="category-grid"></div>
     </div>
   </section>
 
-  <!-- 상단으로 버튼 -->
-  <div class="to-top" id="toTop" title="맨 위로" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
-
-  <!-- 템플릿 로딩 표시(숨김) -->
-  <template id="postCardTpl">
-    <div class="post-card" data-post-id="">
-      <div class="thumb"><img src="" alt=""></div>
-      <div class="body">
-        <div class="cat-row"></div>
-        <a class="post-title-link" href="#"><div class="post-title-small"></div></a>
-        <div class="excerpt-small"></div>
-        <div class="meta">
-          <div class="author"><img src="" alt="avatar"><span class="author-name"></span></div>
-          <div class="date"></div>
+  <!-- ABOUT 전체 페이지 -->
+  <section class="about-page" id="aboutPageSection" aria-hidden="true" role="region">
+    <div class="wrap about-content">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px">
+        <div>
+          <h2 style="font-size:32px;margin-bottom:10px">ABOUT</h2>
+          <div style="color:#333;font-size:15px;line-height:1.8">
+            <p><strong>IMPACT</strong> 은 現 & 前 KAIST IP-CEO 학생들과 POSTECH CEO 학생들이 함께 작성하는 심층 콘텐츠 플랫폼입니다.</p>
+            <p>학생 저자들의 경험과 분석을 바탕으로 기술·경영·창의성을 결합한 글을 제공합니다. 현장의 사례, 데이터 인텔리전스, 깊이 있는 분석을 통해 독자에게 통찰을 전달합니다.</p>
+            </p>
+          </div>
+          <div style="margin-top:20px"><button class="btn" onclick="router.closeAbout()">닫기</button></div>
         </div>
       </div>
     </div>
+  </section>
+
+  <!-- Back to top -->
+  <button class="to-top" id="toTopBtn" title="맨 위로" aria-label="맨 위로">↑</button>
+
+  <!-- Footer (공통) -->
+  <footer class="site-footer" role="contentinfo" aria-label="사이트 푸터">
+    <div class="wrap footer-inner">
+      <div>
+        <div class="footer-brand">IMPACT</div>
+        <div style="margin-top:10px;color:#ddd;font-size:13px">광고 제휴 문의 | <a href="mailto:ceo.impact.official@gmail.com">ceo.impact.official@gmail.com</a></div>
+        <div style="color:#ddd;font-size:13px;margin-top:6px">보도자료 | <a href="mailto:ceo.impact.official@gmail.com">ceo.impact.official@gmail.com</a></div>
+      </div>
+
+      <div class="footer-links">
+        <a href="javascript:void(0)" onclick="router.openAbout()">ABOUT</a>
+        <a href="javascript:void(0)" onclick="alert('EDITORS 페이지는 추후 구현됩니다')">EDITORS</a>
+        <a href="javascript:void(0)" onclick="alert('NEWSLETTER 페이지는 추후 구현됩니다')">NEWSLETTER</a>
+        <a href="https://www.instagram.com/ceo_impact_official" target="_blank" rel="noopener">INSTAGRAM</a>
+      </div>
+
+      <div class="footer-right">
+        <div style="font-weight:800;color:#fff">IMPACT CEO. ALL RIGHTS RESERVED.</div>
+        <div style="color:#999;font-size:13px;margin-top:10px">사이트는 WordPress.com API로부터 콘텐츠를 가져옵니다.</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 템플릿(스크립트용) -->
+  <template id="cardTpl">
+    <article class="card">
+      <div class="thumb"><img src="" alt=""></div>
+      <div class="card-body">
+        <div class="cat-row"></div>
+        <h3 class="title"></h3>
+        <div class="meta">
+          <img class="author-avatar" src="" alt="">
+          <div>
+            <div class="author-name"></div>
+            <div class="date" style="font-size:12px;color:#777"></div>
+          </div>
+        </div>
+      </div>
+    </article>
   </template>
 
   <script>
-    /***** 설정 (필요시 수정) *****/
-    const site = "impactceo0.wordpress.com"; // WordPress 호스트 (기존 값)
-    // 카테고리 id 매핑(기존 제공값 사용)
-    const categories = {
-      "culture": 1098,
-      "eat": 123073,
-      "editors-pick": 259543,
-      "life": 124,
-      "style": 2286,
-      "tech": 318
-    };
+  /**********************************************************************
+   * IMPACT — 확장판 자바스크립트
+   *
+   * 변경 요약:
+   * - ACCESS_TOKEN 제거 (토큰은 서버(Netlify 함수)의 환경변수로 관리)
+   * - api(path) -> Netlify 함수 프록시 경유
+   * - headers()는 더 이상 Authorization을 붙이지 않음
+   *
+   **********************************************************************/
 
-    // 요청하신 키워드 기반 카테고리 색상 (영문/한글 모두 매칭되게 처리)
-    const categoryColorMap = {
-      "Innovation":"#FF6B6B",
-      "혁신":"#FF6B6B",
-      "Management":"#4DA1FF",
-      "관리":"#4DA1FF",
-      "Passion":"#FFB86B",
-      "열정":"#FFB86B",
-      "Acceleration":"#9B7DFF",
-      "혁신 가속화":"#9B7DFF",
-      "Creativity":"#6EE7B7",
-      "창의성":"#6EE7B7",
-      "Technology":"#7FDBFF",
-      "기술":"#7FDBFF"
-    };
+  /* ===========================
+     설정값 (사용자 제공)
+     =========================== */
+  const WP_SITE = "impactceo0.wordpress.com";
+  // ACCESS_TOKEN은 이제 제거되었습니다. 클라이언트에서 노출되지 않습니다.
 
-    // 기본으로 사용할 카테고리 색상(이름 매칭이 없을 때)
-    const fallbackColors = ["#ff7f50","#7fdbff","#9b59b6","#2ecc71","#f39c12","#e74c3c","#3498db"];
+  // 카테고리 매핑 (slug -> id) (제공하신 값)
+  const CATEGORIES = {
+    "tech": 318,
+    "eat": 123073,
+    "style": 2286,
+    "culture": 1098,
+    "life": 124,
+    "editors-pick": 259543
+  };
 
-    /***** 유틸 함수 *****/
-    function api(path){
-      return `https://public-api.wordpress.com/wp/v2/sites/${site}/${path}`;
-    }
-    function safeText(html){
-      // 간단한 태그 제거(요청자가 원문 스타일을 원했으므로 본문은 innerHTML로 그대로 쓸 수 있게 함)
-      return (html || "").replace(/<[^>]+>/g,"").trim();
-    }
-    function pickColorForCategory(name){
-      if(!name) return fallbackColors[0];
-      if(categoryColorMap[name]) return categoryColorMap[name];
-      // 부분 일치 검사 (한글/영문)
-      for(const k in categoryColorMap){
-        if(name.toLowerCase().includes(k.toLowerCase())) return categoryColorMap[k];
+  // 더보기 메뉴 표시 순서 (요청)
+  const NAV_ORDER = ["TECH", "EAT", "STYLE", "CULTURE", "LIFE", "EDITORS' PICK"];
+
+  // home config
+  const HOME_PER_PAGE = 5; // we will load chunks of 5 and each row uses up to 5 (1 left, up to 4 right) ; total up to 20 posts
+  const HOME_MAX = 20; // limit total posts to show on homepage
+
+  // 상태 변수
+  const state = {
+    homePage: 1,
+    homeLoaded: 0,
+    homeFinished: false,
+    loadingHome: false,
+    postsCache: {},    // id -> post object
+    categoryPages: {}, // slug -> next page number
+    categoryFinished: {}, // slug -> finished flag
+  };
+
+  /* ===========================
+     유틸리티 함수
+     =========================== */
+  // 변경된 api(): Netlify 함수 프록시를 경유하도록 변경.
+  // Netlify 함수는 /netlify/functions/wpProxy 이며, 실제 WP 요청 경로(쿼리 포함)는 query param 'path'에 넣어 보냅니다.
+  function api(path) {
+    // Ensure the requested path always has _embed param included.
+    // If caller passed path that already contains query string, append with &; else use ?.
+    const p = path.includes('_embed') ? path : (path + (path.includes('?') ? '&' : '?') + '_embed');
+    // Use encodeURIComponent for safety
+    return `/netlify/functions/wpProxy?path=${encodeURIComponent(p)}`;
+  }
+
+  function headers() {
+    // 클라이언트에서는 토큰을 사용하지 않으므로 빈 객체 반환.
+    return {};
+  }
+
+  function safeText(html) {
+    if(!html) return '';
+    return html.replace(/<[^>]+>/g,'').trim();
+  }
+
+  // 날짜 포맷 (년도. 월. 일 형식)
+  function formatDate(dstr) {
+    try {
+      const d = new Date(dstr);
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      return `${y}. ${m}. ${dd}.`;
+    } catch(e) { return ''; }
+  }
+
+  // 카테고리 이름에 맞는 클래스
+  function pickCategoryClass(nameOrSlug) {
+    if(!nameOrSlug) return '';
+    const s = String(nameOrSlug).toLowerCase();
+    if(s.includes('tech') || s.includes('technology')) return 'cat-tech';
+    if(s.includes('eat')) return 'cat-eat';
+    if(s.includes('style')) return 'cat-style';
+    if(s.includes('culture')) return 'cat-culture';
+    if(s.includes('life')) return 'cat-life';
+    if(s.includes('editor') || s.includes('editors')) return 'cat-editors-pick';
+    return '';
+  }
+
+  /* ===========================
+     DOM 렌더 헬퍼
+     =========================== */
+
+  // 네비리스트 렌더 (순서 고정)
+function renderNavList() {
+  const navList = document.getElementById('navList');
+  navList.innerHTML = '';
+  NAV_ORDER.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = item;
+    li.addEventListener('click', ()=>{
+      // ✅ 먼저 더보기 닫기
+      ui.toggleNav();
+
+      if(item === 'SEARCH') {
+        ui.openSearch();
+      } else {
+        let slug = item.toLowerCase().replace(/'/g,'').replace(/\s/g,'-');
+        if(slug === "editors-pick") slug = 'editors-pick';
+
+        const catId = CATEGORIES[slug];
+        if(catId) {
+          router.openCategory(slug);
+        } else {
+          alert('해당 카테고리는 현재 사용할 수 없습니다.');
+        }
       }
-      // fallback: 해시 기반 선택
-      let sum=0; for(let i=0;i<name.length;i++) sum+=name.charCodeAt(i);
-      return fallbackColors[sum % fallbackColors.length];
+    });
+    navList.appendChild(li);
+  });
+}
+
+
+  // 카드 노드 생성: post 객체 사용
+  function createCardNode(post) {
+    const tpl = document.getElementById('cardTpl');
+    const node = tpl.content.firstElementChild.cloneNode(true);
+    // thumb
+    const img = node.querySelector('.thumb img');
+    let thumbUrl = '';
+    try {
+      if(post._embedded && post._embedded['wp:featuredmedia'] && post._embedded['wp:featuredmedia'][0] && post._embedded['wp:featuredmedia'][0].source_url) {
+        thumbUrl = post._embedded['wp:featuredmedia'][0].source_url;
+      }
+    } catch(e) { thumbUrl = ''; }
+    img.src = thumbUrl || placeholderDataURI(1200, 800, 'No Image');
+
+    // title
+    node.querySelector('.title').innerHTML = post.title && post.title.rendered ? post.title.rendered : '제목 없음';
+
+    // meta: avatar, name, date
+    const avatarImg = node.querySelector('.author-avatar');
+    const authorNameEl = node.querySelector('.author-name');
+    const dateEl = node.querySelector('.date');
+
+    if(post._embedded && post._embedded.author && post._embedded.author[0]) {
+      const a = post._embedded.author[0];
+      // Many WP author avatar urls provided under a.avatar_urls
+      const avatarUrl = (a.avatar_urls && (a.avatar_urls['96']||a.avatar_urls['48']||a.avatar_urls['24'])) ? (a.avatar_urls['48']||a.avatar_urls['24']) : '';
+      avatarImg.src = avatarUrl || placeholderDataURI(96,96,'U');
+      avatarImg.alt = a.name || 'author';
+      // 사용자 요구: '에디터' 라는 단어 빼고 이름만 표시
+      authorNameEl.textContent = a.name || '익명';
+    } else {
+      avatarImg.src = placeholderDataURI(96,96,'U');
+      authorNameEl.textContent = '익명';
+    }
+    dateEl.textContent = formatDate(post.date);
+
+    // categories
+    const catRow = node.querySelector('.cat-row');
+    catRow.innerHTML = '';
+    if(post._embedded && post._embedded['wp:term'] && post._embedded['wp:term'][0]) {
+      const cats = post._embedded['wp:term'][0];
+      cats.forEach(c => {
+        if(c && c.name) {
+          const span = document.createElement('span');
+          span.className = 'cat-badge';
+          span.textContent = c.name;
+          const cls = pickCategoryClass(c.slug || c.name);
+          if(cls) span.classList.add(cls);
+          else span.style.background = '#666';
+          catRow.appendChild(span);
+        }
+      });
     }
 
-    /***** 전역 상태 *****/
-    const state = {
-      home: {page:1, per_page:6, loaded:0, max:20, posts:[]}, // 홈에서는 최신 20개까지 불러옴
-      category: { currentSlug:null, page:1, per_page:6, posts:[] },
-      postsCache: {}, // id -> post
-    };
+    // click event: open post overlay (site internal)
+    node.addEventListener('click', ()=>{
+      openPostOverlayById(post.id);
+    });
 
-    /***** 간단한 UI/Router 관리 *****/
-    const ui = {
-      toggleNav(){
-        document.getElementById('navOverlay').classList.toggle('active');
-      },
-      openAbout(){
-        document.getElementById('aboutPage').classList.add('active');
-      },
-      closeAbout(){
-        document.getElementById('aboutPage').classList.remove('active');
-      },
-      openNavAndHighlightCats(){
-        ui.toggleNav();
-        renderNavList();
-      },
-      searchPosts(){
-        const q = document.getElementById('searchInput').value.trim();
-        if(!q) return alert('검색어를 입력하세요');
-        // 간단 검색: WP posts?search=...
-        router.openSearch(q);
-        ui.toggleNav();
+    return node;
+  }
+
+  // placeholder dataURI generator for basic inline svg placeholder
+  function placeholderDataURI(w=600, h=400, txt='No Image') {
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'><rect width='100%' height='100%' fill='#efefef'/><text x='50%' y='50%' fill='#aaa' font-size='20' text-anchor='middle' dominant-baseline='middle'>${txt}</text></svg>`;
+    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+  }
+
+  /* ===========================
+     홈 로더 (무한스크롤 지원)
+     =========================== */
+  async function loadHomeChunk() {
+    if(state.loadingHome || state.homeFinished) return;
+    state.loadingHome = true;
+    document.getElementById('homeLoading').textContent = '로딩 중...';
+
+    try {
+      // page-based fetching; per_page = HOME_PER_PAGE
+      const res = await fetch(api(`posts?per_page=${HOME_PER_PAGE}&page=${state.homePage}`), { headers: headers() });
+      if(!res.ok) {
+        if(res.status === 400) {
+          state.homeFinished = true;
+          document.getElementById('homeLoading').textContent = '더 이상 글이 없습니다.';
+        } else {
+          throw new Error('Home fetch failed: ' + res.status);
+        }
+        state.loadingHome = false;
+        return;
       }
-    };
+      const posts = await res.json();
+      if(!Array.isArray(posts) || posts.length === 0) {
+        state.homeFinished = true;
+        document.getElementById('homeLoading').textContent = '아직 게시된 글이 없습니다.';
+        state.loadingHome = false;
+        return;
+      }
 
-    const router = {
-      goHome(){
-        // 홈 보여주기
-        document.getElementById('home').scrollIntoView({behavior:'smooth'});
-        // 닫혀있던 페이지들 닫기
-        document.getElementById('categoryPage').classList.remove('active');
-        document.getElementById('postPage').classList.remove('active');
-        document.getElementById('aboutPage').classList.remove('active');
-        // pushState
-        history.pushState({}, '', location.pathname);
-      },
-      openCategory(slug, catId, titleText){
-        state.category.currentSlug = slug;
-        state.category.page = 1;
-        state.category.posts = [];
-        document.getElementById('categoryTitle').textContent = titleText || slug.toUpperCase();
-        document.getElementById('categorySubtitle').textContent = "카테고리의 최신 글을 불러옵니다.";
-        document.getElementById('categoryGrid').innerHTML = "";
-        document.getElementById('categoryLoading').textContent = "로딩 중...";
-        document.getElementById('categoryPage').classList.add('active');
-        router.loadCategory(catId);
-        history.pushState({}, '', `#category-${slug}`);
-      },
-      closeCategory(){
-        document.getElementById('categoryPage').classList.remove('active');
-        state.category.currentSlug = null;
-        history.pushState({}, '', location.pathname);
-      },
-      openPost(post){
-        // post는 WP의 post 객체 (이미 캐시되어 있음)
-        if(!post) return;
-        document.getElementById('postArticle').innerHTML = `
-          <h1>${post.title.rendered}</h1>
-          <div class="post-meta-row">
-            <div style="display:flex;align-items:center;gap:12px">
-              <img src="${(post._embedded && post._embedded.author && post._embedded.author[0] && post._embedded.author[0].avatar_urls) ? post._embedded.author[0].avatar_urls['96'] : ''}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.06)">
-              <div>
-                <div style="font-weight:800">${(post._embedded && post._embedded.author && post._embedded.author[0]) ? post._embedded.author[0].name : '익명'}</div>
-                <div style="font-size:13px;color:#aaa;margin-top:4px">${new Date(post.date).toLocaleString()}</div>
-              </div>
-            </div>
-            <div style="text-align:right;color:#aaa">
-              <div>카테고리: ${(post._embedded && post._embedded['wp:term'] && post._embedded['wp:term'][0]) ? post._embedded['wp:term'][0].map(c=>c.name).join(', ') : '-'}</div>
+      // 캐싱
+      posts.forEach(p => state.postsCache[p.id] = p);
+
+      // render groups of up to 5 per row (one big, up to 4 small)
+      const container = document.getElementById('rowsContainer');
+
+      // flatten previous rows count and ensure we don't exceed HOME_MAX
+      for(let i=0; i<posts.length; i += 5) {
+        const group = posts.slice(i, i+5);
+        if(state.homeLoaded >= HOME_MAX) {
+          state.homeFinished = true;
+          break;
+        }
+        // create row
+        const row = document.createElement('div');
+        row.className = 'row';
+
+        // left big
+        const leftPost = group[0];
+        const leftDiv = document.createElement('div');
+        leftDiv.className = 'col-left';
+        // hero image
+        let heroUrl = '';
+        try {
+          if(leftPost._embedded && leftPost._embedded['wp:featuredmedia'] && leftPost._embedded['wp:featuredmedia'][0]) {
+            heroUrl = leftPost._embedded['wp:featuredmedia'][0].source_url || '';
+          }
+        } catch(e) { heroUrl = ''; }
+        // construct inner HTML
+        leftDiv.innerHTML = `
+          <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero">
+          <div class="hero-overlay">
+            <h2 class="hero-title"></h2>
+            <div class="meta">
+              <img class="hero-avatar" src="">
+              <div class="hero-author"></div>
+              <div style="margin-left:8px;color:#eee;opacity:.9" class="hero-date"></div>
             </div>
           </div>
-          <div class="post-content">${post.content && post.content.rendered ? post.content.rendered : safeText(post.excerpt && post.excerpt.rendered)}</div>
-          <div style="margin-top:18px;color:#999;font-size:13px">원문 링크: <a href="${post.link}" target="_blank" style="color:#9fd1ff">${post.link}</a></div>
         `;
-        document.getElementById('postPage').classList.add('active');
-        history.pushState({}, '', `#post-${post.id}`);
-      },
-      closePost(){
-        document.getElementById('postPage').classList.remove('active');
-        history.pushState({}, '', location.pathname);
-      },
-      // 홈 초기 로드
-      async loadHome(){
-        try {
-          document.getElementById('mainLoading').textContent = "로딩 중...";
-          await this.fetchAndRenderHome();
-        } catch(err){
-          console.error(err);
-          document.getElementById('mainLoading').textContent = "글을 불러오는 중 오류가 발생했습니다.";
+        // hero category badge (우측 하단)
+const catWrap = document.createElement('div');
+catWrap.className = 'hero-cats';
+if(leftPost._embedded && leftPost._embedded['wp:term'] && leftPost._embedded['wp:term'][0] && leftPost._embedded['wp:term'][0].length > 0) {
+  const c = leftPost._embedded['wp:term'][0][0]; // 첫번째 카테고리만
+  const span = document.createElement('span');
+  span.className = 'cat-badge ' + pickCategoryClass(c.slug || c.name);
+  span.textContent = c.name;
+  catWrap.appendChild(span);
+}
+leftDiv.appendChild(catWrap);
+
+        // fill title, author, date
+        const heroTitle = leftDiv.querySelector('.hero-title');
+        heroTitle.innerHTML = leftPost.title && leftPost.title.rendered ? leftPost.title.rendered : '제목 없음';
+        const heroAvatar = leftDiv.querySelector('.hero-avatar');
+        const heroAuthor = leftDiv.querySelector('.hero-author');
+        const heroDate = leftDiv.querySelector('.hero-date');
+
+        if(leftPost._embedded && leftPost._embedded.author && leftPost._embedded.author[0]) {
+          const a = leftPost._embedded.author[0];
+          const av = (a.avatar_urls && (a.avatar_urls['96']||a.avatar_urls['48']||a.avatar_urls['24'])) ? (a.avatar_urls['48']||a.avatar_urls['24']) : '';
+          heroAvatar.src = av || placeholderDataURI(48,48,'U');
+          heroAuthor.textContent = (a.name || '익명'); // 이름만 표시
+        } else {
+          heroAvatar.src = placeholderDataURI(48,48,'U');
+          heroAuthor.textContent = '익명';
         }
-      },
-      // 카테고리 로드
-      async loadCategory(catId){
-        const grid = document.getElementById('categoryGrid');
-        const loading = document.getElementById('categoryLoading');
-        loading.textContent = "로딩 중...";
-        const per_page = state.category.per_page || 6;
-        const page = state.category.page || 1;
-        try {
-          const res = await fetch(api(`posts?categories=${catId}&per_page=${per_page}&page=${page}&_embed`));
-          if(!res.ok){
-            if(res.status === 400) { // page out of range
-              loading.textContent = "더 이상 글이 없습니다.";
-              return;
-            }
-            throw new Error('API error');
-          }
-          const posts = await res.json();
-          if(!posts || posts.length===0){
-            loading.textContent = "아직 이 카테고리에 글이 없습니다.";
-            return;
-          }
-          // 캐시 및 렌더
-          posts.forEach(p => state.category.posts.push(p), state.postsCache[p.id]=p);
-          renderPostsList(posts, grid, true);
-          state.category.page++;
-          loading.textContent = "";
-        } catch(err){
-          console.error(err);
-          loading.textContent = "카테고리 글 불러오기 실패";
+        heroDate.textContent = formatDate(leftPost.date);
+
+        // auto adjust hero title color based on image luminance (try if CORS allows)
+        adjustHeroContrast(leftDiv.querySelector('.hero'), heroTitle, leftDiv.querySelector('.hero-overlay'));
+
+        leftDiv.addEventListener('click', ()=> openPostOverlayById(leftPost.id));
+        row.appendChild(leftDiv);
+
+        // right small stack: up to 4 items (group[1..4])
+        const rightDiv = document.createElement('div');
+        rightDiv.className = 'col-right';
+        const smalls = group.slice(1,5);
+        smalls.forEach(s => {
+          const cardNode = createCardNode(s);
+          rightDiv.appendChild(cardNode);
+        });
+        // if less than 4, fill with placeholders? not necessary.
+        row.appendChild(rightDiv);
+
+        container.appendChild(row);
+        state.homeLoaded += group.length;
+        if(state.homeLoaded >= HOME_MAX) {
+          state.homeFinished = true;
+          break;
         }
-      },
-      // 홈용: 최신 글 계속 불러와서 화면에 채운다(최대 state.home.max)
-      async fetchAndRenderHome(){
-        const grid = document.getElementById('mainGrid');
-        const loading = document.getElementById('mainLoading');
-        const per_page = state.home.per_page;
-        let page = state.home.page;
-        while(state.home.loaded < state.home.max){
-          try{
-            const res = await fetch(api(`posts?per_page=${per_page}&page=${page}&_embed`));
-            if(!res.ok){
-              if(res.status===400) break;
-              throw new Error('API 실패');
-            }
-            const posts = await res.json();
-            if(!posts || posts.length===0) break;
-            // 캐시
-            posts.forEach(p => { state.postsCache[p.id]=p; state.home.posts.push(p); });
-            // 렌더 (한 번에 추가)
-            renderHomeChunk(posts, grid);
-            state.home.loaded += posts.length;
-            page++;
-            state.home.page = page;
-            // 중단 조건: 최대치 넘으면 잘라냄
-            if(state.home.loaded >= state.home.max) break;
-          }catch(err){
-            console.error(err); loading.textContent = "메인 글 불러오기 실패"; break;
-          }
+      }
+
+      state.homePage += 1;
+      if(state.homeLoaded >= HOME_MAX) {
+        document.getElementById('homeLoading').textContent = '';
+      } else {
+        document.getElementById('homeLoading').textContent = '';
+      }
+    } catch(err) {
+      console.error(err);
+      document.getElementById('homeLoading').textContent = '메인 글 불러오기 실패';
+    } finally {
+      state.loadingHome = false;
+    }
+  }
+
+  /* ===========================
+     카테고리 로드 (페이지네이션/무한스크롤)
+     =========================== */
+  async function loadCategoryPage(slug) {
+    if(!slug) return;
+    if(state.categoryFinished[slug]) return;
+    const nextPage = state.categoryPages[slug] || 1;
+    document.getElementById('categoryLoading').textContent = '로딩 중...';
+    try {
+      const catId = CATEGORIES[slug];
+      if(!catId) {
+        document.getElementById('categoryLoading').textContent = '알 수 없는 카테고리입니다.';
+        return;
+      }
+      const res = await fetch(api(`posts?categories=${catId}&per_page=10&page=${nextPage}`), { headers: headers() });
+      if(!res.ok) {
+        if(res.status === 400) {
+          state.categoryFinished[slug] = true;
+          document.getElementById('categoryLoading').textContent = '더 이상 글이 없습니다.';
+          return;
         }
-        if(state.home.loaded === 0) loading.textContent = "아직 게시된 글이 없습니다";
-        else loading.textContent = "";
-      },
-      // 홈 추가 로드 (무한스크롤 시)
-      async loadMoreHomeIfNeeded(){
-        if(state.home.loaded >= state.home.max) return;
-        // 이미 로드중이면 return
-        await this.fetchAndRenderHome();
-      },
-      async openSearch(q){
-        // 단순 검색 페이지처럼 카테고리 페이지 재활용
-        document.getElementById('categoryTitle').textContent = `검색: ${q}`;
-        document.getElementById('categorySubtitle').textContent = "검색 결과";
-        document.getElementById('categoryGrid').innerHTML = "";
-        document.getElementById('categoryPage').classList.add('active');
-        document.getElementById('categoryLoading').textContent = "검색 중...";
-        try {
-          const res = await fetch(api(`posts?search=${encodeURIComponent(q)}&per_page=20&_embed`));
-          if(!res.ok) throw new Error('검색 오류');
-          const posts = await res.json();
-          if(!posts || posts.length===0){
-            document.getElementById('categoryLoading').textContent = "검색 결과가 없습니다.";
-            return;
-          }
-          posts.forEach(p => state.postsCache[p.id]=p);
-          renderPostsList(posts, document.getElementById('categoryGrid'), true);
-          document.getElementById('categoryLoading').textContent = "";
-        } catch(err){
-          console.error(err);
-          document.getElementById('categoryLoading').textContent = "검색 중 오류가 발생했습니다.";
+        throw new Error('category fetch failed: ' + res.status);
+      }
+      const posts = await res.json();
+      if(!Array.isArray(posts) || posts.length === 0) {
+        state.categoryFinished[slug] = true;
+        document.getElementById('categoryLoading').textContent = '아직 게시된 글이 없습니다.';
+        return;
+      }
+
+      // render
+      const grid = document.getElementById('categoryGrid');
+      posts.forEach(p => {
+        state.postsCache[p.id] = p;
+        const card = createCardNode(p);
+        grid.appendChild(card);
+      });
+
+      state.categoryPages[slug] = nextPage + 1;
+      document.getElementById('categoryLoading').textContent = '';
+    } catch(err) {
+      console.error(err);
+      document.getElementById('categoryLoading').textContent = '카테고리 글 불러오기 실패';
+    }
+  }
+
+  /* ===========================
+     포스트 오버레이 로드 (단건)
+     =========================== */
+  async function openPostOverlayById(id) {
+    if(!id) return;
+    // if cached and has content, use it
+    const cached = state.postsCache[id];
+    if(cached && cached.content && cached.content.rendered) {
+      renderPostOverlay(cached);
+      return;
+    }
+    try {
+      const res = await fetch(api(`posts/${id}`), { headers: headers() });
+      if(!res.ok) throw new Error('post fetch failed ' + res.status);
+      const post = await res.json();
+      // fetch again with _embed to get author/media included
+      // Some endpoints may already include _embedded due to api() usage - ensure presence
+      if(!(post._embedded && post._embedded.author)) {
+        // try refetch with _embed param
+        const res2 = await fetch(api(`posts/${id}?_embed`), { headers: headers() });
+        if(res2.ok) {
+          const post2 = await res2.json();
+          state.postsCache[id] = post2;
+          renderPostOverlay(post2);
+          return;
         }
+      }
+      state.postsCache[id] = post;
+      renderPostOverlay(post);
+    } catch(err) {
+      console.error(err);
+      alert('포스트 로드 실패 — 원문으로 이동합니다.');
+      if(cached && cached.link) window.open(cached.link, '_blank');
+    }
+  }
+
+  function renderPostOverlay(post) {
+    // ensure _embedded author exists
+    const overlay = document.getElementById('postOverlay');
+    const article = document.getElementById('postArticle');
+    const title = post.title && post.title.rendered ? post.title.rendered : '제목 없음';
+    const authorName = (post._embedded && post._embedded.author && post._embedded.author[0] && post._embedded.author[0].name) ? post._embedded.author[0].name : '익명';
+    const avatar = (post._embedded && post._embedded.author && post._embedded.author[0] && post._embedded.author[0].avatar_urls) ? (post._embedded.author[0].avatar_urls['96'] || post._embedded.author[0].avatar_urls['48']) : '';
+    const categories = (post._embedded && post._embedded['wp:term'] && post._embedded['wp:term'][0]) ? post._embedded['wp:term'][0].map(t=>t.name).join(', ') : '-';
+    const dateStr = formatDate(post.date);
+
+    // Post content: use rendered HTML from WP; keep images responsive
+    const contentHTML = post.content && post.content.rendered ? post.content.rendered : (post.excerpt && post.excerpt.rendered ? post.excerpt.rendered : '');
+
+    article.innerHTML = `
+      <h1>${title}</h1>
+      <div class="post-meta" style="margin-bottom:14px;">
+        <img src="${avatar || placeholderDataURI(96,96,'U')}" alt="author">
+        <div style="display:flex;flex-direction:column">
+          <div style="font-weight:800;color:#111">${authorName}</div>
+          <div style="color:#666;font-size:13px">${dateStr} · ${categories}</div>
+        </div>
+      </div>
+      <div class="post-content">${contentHTML}</div>
+      <div style="margin-top:18px;color:#888;font-size:13px">원문 링크: <a href="${post.link}" target="_blank" rel="noopener">${post.link}</a></div>
+    `;
+
+    // images responsive enforcement
+    article.querySelectorAll('.post-content img').forEach(img=>{
+      img.style.maxWidth = '100%';
+      img.style.height = 'auto';
+      img.style.display = 'block';
+      img.style.margin = '12px 0';
+    });
+
+    overlay.classList.add('active');
+    overlay.scrollTop = 0;
+  }
+
+  /* ===========================
+     검색 기능
+     =========================== */
+  async function doSearch(q) {
+    if(!q) return;
+    // show overlay
+    ui.openSearch();
+    const resultsGrid = document.getElementById('searchResults');
+    resultsGrid.innerHTML = '';
+    try {
+      const res = await fetch(api(`posts?search=${encodeURIComponent(q)}&per_page=20`), { headers: headers() });
+      if(!res.ok) throw new Error('search failed ' + res.status);
+      const posts = await res.json();
+      if(!Array.isArray(posts) || posts.length === 0) {
+        resultsGrid.innerHTML = '<div style="padding:20px;color:#666">검색 결과가 없습니다.</div>';
+        return;
+      }
+      posts.forEach(p => {
+        state.postsCache[p.id] = p;
+        const card = createCardNode(p);
+        resultsGrid.appendChild(card);
+      });
+    } catch(err) {
+      console.error(err);
+      resultsGrid.innerHTML = '<div style="padding:20px;color:#d00">검색 중 오류가 발생했습니다.</div>';
+    }
+  }
+
+  /* ===========================
+     이미지 대비에 따른 텍스트 색상 자동화
+     - 시도 방식: 이미지 crossOrigin='anonymous'로 캔버스에 그려 평균 밝기 측정
+     - 만약 CORS 문제로 실패하면 기본 흰색 글자 유지
+     =========================== */
+  async function adjustHeroContrast(imgEl, titleEl, overlayEl) {
+    // if imgEl src is empty, skip
+    if(!imgEl || !imgEl.src) return;
+    // create an Image with crossOrigin attempt
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = imgEl.src;
+    // if already loaded
+    function setColors(isLight) {
+      if(isLight) {
+        titleEl.style.color = '#111';
+        titleEl.style.textShadow = 'none';
+        overlayEl.style.background = 'linear-gradient(0deg, rgba(255,255,255,0.85), rgba(255,255,255,0.35))';
+      } else {
+        titleEl.style.color = '#fff';
+        titleEl.style.textShadow = '0 3px 12px rgba(0,0,0,0.45)';
+        overlayEl.style.background = 'linear-gradient(180deg, rgba(0,0,0,0.0), rgba(0,0,0,0.45))';
+      }
+    }
+    // attempt to analyze
+    img.onload = function() {
+      try {
+        const canvas = document.createElement('canvas');
+        // sample small to reduce cost
+        const w = Math.min(200, img.width);
+        const h = Math.min(120, img.height);
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const data = ctx.getImageData(0,0,w,h).data;
+        let r=0,g=0,b=0,count=0;
+        for(let i=0;i<data.length;i+=4) {
+          r += data[i];
+          g += data[i+1];
+          b += data[i+2];
+          count++;
+        }
+        const avgR = r/count, avgG = g/count, avgB = b/count;
+        // luminance formula
+        const lum = 0.2126*avgR + 0.7152*avgG + 0.0722*avgB;
+        // threshold ~ 150
+        setColors(lum > 150);
+      } catch(e) {
+        // CORS or other issue -> fallback to dark overlay (white text)
+        setColors(false);
       }
     };
+    img.onerror = function() {
+      // fallback: keep white
+      setColors(false);
+    };
+  }
 
-    /***** 렌더링 헬퍼 *****/
-    function renderNavList(){
-      const nav = document.getElementById('navList'); nav.innerHTML = '';
-      // categories 객체 순회
-      Object.keys(categories).forEach(slug=>{
-        const li = document.createElement('li');
-        li.textContent = slug.toUpperCase();
-        li.onclick = ()=> { ui.toggleNav(); router.openCategory(slug, categories[slug], slug.toUpperCase()); };
-        nav.appendChild(li);
-      });
-      // 사용자 정의 키워드 색상 미리보기
-      const extra = document.createElement('div'); extra.style.marginTop='18px';
-      extra.innerHTML = `<div style="font-weight:800;margin-bottom:8px">키워드 배지</div>`;
-      const keys = ["Innovation","Management","Passion","Acceleration","Creativity","Technology"];
-      keys.forEach(k=>{
-        const b = document.createElement('span');
-        b.textContent = k;
-        b.style.display='inline-block';
-        b.style.padding='6px 8px';
-        b.style.margin='4px';
-        b.style.borderRadius='6px';
-        b.style.background = pickColorForCategory(k);
-        b.style.color='#000';
-        b.style.fontWeight='800';
-        extra.appendChild(b);
-      });
-      nav.appendChild(extra);
+  /* ===========================
+     유틸: 스크롤 이벤트 바인딩 (무한스크롤)
+     =========================== */
+  function onScrollHandler() {
+    const toTop = document.getElementById('toTopBtn');
+    if(window.scrollY > 300) toTop.classList.add('show'); else toTop.classList.remove('show');
+
+    // If category overlay open, load more category if near bottom
+    const categoryOverlay = document.getElementById('categoryOverlay');
+    if(categoryOverlay.classList.contains('active')) {
+      // near bottom detection
+      const scroller = categoryOverlay;
+      if(scroller.scrollHeight - (scroller.scrollTop + scroller.clientHeight) < 300) {
+        // load more for that slug (we store slug on overlay element)
+        const slug = categoryOverlay.dataset.slug;
+        if(slug) loadCategoryPage(slug);
+      }
+      return;
     }
 
-    function renderHomeChunk(posts, grid){
-      // 첫 글(최초)에 대해서는 featured 처리: only when grid is empty
-      if(grid.children.length === 0){
-        const first = posts.shift();
-        if(first){
-          state.postsCache[first.id]=first;
-          const frag = buildFeatured(first);
-          grid.appendChild(frag);
-        }
+    // If post overlay open, do nothing
+    const postOverlay = document.getElementById('postOverlay');
+    if(postOverlay.classList.contains('active')) return;
+
+    // If search overlay open, do nothing
+    const searchOverlay = document.getElementById('searchOverlay');
+    if(searchOverlay.classList.contains('active')) return;
+
+    // Home infinite scroll: when nearing bottom of body and not finished, load more
+    if(!state.loadingHome && !state.homeFinished) {
+      const bottomThreshold = 1200; // px from bottom
+      if(window.innerHeight + window.scrollY >= document.body.offsetHeight - bottomThreshold) {
+        loadHomeChunk();
       }
-      // 나머지 카드들
-      renderPostsList(posts, grid, false);
     }
+  }
 
-    function renderPostsList(posts, container, clickable){
-      // posts: 배열, container: 엘리먼트
-      posts.forEach(post=>{
-        const tpl = document.getElementById('postCardTpl');
-        const node = tpl.content.firstElementChild.cloneNode(true);
-        node.dataset.postId = post.id;
-        const imgEl = node.querySelector('.thumb img');
-        const titleEl = node.querySelector('.post-title-link');
-        const titleInner = node.querySelector('.post-title-small');
-        const excerptEl = node.querySelector('.excerpt-small');
-        const authorImg = node.querySelector('.author img');
-        const authorName = node.querySelector('.author-name');
-        const dateEl = node.querySelector('.date');
-        const catRow = node.querySelector('.cat-row');
+/* ===========================
+   UI / Router proxies
+   =========================== */
+const ui = {
+  toggleNav() {
+    document.getElementById('navOverlay').classList.toggle('active');
+  },
 
-        // 썸네일
-        let thumb = "";
-        if(post._embedded && post._embedded['wp:featuredmedia'] && post._embedded['wp:featuredmedia'][0]){
-          thumb = post._embedded['wp:featuredmedia'][0].source_url;
-        } else {
-          thumb = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='800'><rect fill='#111' width='100%' height='100%'/><text x='50%' y='50%' fill='#444' font-size='34' text-anchor='middle' alignment-baseline='middle'>No Image</text></svg>`);
-        }
-        imgEl.src = thumb;
+  openSearch() {
+    document.getElementById('searchOverlay').classList.add('active');
+    const input = document.querySelector('#searchOverlay .search-input');
+    if (input) input.focus();
 
-        // 제목, 요약
-        titleInner.innerHTML = safeText(post.title && post.title.rendered ? post.title.rendered : "제목 없음");
-        titleEl.href = "#";
+    history.pushState({ page: 'search' }, '', '#search');
+    document.getElementById('navOverlay').classList.remove('active');
+  },
 
-        excerptEl.textContent = safeText(post.excerpt && post.excerpt.rendered ? post.excerpt.rendered : "").slice(0,120) + (post.excerpt && post.excerpt.rendered ? "..." : "");
+  closeSearch() {
+    document.getElementById('searchOverlay').classList.remove('active');
+  },
 
-        // 작성자
-        let authorNameText = "익명";
-        let avatar = "";
-        if(post._embedded && post._embedded.author && post._embedded.author[0]){
-          authorNameText = post._embedded.author[0].name;
-          avatar = post._embedded.author[0].avatar_urls ? post._embedded.author[0].avatar_urls['96'] : "";
-        }
-        authorImg.src = avatar || 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96'><rect fill='#333' width='100%' height='100%'/><text x='50%' y='50%' fill='#666' font-size='22' text-anchor='middle' alignment-baseline='middle'>U</text></svg>`);
-        authorName.textContent = authorNameText;
-        dateEl.textContent = new Date(post.date).toLocaleDateString();
+  searchNow() {
+    const overlayInput = document.querySelector('#searchOverlay.active .search-input');
+    const navInput = document.querySelector('#navOverlay.active #globalSearchInput');
+    const input = overlayInput || navInput;
+    if (!input) { alert('검색창을 찾을 수 없습니다.'); return; }
 
-        // 카테고리 배지
-        catRow.innerHTML = "";
-        if(post._embedded && post._embedded['wp:term'] && post._embedded['wp:term'][0]){
-          const cats = post._embedded['wp:term'][0];
-          cats.forEach(c=>{
-            const span = document.createElement('span');
-            span.className = 'cat-badge';
-            span.textContent = c.name;
-            span.style.background = pickColorForCategory(c.name);
-            catRow.appendChild(span);
-          });
-        }
+    const q = input.value.trim();
+    if (!q) { alert('검색어를 입력하세요'); return; }
 
-        // 클릭 이벤트: 내부 포스트 페이지 열기
-        node.addEventListener('click', (e)=>{
-          e.preventDefault();
-          // post 객체는 캐시에서 가져오기
-          const cached = state.postsCache[post.id] || post;
-          // 만약 본문이 비어있다면, API로 단건 호출 시도
-          if(!cached.content || !cached.content.rendered){
-            fetch(api(`posts/${post.id}?_embed`)).then(r=>r.json()).then(p=>{
-              state.postsCache[p.id]=p;
-              router.openPost(p);
-            }).catch(err=>{
-              console.error(err);
-              // 실패 시 원본 링크로 새창 열기
-              window.open(post.link, '_blank');
-            });
-          } else {
-            router.openPost(cached);
-          }
-        });
+    doSearch(q);
+    // 닫지 않음
+  }
+};
 
-        container.appendChild(node);
-      });
+// 카테고리별 설명 문구
+const CATEGORY_DESCRIPTIONS = {
+  tech: "최신 기술과 혁신 트렌드를 다룹니다.",
+  eat: "다양한 음식 문화와 맛집을 소개합니다.",
+  style: "패션, 뷰티, 라이프스타일을 탐구합니다.",
+  culture: "문화, 예술, 사회 현상을 분석합니다.",
+  life: "일상과 경험에서 얻은 통찰을 나눕니다.",
+  "editors-pick": "에디터가 직접 엄선한 글 모음입니다."
+};
+
+const router = {
+  goHome() {
+    document.querySelectorAll('.category-overlay, .post-overlay, .about-page, .search-overlay')
+      .forEach(el => el.classList.remove('active'));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    history.pushState({ page: 'home' }, '', '/');
+  },
+
+  openCategory(slug) {
+    const overlay = document.getElementById('categoryOverlay');
+    overlay.dataset.slug = slug;
+    overlay.classList.add('active');
+    overlay.scrollTop = 0;
+
+    // ✅ 제목과 설명 업데이트
+    document.getElementById('categoryOverlayTitle').textContent = slug.toUpperCase();
+    document.getElementById('categoryOverlaySubtitle').textContent =
+      CATEGORY_DESCRIPTIONS[slug] || "카테고리 콘텐츠";
+
+    // ✅ 초기화 후 글 불러오기
+    state.categoryPages[slug] = 1;
+    state.categoryFinished[slug] = false;
+    document.getElementById('categoryGrid').innerHTML = '';
+    loadCategoryPage(slug);
+
+    history.pushState({ page: 'category', slug }, '', `#category-${slug}`);
+    document.getElementById('navOverlay').classList.remove('active');
+  },
+
+  closeCategory() {
+    const overlay = document.getElementById('categoryOverlay');
+    overlay.classList.remove('active');
+    delete overlay.dataset.slug;
+  },
+
+  openPost(post) {
+    if (post && post.id) {
+      state.postsCache[post.id] = post;
+      renderPostOverlay(post);
+      history.pushState({ page: 'post', id: post.id }, '', `#post-${post.id}`);
+      document.getElementById('navOverlay').classList.remove('active');
     }
+  },
 
-    function buildFeatured(post){
-      const wrapper = document.createElement('div');
-      wrapper.className = 'post-featured';
-      const thumbDiv = document.createElement('div'); thumbDiv.className = 'thumb';
-      const img = document.createElement('img');
-      if(post._embedded && post._embedded['wp:featuredmedia'] && post._embedded['wp:featuredmedia'][0]){
-        img.src = post._embedded['wp:featuredmedia'][0].source_url;
-      } else {
-        img.src = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='800'><rect fill='#111' width='100%' height='100%'/><text x='50%' y='50%' fill='#444' font-size='34' text-anchor='middle' alignment-baseline='middle'>No Image</text></svg>`);
-      }
-      thumbDiv.appendChild(img);
+  closePost() {
+    document.getElementById('postOverlay').classList.remove('active');
+  },
 
-      const body = document.createElement('div'); body.className='body';
-      const titleLink = document.createElement('a'); titleLink.href="#"; titleLink.className='post-title-link';
-      const title = document.createElement('div'); title.className='post-title'; title.innerHTML = safeText(post.title && post.title.rendered ? post.title.rendered : "제목 없음");
-      titleLink.appendChild(title);
+  openAbout() {
+    document.getElementById('aboutPageSection').classList.add('active');
+    history.pushState({ page: 'about' }, '', '#about');
+    document.getElementById('navOverlay').classList.remove('active');
+  },
 
-      const catRow = document.createElement('div'); catRow.className='cat-row';
-      if(post._embedded && post._embedded['wp:term'] && post._embedded['wp:term'][0]){
-        post._embedded['wp:term'][0].forEach(c=>{
-          const span = document.createElement('span'); span.className='cat-badge'; span.textContent = c.name; span.style.background = pickColorForCategory(c.name);
-          catRow.appendChild(span);
-        });
-      }
+  closeAbout() {
+    document.getElementById('aboutPageSection').classList.remove('active');
+  }
+};
 
-      const meta = document.createElement('div'); meta.className='meta';
-      const authorWrap = document.createElement('div'); authorWrap.style.display='flex';authorWrap.style.alignItems='center';authorWrap.style.gap='10px';
-      const avatar = document.createElement('img'); avatar.style.width='56px'; avatar.style.height='56px'; avatar.style.borderRadius='50%'; avatar.style.objectFit='cover';
-      let authorName = "익명";
-      if(post._embedded && post._embedded.author && post._embedded.author[0]){
-        authorName = post._embedded.author[0].name;
-        avatar.src = post._embedded.author[0].avatar_urls ? post._embedded.author[0].avatar_urls['96'] : '';
-      } else {
-        avatar.src = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96'><rect fill='#333' width='100%' height='100%'/><text x='50%' y='50%' fill='#666' font-size='22' text-anchor='middle' alignment-baseline='middle'>U</text></svg>`);
-      }
-      authorWrap.appendChild(avatar);
-      const authorTxt = document.createElement('div'); authorTxt.innerHTML = `<div style="font-weight:800">${authorName}</div><div style="font-size:13px;color:#aaa;margin-top:6px">${new Date(post.date).toLocaleDateString()}</div>`;
-      authorWrap.appendChild(authorTxt);
 
-      meta.appendChild(authorWrap);
 
-      const excerpt = document.createElement('div'); excerpt.className='post-excerpt'; excerpt.innerHTML = safeText(post.excerpt && post.excerpt.rendered ? post.excerpt.rendered : '').slice(0,300) + '...';
+  /* ===========================
+     초기화 & 이벤트 바인딩
+     =========================== */
+  function bindEvents() {
+  // =======================
+  // 네비게이션 리스트 렌더링
+  // =======================
+  renderNavList();
 
-      body.appendChild(catRow);
-      body.appendChild(titleLink);
-      body.appendChild(meta);
-      body.appendChild(excerpt);
+  // =======================
+  // 검색 버튼 (검색 오버레이 안)
+  // =======================
+  const searchBtn = document.getElementById('globalSearchBtn');
+  if (searchBtn) {
+    searchBtn.addEventListener('click', (e) => {
+      e.preventDefault();   // 폼 제출 방지 (닫힘 방지)
+      ui.searchNow();       // 검색 실행
+    });
+  }
 
-      // 클릭 시 내부 포스트 열기
-      wrapper.addEventListener('click', (e)=>{
-        e.preventDefault();
-        const cached = state.postsCache[post.id] || post;
-        if(!cached.content || !cached.content.rendered){
-          fetch(api(`posts/${post.id}?_embed`)).then(r=>r.json()).then(p=>{
-            state.postsCache[p.id]=p;
-            router.openPost(p);
-          }).catch(err=>{
-            console.error(err); window.open(post.link,'_blank');
-          });
-        } else {
-          router.openPost(cached);
-        }
-      });
-
-      wrapper.appendChild(thumbDiv);
-      wrapper.appendChild(body);
-      return wrapper;
+// =======================
+// 네비 오버레이 안 검색창 (더보기 안)
+// =======================
+const navSearchInput = document.getElementById('globalSearchInput');
+if (navSearchInput) {
+  navSearchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const q = e.target.value.trim();
+      if (!q) { alert('검색어를 입력하세요'); return; }
+      
+      // ✅ 네비 닫고 검색 실행
+      document.getElementById('navOverlay').classList.remove('active');
+      doSearch(q);  // 검색 실행 → 자동으로 searchOverlay 열림
     }
+  });
+}
 
-    /***** 스크롤 / 무한 스크롤 이벤트 *****/
-    // 홈: 페이지 하단으로 스크롤 시 더 불러오기 (최대 20개)
-    window.addEventListener('scroll', ()=>{
-      const toTopBtn = document.getElementById('toTop');
-      if(window.scrollY > 300) toTopBtn.classList.add('show'); else toTopBtn.classList.remove('show');
 
-      // 홈 영역에서만 무한 스크롤 로드 (메인 로드 중이지 않고, 최대치 아래일 때)
-      const nearBottom = (window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 1200);
-      if(nearBottom) {
-        // 홈
-        if(document.getElementById('home') && document.getElementById('home').offsetParent !== null){
-          router.loadMoreHomeIfNeeded();
-        }
-        // 카테고리 페이지
-        if(document.getElementById('categoryPage').classList.contains('active')){
-          // load next category page if available
-          // find current catId from hash or stored slug
-          const slug = state.category.currentSlug;
-          if(slug && categories[slug]){
-            router.loadCategory(categories[slug]);
-          }
-        }
+  // =======================
+  // 검색 오버레이 안 검색창 (Enter 입력)
+  // =======================
+  const searchOverlayInput = document.querySelector('.search-overlay .search-input');
+  if (searchOverlayInput) {
+    searchOverlayInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault(); // 중복 방지
+        const q = e.target.value.trim();
+        if (!q) { alert('검색어를 입력하세요'); return; }
+        doSearch(q);      // 검색 실행
       }
     });
+  }
 
-    /***** 초기화: 네비 리스트 렌더 + 홈 로드 시작 *****/
-    (function init(){
-      renderNavList();
-      router.loadHome();
-      // popstate 처리 (뒤로가기/앞으로가기)
-      window.addEventListener('popstate', ()=>{
-        // 간단 처리: hash 기반이면 포스트 / 카테고리 열기/닫기
-        const h = location.hash;
-        if(!h) {
-          router.closePost();
-          router.closeCategory();
-        } else if(h.startsWith('#post-')){
-          const id = h.replace('#post-','');
-          const p = state.postsCache[id];
-          if(p) router.openPost(p);
-          else {
-            // fetch single
-            fetch(api(`posts/${id}?_embed`)).then(r=>r.json()).then(p2=>{
-              state.postsCache[p2.id]=p2; router.openPost(p2);
-            }).catch(()=>{});
-          }
-        } else if(h.startsWith('#category-')){
-          const slug = h.replace('#category-','');
-          if(categories[slug]) router.openCategory(slug,categories[slug],slug.toUpperCase());
+  // =======================
+  // to top 버튼
+  // =======================
+  const toTopBtn = document.getElementById('toTopBtn');
+  if (toTopBtn) {
+    toTopBtn.addEventListener('click', () =>
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    );
+  }
+
+  // =======================
+  // 스크롤 이벤트
+  // =======================
+  window.addEventListener('scroll', onScrollHandler, { passive: true });
+
+  // =======================
+  // ESC 키로 모든 오버레이 닫기
+  // =======================
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.getElementById('navOverlay').classList.remove('active');
+      document.getElementById('searchOverlay').classList.remove('active');
+      document.getElementById('categoryOverlay').classList.remove('active');
+      document.getElementById('postOverlay').classList.remove('active');
+      document.getElementById('aboutPageSection').classList.remove('active');
+    }
+  });
+}
+
+
+
+
+/* ====== 아래 블록으로 기존 중복된 히스토리/팝스테이트 블록을 대체하세요 ====== */
+
+/* 히스토리/팝스테이트 일원화 처리
+   - router 객체를 단일 진입점으로 사용
+   - popstate에서 slug/id 모두 처리 (뒤로가기/앞으로가기에 대응)
+*/
+(function setupHistoryHandlers() {
+  // 전역 단축 래퍼 (이미 router가 있으므로 간단히 위임)
+  window.openAbout = function() { router.openAbout(); };
+  window.openCategory = function(catSlug) { router.openCategory(catSlug); };
+  window.openSearch = function() { router.openSearch(); };
+  window.openPost = function(postIdOrObj) {
+    // router.openPost expects a post object; if given id, try to use cache then fetch via openPostOverlayById
+    if (!postIdOrObj) return;
+    if (typeof postIdOrObj === 'number') {
+      openPostOverlayById(postIdOrObj);
+    } else if (postIdOrObj.id) {
+      router.openPost(postIdOrObj);
+    }
+  };
+
+  // popstate 한 번으로 집중 처리
+  window.addEventListener('popstate', function(event) {
+    // 닫아야 할 모든 오버레이 닫기
+    document.querySelectorAll('.about-page, .category-overlay, .search-overlay, .post-overlay')
+      .forEach(el => el.classList.remove('active'));
+
+    // event.state이 있으면 그에 따라 연다
+    if (event.state && event.state.page) {
+      const pg = event.state.page;
+      if (pg === 'about') {
+        document.getElementById('aboutPageSection').classList.add('active');
+      } else if (pg === 'search') {
+        document.getElementById('searchOverlay').classList.add('active');
+      } else if (pg === 'category') {
+        // 상태에 slug가 있으면 사용, 없으면 id를 시도
+        const slug = event.state.slug || event.state.id || null;
+        if (slug) {
+          // slug가 숫자(id)처럼 보이면 무시하고 문자열로 해석하려면 변환 로직 필요
+          // 여기서는 기존 router.openCategory를 사용 (router.openCategory expects slug)
+          router.openCategory(String(slug));
+        } else {
+          // 안전하게 홈 복귀
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-      });
-
-      // 페이지 로드 시 hash 처리
-      const initialHash = location.hash;
-      if(initialHash.startsWith('#post-')){
-        const id = initialHash.replace('#post-','');
-        fetch(api(`posts/${id}?_embed`)).then(r=>r.json()).then(p=>{
-          state.postsCache[p.id]=p; router.openPost(p);
-        }).catch(()=>{});
-      } else if(initialHash.startsWith('#category-')){
-        const slug = initialHash.replace('#category-','');
-        if(categories[slug]) router.openCategory(slug,categories[slug],slug.toUpperCase());
+      } else if (pg === 'post') {
+        const pid = event.state.id;
+        if (pid) {
+          // post overlay 열기 (id로)
+          openPostOverlayById(pid);
+        }
+      } else if (pg === 'home') {
+        // 홈 복귀
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
-    })();
+    } else {
+      // 상태가 없으면 기본 동작: 홈(모든 오버레이 닫고 상단으로)
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, false);
+})();
 
-    // 접근성: 키보드 ESC로 포스트/카테고리 닫기
-    window.addEventListener('keydown', (e)=>{
-      if(e.key === 'Escape'){
-        router.closePost();
-        router.closeCategory();
-        ui.closeAbout();
-        document.getElementById('navOverlay').classList.remove('active');
-      }
-    });
 
+
+  /* ===========================
+     초기 로드
+     =========================== */
+  (function init() {
+    bindEvents();
+    // first load: home
+    loadHomeChunk();
+
+    // also, pre-render nav order links etc.
+    renderNavList();
+  })();
+
+ 
   </script>
+
 </body>
 </html>
