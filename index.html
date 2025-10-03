@@ -394,17 +394,45 @@
     </div>
   </section>
 
-  <!-- ABOUT PAGE -->
-  <section class="about-page" id="aboutPageSection" aria-hidden="true" role="region">
-    <div class="wrap about-content">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px">
+   <!-- ============================
+       ABOUT PAGE (전체 화면 오버레이)
+       - 하이젠버그 내용 제거, 표 삽입 및 임팩트 소개
+       ============================ -->
+  <section class="overlay about-page" id="aboutPage" role="region" aria-hidden="true">
+    <div style="max-width:1000px;margin:0 auto;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
-          <h2 style="font-size:32px;margin-bottom:10px">ABOUT</h2>
-          <div style="color:#333;font-size:15px;line-height:1.8">
-            <p><strong>IMPACT</strong> 은 現 & 前 KAIST IP-CEO 학생들과 POSTECH CEO 학생들이 함께 작성하는 심층 콘텐츠 플랫폼입니다.</p>
-            <p>학생 저자들의 경험과 분석을 바탕으로 기술·경영·창의성을 결합한 글을 제공합니다. 현장의 사례, 데이터 인텔리전스, 깊이 있는 분석을 통해 독자에게 통찰을 전달합니다.</p>
+          <h1 style="font-size:32px;margin-bottom:6px">ABOUT</h1>
+          <p style="color:#333;line-height:1.8">
+            <strong>IMPACT</strong>은 現 & 前 KAIST IP-CEO 및 POSTECH CEO 학생들이 함께 작성하는 심층 콘텐츠 플랫폼입니다.
+            학생 저자들의 실제 경험과 데이터 기반 분석을 결합하여 기술·경영·창의성에 대한 통찰을 제공합니다.
+          </p>
+          <p style="color:#333;line-height:1.8">
+            본 사이트는 학생 주도의 독립 콘텐츠 발행을 목표로 하며, 현장의 사례, 데이터 인텔리전스, 이론적 접근을 균형있게 다룹니다.
+          </p>
+
+          <div style="margin-top:20px">
+            <table style="width:100%;border-collapse:collapse">
+              <thead>
+                <tr>
+                  <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;font-weight:900">영역</th>
+                  <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;font-weight:900">설명</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td style="padding:10px;border-bottom:1px solid #f0f0f0">Innovation</td><td style="padding:10px;border-bottom:1px solid #f0f0f0">혁신</td></tr>
+                <tr><td style="padding:10px;border-bottom:1px solid #f0f0f0">Management</td><td style="padding:10px;border-bottom:1px solid #f0f0f0">관리</td></tr>
+                <tr><td style="padding:10px;border-bottom:1px solid #f0f0f0">Passion</td><td style="padding:10px;border-bottom:1px solid #f0f0f0">열정</td></tr>
+                <tr><td style="padding:10px;border-bottom:1px solid #f0f0f0">Acceleration</td><td style="padding:10px;border-bottom:1px solid #f0f0f0">혁신 가속화</td></tr>
+                <tr><td style="padding:10px;border-bottom:1px solid #f0f0f0">Creativity</td><td style="padding:10px;border-bottom:1px solid #f0f0f0">창의성</td></tr>
+                <tr><td style="padding:10px">Technology</td><td style="padding:10px">기술</td></tr>
+              </tbody>
+            </table>
           </div>
-          <div style="margin-top:20px"><button class="btn" onclick="router.closeAbout()">닫기</button></div>
+
+          <div style="margin-top:20px">
+            <button class="btn" onclick="router.closeAbout()">닫기</button>
+          </div>
         </div>
       </div>
     </div>
