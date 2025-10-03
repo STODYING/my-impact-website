@@ -4,23 +4,21 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>IMPACT — MAKE A IMPACT</title>
-  <meta name="description" content="IMPACT — WordPress 기반의 학생 저자 콘텐츠를 불러와 자체 포스트 페이지로 보여주는 통합 페이지 (에디터, 프로필, 카테고리 배지, 무한스크롤, 포스트/ABOUT 오버레이 포함)">
-
-  <!-- 파비콘: repository 루트에 logo.png 파일을 두세요 -->
+  <meta name="description" content="IMPACT — WordPress 기반 학생 저자 콘텐츠를 불러와 자체 포스트/ABOUT/EDITORS 페이지로 표시하는 통합 페이지" />
   <link rel="icon" href="logo.png" type="image/png">
 
   <style>
-  /* ======================================================================
-     IMPACT — 통합 완전판 스타일 (확장판)
-     - 전체 레이아웃 / 컴포넌트 스타일 / 반응형 / 접근성 보강 포함
-     - 보안: ACCESS TOKEN 없음 (토큰은 Netlify Functions 환경변수로 관리)
-     ====================================================================== */
+  /* ==========================================================================
+     IMPACT — Full index.html styles
+     - Layout, components, responsive behavior, accessibility enhancements
+     - No tokens or secrets in client-side code. Use Netlify Functions for WP calls.
+     ========================================================================== */
 
-  /* ----------------------------
-     RESET & 기본
-     ---------------------------- */
+  /* ====================
+     RESET & BASE
+     ==================== */
   *, *::before, *::after { box-sizing: border-box; }
-  html, body { height: 100%; }
+  html, body { height: 100%; width: 100%; }
   body {
     margin: 0;
     font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Segoe UI", Roboto, Arial, sans-serif;
@@ -29,100 +27,66 @@
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden; /* Prevent horizontal scrolling on mobile */
   }
   a { color: inherit; text-decoration: none; }
   img { display: block; max-width: 100%; height: auto; }
 
-  /* ----------------------------
-     유틸리티
-     ---------------------------- */
+  /* ====================
+     UTILS
+     ==================== */
   .wrap { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
-  .hidden { display:none !important; }
+  .hidden { display: none !important; }
   .visually-hidden {
     position: absolute !important;
-    height: 1px; width: 1px;
-    overflow: hidden;
-    clip: rect(1px, 1px, 1px, 1px);
-    white-space: nowrap;
+    height: 1px; width: 1px; overflow: hidden;
+    clip: rect(1px,1px,1px,1px); white-space: nowrap;
   }
 
-  /* ----------------------------
+  /* ====================
      HEADER
-     ---------------------------- */
+     ==================== */
   header.header {
-    position: sticky;
-    top: 0;
-    z-index: 1200;
-    background: #fff;
-    border-bottom: 1px solid rgba(0,0,0,0.06);
+    position: sticky; top: 0; z-index: 1200;
+    background: #fff; border-bottom: 1px solid rgba(0,0,0,0.06);
     backdrop-filter: blur(6px);
-    transition: box-shadow .25s ease, transform .18s ease;
   }
   .header-inner {
-    height: 72px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    max-width:1400px;
-    margin:0 auto;
-    padding: 0 20px;
+    height: 72px; display:flex; align-items:center;
+    justify-content:space-between; gap:12px; max-width:1400px;
+    margin:0 auto; padding: 0 20px;
   }
   .brand { display:flex; gap:12px; align-items:center; }
   .brand .logo {
-    display:flex;
-    gap:8px;
-    align-items:center;
-    font-weight:900;
-    font-size:26px;
-    letter-spacing:1px;
-    color:#111;
-    cursor:pointer;
+    display:flex; gap:8px; align-items:center; font-weight:900;
+    font-size:26px; letter-spacing:1px; color:#111; cursor:pointer;
   }
   .brand .logo small { font-size:11px; color:#777; font-weight:800; display:block; line-height:1; }
   .header-actions { display:flex; gap:8px; align-items:center; }
 
   .btn {
-    border-radius:10px;
-    background:#fff;
-    padding:8px 12px;
-    border:1px solid rgba(0,0,0,0.08);
-    font-weight:700;
-    font-size:14px;
-    cursor:pointer;
-    transition: transform .12s ease, box-shadow .12s ease;
+    border-radius:10px; background:#fff; padding:8px 12px;
+    border:1px solid rgba(0,0,0,0.08); font-weight:700; font-size:14px;
+    cursor:pointer; transition: transform .12s ease, box-shadow .12s ease;
   }
   .btn:active { transform: translateY(1px); }
-  .btn.primary {
-    background: linear-gradient(135deg,#2e8b57,#1f7a6f);
-    color:#fff;
-    border:none;
-  }
+  .btn.primary { background: linear-gradient(135deg,#2e8b57,#1f7a6f); color:#fff; border:none; }
 
-  /* ----------------------------
-     NAV OVERLAY (더보기)
-     ---------------------------- */
+  /* search icon button forces consistent width even if text hidden */
+  .btn.search { min-width:56px; display:inline-flex; align-items:center; justify-content:center; font-size:18px; }
+
+  /* ====================
+     NAV OVERLAY
+     ==================== */
   .nav-overlay {
-    position: fixed;
-    top: 0;
-    right: -50%;
-    width: 50%;
-    height: 100vh;
-    background: rgba(255,255,255,0.98);
-    z-index: 2200;
+    position: fixed; top: 0; right: -50%; width: 50%; height: 100vh;
+    background: rgba(255,255,255,0.98); z-index: 2200;
     transition: right 0.32s cubic-bezier(.2,.9,.2,1);
-    display: flex;
-    flex-direction: column;
-    padding: 64px 40px;
-    box-shadow: -6px 0 40px rgba(0,0,0,0.08);
+    display: flex; flex-direction: column; padding: 64px 40px; box-shadow: -6px 0 40px rgba(0,0,0,0.08);
   }
   .nav-overlay.active { right: 0; }
-  .nav-close {
-    position:absolute; top:28px; right:28px;
-    background:none; border:none; font-size:30px; cursor:pointer;
-  }
+  .nav-close { position:absolute; top:28px; right:28px; background:none; border:none; font-size:30px; cursor:pointer; }
   .nav-search { display:flex; align-items:center; gap:10px; margin-bottom:36px; }
   .nav-search input[type="search"] {
     flex:1; border:none; border-bottom:2px solid #111; padding:10px 8px; outline:none; font-weight:700; font-size:16px;
@@ -131,40 +95,33 @@
   .nav-list { list-style:none; padding:0; margin:0 0 24px; display:flex; flex-direction:column; gap:18px; }
   .nav-list li { font-size:28px; font-weight:900; cursor:pointer; color:#111; transition: color .16s ease; }
   .nav-list li:hover { color:#2e8b57; }
-
   .nav-footer-links { margin-top:auto; display:flex; gap:12px; align-items:center; font-weight:800; }
   .nav-footer-links a { color:#111; font-size:13px; }
 
-  /* ----------------------------
-     MAIN / HOME LAYOUT
-     ---------------------------- */
-  .home {
-    max-width:1400px;
-    margin: 28px auto;
-    display:flex;
-    flex-direction:column;
-    gap:28px;
-    padding: 0 20px 100px;
+  /* Mobile: nav overlay full-screen */
+  @media (max-width:680px) {
+    .nav-overlay { right: 0; left: 0; width: 100%; padding: 28px; }
   }
 
-  /* Desktop: left hero (big) + right stack (4 cards vertical) */
+  /* ====================
+     HOME LAYOUT
+     ==================== */
+  .home { max-width:1400px; margin: 28px auto; display:flex; flex-direction:column; gap:28px; padding: 0 20px 100px; }
+
+  /* Grid: left hero big + right column of 4 stack cards */
   .row { display:grid; grid-template-columns: 2fr 1fr; gap:20px; align-items:start; }
-  .col-left { position:relative; border-radius:12px; overflow:hidden; min-height:360px; background:#eee; cursor:pointer; }
+  .col-left { position:relative; border-radius:12px; overflow:hidden; min-height:360px; background:#eee; cursor:pointer; display:flex; flex-direction:column; }
   .col-left .hero { width:100%; height:100%; object-fit:cover; display:block; min-height:360px; }
-  .col-left .hero-overlay {
-    position:absolute; inset:auto 0 0 0; padding:22px; display:flex; flex-direction:column; gap:12px;
-    background: linear-gradient(180deg, rgba(0,0,0,0.0), rgba(0,0,0,0.55));
-    color:#fff;
-  }
+  .col-left .hero-overlay { position:absolute; inset:auto 0 0 0; padding:22px; display:flex; flex-direction:column; gap:12px; background: linear-gradient(180deg, rgba(0,0,0,0.0), rgba(0,0,0,0.55)); color:#fff; }
   .col-left .hero-title { margin:0; font-size:28px; font-weight:900; line-height:1.05; max-width:92%; }
   .col-left .meta { display:flex; align-items:center; gap:10px; color:#fff; font-size:13px; opacity:0.95; }
   .col-right { display:flex; flex-direction:column; gap:12px; }
 
-  .card { background:#fff; border-radius:10px; overflow:hidden; border:1px solid rgba(0,0,0,0.06); transition: box-shadow .16s ease, transform .12s ease; cursor:pointer; }
+  .card { background:#fff; border-radius:10px; overflow:hidden; border:1px solid rgba(0,0,0,0.06); transition: box-shadow .16s ease, transform .12s ease; cursor:pointer; display:flex; flex-direction:column;}
   .card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(0,0,0,0.06); }
   .card .thumb { width:100%; height:120px; overflow:hidden; background:#efefef; }
   .card .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
-  .card .card-body { padding:12px; }
+  .card .card-body { padding:12px; flex:1; display:flex; flex-direction:column; justify-content:space-between; }
   .card h3 { font-size:16px; font-weight:800; margin:0 0 8px; color:#111; }
   .card .meta { display:flex; align-items:center; gap:8px; color:#666; font-size:13px; }
 
@@ -180,33 +137,25 @@
   .cat-life{ background:#ffa500; color:#000; }
   .cat-editors-pick{ background:#ff1493; }
 
-  /* ----------------------------
-     CATEGORY & POST OVERLAY
-     ---------------------------- */
-  .category-overlay, .post-overlay, .search-overlay, .about-page {
-    display:none;
-    position:fixed;
-    inset:0;
-    background:#fff;
-    z-index:2000;
-    overflow:auto;
-    padding:28px;
-    animation: overlayIn .28s ease;
+  /* ====================
+     OVERLAYS: category, post, search, about, editors
+     ==================== */
+  .overlay-full {
+    display:none; position:fixed; inset:0; background:#fff; z-index:2000; overflow:auto; padding:28px; animation: overlayIn .28s ease;
   }
-  .category-overlay.active, .post-overlay.active, .search-overlay.active, .about-page.active { display:block; }
+  .overlay-full.active { display:block; }
   @keyframes overlayIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
 
-  .category-top { display:flex; justify-content:space-between; align-items:center; gap:12px; border-bottom:1px solid rgba(0,0,0,0.06); padding-bottom:12px; }
-  .category-title { font-size:24px; font-weight:900; color:#111; }
-  .category-grid { margin-top:18px; display:grid; gap:18px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); padding:20px 0 80px; }
+  .overlay-top { display:flex; justify-content:space-between; align-items:center; gap:12px; border-bottom:1px solid rgba(0,0,0,0.06); padding-bottom:12px; }
+  .overlay-title { font-size:24px; font-weight:900; color:#111; }
+
+  .overlay-grid { margin-top:18px; display:grid; gap:18px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); padding:20px 0 80px; }
 
   .post-article { margin:0 auto; max-width:900px; }
   .post-article h1 { font-size:34px; font-weight:900; margin-bottom:12px; color:#111; }
   .post-content { color:#222; line-height:1.9; }
 
-  /* ----------------------------
-     SEARCH OVERLAY (모바일/데스크탑 스타일)
-     ---------------------------- */
+  /* SEARCH BAR */
   .search-bar { display:flex; align-items:center; background:#fff; border-radius:50px; box-shadow:0 6px 20px rgba(0,0,0,0.06); padding:6px 10px; gap:8px; }
   .search-bar input[type="search"] { flex:1; border:none; outline:none; font-size:16px; padding:12px 14px; border-radius:50px; }
   .search-bar .search-btn { background:#111; color:#fff; border:none; padding:10px 18px; border-radius:50px; font-weight:800; cursor:pointer; }
@@ -215,84 +164,44 @@
   /* 모바일에서 검색 버튼 텍스트가 가로로 '검색'으로 보이도록 조정 (요청사항) */
   @media (max-width: 680px) {
     .search-bar .search-btn { padding:10px 18px; font-size:16px; }
+    .row { grid-template-columns: 1fr; }
+    .col-right { grid-auto-rows: unset; grid-template-columns: 1fr; display:grid; gap:12px; }
   }
 
-  /* ----------------------------
+  /* ====================
      TO TOP
-     ---------------------------- */
-  .to-top {
-    position: fixed; right:22px; bottom:22px; width:52px; height:52px; border-radius:12px; background:#fff; color:#000;
-    display:flex; align-items:center; justify-content:center; font-size:22px; z-index:2500; box-shadow:0 12px 30px rgba(0,0,0,0.08); opacity:0; transform:translateY(20px); transition:all .28s cubic-bezier(.2,.9,.2,1);
-    border:1px solid rgba(0,0,0,0.06);
-  }
+     ==================== */
+  .to-top { position: fixed; right:22px; bottom:22px; width:52px; height:52px; border-radius:12px; background:#fff; color:#000; display:flex; align-items:center; justify-content:center; font-size:22px; z-index:2500; box-shadow:0 12px 30px rgba(0,0,0,0.08); opacity:0; transform:translateY(20px); transition:all .28s cubic-bezier(.2,.9,.2,1); border:1px solid rgba(0,0,0,0.06);}
   .to-top.show { opacity:1; transform:translateY(0); }
 
-  /* ----------------------------
+  /* ====================
      FOOTER
-     ---------------------------- */
+     ==================== */
   footer.site-footer { background:#111; color:#eee; padding:40px 20px; margin-top:20px; }
   .footer-inner { max-width:1400px; margin:0 auto; display:flex; justify-content:space-between; gap:20px; align-items:flex-start; flex-wrap:wrap; }
   .footer-brand { font-size:40px; font-weight:900; color:#fff; font-style:italic; }
   .footer-links a { color:#ddd; }
 
-  /* ----------------------------
-     반응형: 모바일 메인 레이아웃 변경 요청 반영
-     - 모바일에서는 큰 게시물(히어로) 1개, 그 아래 작은 카드 4개가
-       각각 한 줄(가로 1개씩)로 쌓이도록 변경
-     ---------------------------- */
-  @media (max-width: 1100px) {
-    .row { grid-template-columns: 1fr; }
-    .col-right { grid-auto-rows: unset; grid-template-columns: 1fr; display:grid; gap:12px; }
+  /* ====================
+     EDITORS (profile grid)
+     ==================== */
+  .editors-grid { display:flex; gap:12px; flex-wrap:wrap; margin-top:18px; }
+  .editor-card { width:140px; background:#fff; border:1px solid rgba(0,0,0,0.06); border-radius:10px; padding:12px; text-align:center; cursor:pointer; }
+  .editor-card img { width:80px; height:80px; border-radius:50%; object-fit:cover; margin:0 auto 10px; display:block; }
+  .editor-name { font-weight:800; font-size:14px; }
+
+  /* ====================
+     Small devices adjustments
+     ==================== */
+  @media (max-width: 480px) {
+    .brand .logo { font-size:20px; }
+    .header-inner { height:60px; padding: 0 12px; }
+    .col-left .hero-title { font-size:20px; }
   }
 
-  /* ----------------------------
-     추가 주석 블록 (파일을 길고 읽기 쉽도록 확장)
-     - 아래 주석들은 문서화 목적이며, 실동작에 영향을 주지 않습니다.
-     - 필요하면 자유롭게 수정/제거하세요.
-     ---------------------------- */
-
-  /*
-   |--------------------------------------------------------------------------
-   | IMPACT — 통합 정적 프론트엔드
-   |--------------------------------------------------------------------------
-   | 이 파일은 정적 HTML + CSS + JS 만으로 WordPress.com Public API로부터
-   | 데이터를 불러와 자체 오버레이 포스트 뷰를 제공하도록 설계되었습니다.
-   |
-   | 보안:
-   | - WordPress OAuth 토큰(ACCESS_TOKEN)은 클라이언트에서 절대 노출되지 않습니다.
-   | - Netlify Functions (서버리스 함수)를 통해 서버 측에서 토큰을 삽입하여 WP API를 호출합니다.
-   | - 클라이언트는 /.netlify/functions/wpProxy?path=... 를 호출하여 데이터를 가져옵니다.
-   |
-   | Netlify 설정 요약:
-   | - 프로젝트 루트에 netlify/functions/wpProxy.js 파일 생성
-   | - Netlify Dashboard > Site settings > Environment variables 에서
-   |   키: WP_TOKEN, 값: <your_wordpress_token> 추가
-   |
-   | 프록시 함수 예 (wpProxy.js):
-   | export async function handler(event, context) {
-   |   const WP_SITE = "impactceo0.wordpress.com";
-   |   const ACCESS_TOKEN = process.env.WP_TOKEN;
-   |   const path = event.queryStringParameters.path;
-   |   if (!path) return { statusCode:400, body: JSON.stringify({error:"Missing path"}) };
-   |   const url = `https://public-api.wordpress.com/wp/v2/sites/${WP_SITE}/${path}`;
-   |   try {
-   |     const res = await fetch(url, { headers: { "Authorization": `Bearer ${ACCESS_TOKEN}` }});
-   |     const data = await res.text();
-   |     return { statusCode: res.status, headers: { "Content-Type": "application/json" }, body: data };
-   |   } catch (err) { return { statusCode:500, body: JSON.stringify({ error: err.message }) }; }
-   | }
-   |
-   | (참고: 위 코드는 netlify 함수에 들어갈 코드이며, 이 HTML에는 토큰이 없습니다)
-   |
-   */
-
-  /* ===========================
-     스타일 확장 보조 (파일 길이 확장용 주석)
-     - 아래는 추가 스타일 블록들(문서화)로 총 문서 길이를 늘립니다.
-     - 실제 프로젝트에선 불필요한 주석은 제거하세요.
-     =========================== */
-
-  /* End of CSS */
+  /* ====================
+     End of CSS
+     ==================== */
   </style>
 </head>
 <body>
@@ -311,8 +220,8 @@
       </div>
 
       <div class="header-actions" role="navigation" aria-label="상단 메뉴">
-        <button class="btn" id="topSearchBtn" onclick="openNavlessSearch()">검색</button>
-        <button class="btn" aria-controls="navOverlay" aria-expanded="false" onclick="ui.toggleNav()">더보기</button>
+        <button class="btn search" id="topSearchBtn" onclick="openNavlessSearch()" aria-label="검색">🔍</button>
+        <button class="btn" aria-controls="navOverlay" aria-expanded="false" onclick="ui.toggleNav()" aria-label="더보기">더보기</button>
       </div>
     </div>
   </header>
@@ -332,7 +241,7 @@
 
       <div class="nav-footer-links" aria-hidden="false">
         <a href="javascript:void(0)" onclick="ui.toggleNav(); router.openAbout()">ABOUT</a>
-        <a href="javascript:void(0)" onclick="alert('EDITORS 페이지는 추후 구현됩니다')">EDITORS</a>
+        <a href="javascript:void(0)" onclick="router.openEditors()">EDITORS</a>
         <a href="javascript:void(0)" onclick="alert('NEWSLETTER 페이지는 추후 구현됩니다')">NEWSLETTER</a>
         <a href="https://www.instagram.com/ceo_impact_official" target="_blank" rel="noopener">INSTAGRAM</a>
       </div>
@@ -350,11 +259,11 @@
   </main>
 
   <!-- CATEGORY OVERLAY -->
-  <section class="category-overlay" id="categoryOverlay" aria-hidden="true" role="region">
+  <section class="overlay-full category-overlay" id="categoryOverlay" aria-hidden="true" role="region">
     <div class="wrap">
-      <div class="category-top">
+      <div class="overlay-top">
         <div>
-          <div class="category-title" id="categoryOverlayTitle">CATEGORY</div>
+          <div class="overlay-title" id="categoryOverlayTitle">CATEGORY</div>
           <div class="category-sub" id="categoryOverlaySubtitle">카테고리 설명</div>
         </div>
         <div>
@@ -362,51 +271,97 @@
         </div>
       </div>
 
-      <div class="category-grid" id="categoryGrid" aria-live="polite"></div>
+      <div class="overlay-grid" id="categoryGrid" aria-live="polite"></div>
       <div id="categoryLoading" style="text-align:center;color:#666;padding:28px 0"></div>
     </div>
   </section>
 
   <!-- POST OVERLAY -->
-  <article class="post-overlay" id="postOverlay" aria-hidden="true" role="article">
+  <article class="overlay-full post-overlay" id="postOverlay" aria-hidden="true" role="article">
     <div style="width:100%;max-width:1200px;margin:0 auto;">
-      <div style="display:flex;justify-content:flex-end;gap:12px;margin-bottom:18px">
-        <button class="btn" onclick="router.closePost()">닫기</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px">
+        <div>
+          <button class="btn" onclick="router.closePost()">닫기</button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="sharePostBtn">🔗 공유</button>
+          <button class="btn" id="openOriginalBtn">원문 보기</button>
+        </div>
       </div>
       <div class="post-article" id="postArticle"></div>
     </div>
   </article>
 
   <!-- SEARCH OVERLAY -->
-  <section class="search-overlay" id="searchOverlay" aria-hidden="true" role="search">
+  <section class="overlay-full search-overlay" id="searchOverlay" aria-hidden="true" role="search">
     <div class="wrap" style="max-width:1100px;margin:0 auto;">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px">
-        <div style="flex:1">
-          <div class="search-bar" role="search" aria-label="사이트 검색">
-            <input type="search" class="search-input" id="searchInputTop" placeholder="검색어 입력 (Enter로 검색)" aria-label="검색어">
-            <button type="button" class="search-btn" id="globalSearchBtn">검색</button>
-            <button type="button" class="close-btn" onclick="ui.closeSearch()">×</button>
-          </div>
+      <div class="overlay-top">
+        <div class="overlay-title">검색</div>
+        <div>
+          <button class="btn" onclick="ui.closeSearch()">닫기</button>
         </div>
       </div>
 
-      <div id="searchResults" class="category-grid" aria-live="polite"></div>
+      <div style="margin-top:18px">
+        <div class="search-bar" role="search" aria-label="사이트 검색">
+          <input type="search" class="search-input" id="searchInputTop" placeholder="검색어 입력 (Enter로 검색)" aria-label="검색어">
+          <button type="button" class="search-btn" id="globalSearchBtn">검색</button>
+          <button type="button" class="close-btn" onclick="ui.closeSearch()">×</button>
+        </div>
+      </div>
+
+      <div id="searchResults" class="overlay-grid" aria-live="polite"></div>
     </div>
   </section>
 
   <!-- ABOUT PAGE -->
-  <section class="about-page" id="aboutPageSection" aria-hidden="true" role="region">
+  <section class="overlay-full about-page" id="aboutPageSection" aria-hidden="true" role="region">
     <div class="wrap about-content">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px">
+      <div class="overlay-top">
         <div>
-          <h2 style="font-size:32px;margin-bottom:10px">ABOUT</h2>
+          <div class="overlay-title">ABOUT</div>
           <div style="color:#333;font-size:15px;line-height:1.8">
             <p><strong>IMPACT</strong> 은 現 & 前 KAIST IP-CEO 학생들과 POSTECH CEO 학생들이 함께 작성하는 심층 콘텐츠 플랫폼입니다.</p>
             <p>학생 저자들의 경험과 분석을 바탕으로 기술·경영·창의성을 결합한 글을 제공합니다. 현장의 사례, 데이터 인텔리전스, 깊이 있는 분석을 통해 독자에게 통찰을 전달합니다.</p>
           </div>
-          <div style="margin-top:20px"><button class="btn" onclick="router.closeAbout()">닫기</button></div>
+        </div>
+        <div>
+          <button class="btn" onclick="router.closeAbout()">닫기</button>
         </div>
       </div>
+
+      <div style="margin-top:20px">
+        <h3>핵심 키워드</h3>
+        <ul>
+          <li><strong>Innovation</strong> — 혁신</li>
+          <li><strong>Management</strong> — 관리</li>
+          <li><strong>Passion</strong> — 열정</li>
+          <li><strong>Acceleration</strong> — 혁신 가속화</li>
+          <li><strong>Creativity</strong> — 창의성</li>
+          <li><strong>Technology</strong> — 기술</li>
+        </ul>
+
+        <h3 style="margin-top:18px">MAKE A IMPACT</h3>
+        <p>우리는 기술과 경영, 창의성과 열정을 융합하여 혁신을 가속화합니다. 학생 저자의 시선에서 사회와 산업, 그리고 사람들에게 의미 있는 임팩트를 만들어 나갑니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- EDITORS OVERLAY -->
+  <section class="overlay-full editors-overlay" id="editorsOverlay" aria-hidden="true" role="region">
+    <div class="wrap">
+      <div class="overlay-top">
+        <div>
+          <div class="overlay-title">EDITORS</div>
+          <div class="overlay-sub" id="editorsSubtitle">등록된 에디터 프로필</div>
+        </div>
+        <div>
+          <button class="btn" onclick="router.closeEditors()">닫기</button>
+        </div>
+      </div>
+
+      <div id="editorsGrid" class="editors-grid"></div>
+      <div id="editorPostsContainer" style="margin-top:24px"></div>
     </div>
   </section>
 
@@ -424,7 +379,7 @@
 
       <div class="footer-links">
         <a href="javascript:void(0)" onclick="router.openAbout()">ABOUT</a>
-        <a href="javascript:void(0)" onclick="alert('EDITORS 페이지는 추후 구현됩니다')">EDITORS</a>
+        <a href="javascript:void(0)" onclick="router.openEditors()">EDITORS</a>
         <a href="javascript:void(0)" onclick="alert('NEWSLETTER 페이지는 추후 구현됩니다')">NEWSLETTER</a>
         <a href="https://www.instagram.com/ceo_impact_official" target="_blank" rel="noopener">INSTAGRAM</a>
       </div>
@@ -455,23 +410,26 @@
   </template>
 
   <script>
-  /***********************************************************************
-   * IMPACT — 확장판 자바스크립트 (토큰 제거 버전)
+  /**************************************************************************
+   * IMPACT — Full JS (No token in client)
    *
-   * 주요 변경:
-   * - ACCESS_TOKEN: 제거 (Netlify Functions 환경변수 사용)
-   * - api(path): /.netlify/functions/wpProxy?path=... 로 호출
-   * - 검색 / 더보기 / 뒤로가기(히스토리) 처리를 일원화
+   * Features:
+   * - Netlify Functions proxy usage: /.netlify/functions/wpProxy?path=...
+   * - Infinite scroll on home (loadHomeChunk)
+   * - Category overlay, post overlay, search overlay, editors overlay
+   * - Editor profiles listing and per-editor posts view (#editor-{id})
+   * - Hash-based routing for sharing: #post-{id}, #category-{slug}, #about, #editor-{id}
+   * - Share button: navigator.share if available, otherwise clipboard fallback
+   * - Prevent horizontal mobile overflow; ensure hero height sync with right column
    *
-   * 주의:
-   * - Netlify 함수가 프로젝트 루트의 netlify/functions/wpProxy.js 로 배치되어 있고
-   *   Netlify에 WP_TOKEN 환경변수가 설정되어 있어야 정상 작동합니다.
-   ***********************************************************************/
+   * Notes:
+   * - Replace WP_SITE constant in Netlify function environment, not here.
+   **************************************************************************/
 
   /* ===========================
-     설정
+     Config
      =========================== */
-  const WP_SITE = "impactceo0.wordpress.com"; // 참고용(프록시 내부에서 사용)
+  const WP_SITE = "impactceo0.wordpress.com"; // reference only
   const CATEGORIES = {
     "tech": 318,
     "eat": 123073,
@@ -480,11 +438,13 @@
     "life": 124,
     "editors-pick": 259543
   };
-  const NAV_ORDER = ["TECH", "EAT", "STYLE", "CULTURE", "LIFE", "EDITORS' PICK"];
+  const NAV_ORDER = ["TECH","EAT","STYLE","CULTURE","LIFE","EDITORS' PICK"];
   const HOME_PER_PAGE = 5;
-  const HOME_MAX = 20;
+  const HOME_MAX = 40;
 
-  /* 상태 */
+  /* ===========================
+     State
+     =========================== */
   const state = {
     homePage: 1,
     homeLoaded: 0,
@@ -492,24 +452,25 @@
     loadingHome: false,
     postsCache: {},
     categoryPages: {},
-    categoryFinished: {}
+    categoryFinished: {},
+    editors: {}, // editorId -> {id,name,avatar,posts:[]}
   };
 
   /* ===========================
-     유틸: API 프록시
-     - Netlify Functions 경유: /.netlify/functions/wpProxy?path=...
+     API helper (Netlify proxy)
      =========================== */
   function api(path) {
     const p = path.includes('_embed') ? path : (path + (path.includes('?') ? '&' : '?') + '_embed');
-    // Note: Netlify serves functions under /.netlify/functions/<name>
     return `/.netlify/functions/wpProxy?path=${encodeURIComponent(p)}`;
   }
 
   function headers() {
-    // 토큰은 서버에서 처리하므로 빈 객체 반환
     return {};
   }
 
+  /* ===========================
+     Small utility helpers
+     =========================== */
   function formatDate(dstr) {
     try {
       const d = new Date(dstr);
@@ -517,10 +478,10 @@
       const m = String(d.getMonth()+1).padStart(2,'0');
       const dd = String(d.getDate()).padStart(2,'0');
       return `${y}. ${m}. ${dd}.`;
-    } catch(e) { return ''; }
+    } catch(e){ return ''; }
   }
 
-  function placeholderDataURI(w=600, h=400, txt='No Image') {
+  function placeholderDataURI(w=600,h=400,txt='No Image'){
     const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'><rect width='100%' height='100%' fill='#efefef'/><text x='50%' y='50%' fill='#aaa' font-size='20' text-anchor='middle' dominant-baseline='middle'>${txt}</text></svg>`;
     return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
   }
@@ -538,7 +499,7 @@
   }
 
   /* ===========================
-     NAV 렌더
+     Render NavList
      =========================== */
   function renderNavList() {
     const navList = document.getElementById('navList');
@@ -561,7 +522,7 @@
   }
 
   /* ===========================
-     카드 생성
+     Create Card Node
      =========================== */
   function createCardNode(post) {
     const tpl = document.getElementById('cardTpl');
@@ -617,26 +578,50 @@
   }
 
   /* ===========================
-     HOME 로드 (무한스크롤)
+     Sync hero height with right column
+     - Ensure left hero height equals sum of small cards on right
+     =========================== */
+  function syncHeroHeight(row) {
+    try {
+      const left = row.querySelector('.col-left');
+      const right = row.querySelector('.col-right');
+      if(!left || !right) return;
+      // compute right height
+      const rightHeight = right.getBoundingClientRect().height;
+      // set left height minimal to rightHeight
+      left.style.minHeight = rightHeight + 'px';
+    } catch(e) { /* ignore */ }
+  }
+
+  /* ===========================
+     Load Home Chunk (infinite scroll)
      =========================== */
   async function loadHomeChunk() {
     if(state.loadingHome || state.homeFinished) return;
     state.loadingHome = true;
     document.getElementById('homeLoading').textContent = '로딩 중...';
 
+    // For demonstration: if Netlify proxy not available, fallback to local demo posts
+    const useDemo = false; // set to true locally if you don't want to call API
     try {
-      const res = await fetch(api(`posts?per_page=${HOME_PER_PAGE}&page=${state.homePage}`), { headers: headers() });
-      if(!res.ok) {
-        if(res.status === 400) {
-          state.homeFinished = true;
-          document.getElementById('homeLoading').textContent = '더 이상 글이 없습니다.';
-        } else {
-          throw new Error('Home fetch failed: ' + res.status);
+      let posts;
+      if(useDemo) {
+        posts = getDemoPosts(); // local demo
+      } else {
+        const res = await fetch(api(`posts?per_page=${HOME_PER_PAGE}&page=${state.homePage}`), { headers: headers() });
+        if(!res.ok) {
+          if(res.status === 400) {
+            state.homeFinished = true;
+            document.getElementById('homeLoading').textContent = '더 이상 글이 없습니다.';
+          } else {
+            throw new Error('Home fetch failed: ' + res.status);
+          }
+          state.loadingHome = false;
+          return;
         }
-        state.loadingHome = false;
-        return;
+        posts = await res.json();
       }
-      const posts = await res.json();
+
       if(!Array.isArray(posts) || posts.length === 0) {
         state.homeFinished = true;
         document.getElementById('homeLoading').textContent = '아직 게시된 글이 없습니다.';
@@ -648,7 +633,7 @@
 
       const container = document.getElementById('rowsContainer');
 
-      // 그룹: 1 left (hero) + up to 4 right (smalls)
+      // group into sets of 5: 1 hero + up to 4 smalls
       for(let i=0;i<posts.length;i+=5) {
         const group = posts.slice(i,i+5);
         if(state.homeLoaded >= HOME_MAX) { state.homeFinished = true; break; }
@@ -679,6 +664,7 @@
           </div>
         `;
 
+        // hero category badge
         const catWrap = document.createElement('div');
         catWrap.className = 'hero-cats';
         if(leftPost._embedded && leftPost._embedded['wp:term'] && leftPost._embedded['wp:term'][0] && leftPost._embedded['wp:term'][0].length>0) {
@@ -711,13 +697,10 @@
         leftDiv.addEventListener('click', ()=> openPostOverlayById(leftPost.id));
         row.appendChild(leftDiv);
 
-        // right small cards (on desktop vertical stack; on mobile they become 1 per row)
+        // right small cards
         const rightDiv = document.createElement('div');
         rightDiv.className = 'col-right';
         const smalls = group.slice(1,5);
-
-        // If on mobile we want the smalls to be single column, CSS handles that.
-        // Render up to 4 smalls
         smalls.forEach(s => {
           const cardNode = createCardNode(s);
           rightDiv.appendChild(cardNode);
@@ -725,6 +708,9 @@
 
         row.appendChild(rightDiv);
         container.appendChild(row);
+
+        // sync hero height with right column after render
+        setTimeout(()=> syncHeroHeight(row), 80);
 
         state.homeLoaded += group.length;
         if(state.homeLoaded >= HOME_MAX) { state.homeFinished = true; break; }
@@ -741,7 +727,7 @@
   }
 
   /* ===========================
-     카테고리 로드
+     Category load
      =========================== */
   async function loadCategoryPage(slug) {
     if(!slug) return;
@@ -779,7 +765,7 @@
   }
 
   /* ===========================
-     단일 포스트 로드 (오버레이)
+     Post overlay open
      =========================== */
   async function openPostOverlayById(id) {
     if(!id) return;
@@ -793,7 +779,7 @@
       if(!res.ok) throw new Error('post fetch failed ' + res.status);
       const post = await res.json();
 
-      // ensure embedded
+      // ensure embed
       if(!(post._embedded && post._embedded.author)) {
         const res2 = await fetch(api(`posts/${id}?_embed`), { headers: headers() });
         if(res2.ok) {
@@ -822,9 +808,10 @@
     const dateStr = formatDate(post.date);
     const contentHTML = post.content && post.content.rendered ? post.content.rendered : (post.excerpt && post.excerpt.rendered ? post.excerpt.rendered : '');
 
+    // Insert content
     article.innerHTML = `
       <h1>${title}</h1>
-      <div class="post-meta" style="margin-bottom:14px;">
+      <div class="post-meta" style="margin-bottom:14px;display:flex;gap:12px;align-items:center">
         <img src="${avatar || placeholderDataURI(96,96,'U')}" alt="author" style="width:52px;height:52px;border-radius:50%;object-fit:cover;">
         <div style="display:flex;flex-direction:column">
           <div style="font-weight:800;color:#111">${authorName}</div>
@@ -835,6 +822,7 @@
       <div style="margin-top:18px;color:#888;font-size:13px">원문 링크: <a href="${post.link}" target="_blank" rel="noopener">${post.link}</a></div>
     `;
 
+    // make post images responsive
     article.querySelectorAll('.post-content img').forEach(img=>{
       img.style.maxWidth = '100%';
       img.style.height = 'auto';
@@ -844,15 +832,36 @@
 
     overlay.classList.add('active');
     overlay.scrollTop = 0;
+
+    // push history hash for shareable URL
     history.pushState({ page: 'post', id: post.id }, '', `#post-${post.id}`);
+
+    // configure share and original buttons
+    const shareBtn = document.getElementById('sharePostBtn');
+    shareBtn.onclick = () => {
+      const shareUrl = location.origin + location.pathname + `#post-${post.id}`;
+      const titlePlain = stripHtml(post.title && post.title.rendered ? post.title.rendered : 'IMPACT');
+      if(navigator.share) {
+        navigator.share({ title: titlePlain, url: shareUrl }).catch(()=>copyToClipboard(shareUrl) && alert('링크가 클립보드에 복사되었습니다.'));
+      } else {
+        copyToClipboard(shareUrl);
+        alert('링크가 클립보드에 복사되었습니다.');
+      }
+    };
+
+    const openOrig = document.getElementById('openOriginalBtn');
+    openOrig.onclick = () => {
+      // on mobile, open original link in new tab
+      window.open(post.link, '_blank', 'noopener');
+    };
   }
 
   /* ===========================
-     검색
+     Search
      =========================== */
   async function doSearch(q) {
     if(!q) return;
-    ui.openSearch(); // opens overlay and pushes history
+    ui.openSearch();
     const resultsGrid = document.getElementById('searchResults');
     resultsGrid.innerHTML = '';
     try {
@@ -875,7 +884,7 @@
   }
 
   /* ===========================
-     이미지 대비 보정 (히어로 텍스트 색상)
+     Hero contrast (text color)
      =========================== */
   async function adjustHeroContrast(imgEl, titleEl, overlayEl) {
     if(!imgEl || !imgEl.src) return;
@@ -913,44 +922,12 @@
   }
 
   /* ===========================
-     스크롤/이벤트 바인딩
-     =========================== */
-  function onScrollHandler() {
-    const toTop = document.getElementById('toTopBtn');
-    if(window.scrollY > 300) toTop.classList.add('show'); else toTop.classList.remove('show');
-
-    const categoryOverlay = document.getElementById('categoryOverlay');
-    if(categoryOverlay.classList.contains('active')) {
-      const scroller = categoryOverlay;
-      if(scroller.scrollHeight - (scroller.scrollTop + scroller.clientHeight) < 300) {
-        const slug = categoryOverlay.dataset.slug;
-        if(slug) loadCategoryPage(slug);
-      }
-      return;
-    }
-
-    const postOverlay = document.getElementById('postOverlay');
-    if(postOverlay.classList.contains('active')) return;
-
-    const searchOverlay = document.getElementById('searchOverlay');
-    if(searchOverlay.classList.contains('active')) return;
-
-    if(!state.loadingHome && !state.homeFinished) {
-      const bottomThreshold = 1200;
-      if(window.innerHeight + window.scrollY >= document.body.offsetHeight - bottomThreshold) {
-        loadHomeChunk();
-      }
-    }
-  }
-
-  /* ===========================
      UI & Router
      =========================== */
   const ui = {
     toggleNav() {
       const nav = document.getElementById('navOverlay');
       nav.classList.toggle('active');
-      // update aria
       const expanded = nav.classList.contains('active');
       document.querySelector('.header-actions button[aria-controls="navOverlay"]').setAttribute('aria-expanded', expanded ? 'true' : 'false');
     },
@@ -960,14 +937,15 @@
       const input = document.getElementById('searchInputTop');
       if(input) input.focus();
       history.pushState({ page: 'search' }, '', '#search');
-      // close nav if open
       document.getElementById('navOverlay').classList.remove('active');
     },
     closeSearch() {
       document.getElementById('searchOverlay').classList.remove('active');
+      // pop history gently if needed
+      if(location.hash === '#search') history.back();
     },
     searchNow() {
-      const overlayInput = document.querySelector('#searchOverlay .search-input');
+      const overlayInput = document.querySelector('#searchOverlay .search-input') || document.getElementById('searchInputTop');
       const navInput = document.querySelector('#globalNavSearch');
       const q = (overlayInput && overlayInput.value.trim()) || (navInput && navInput.value.trim());
       if(!q) { alert('검색어를 입력하세요'); return; }
@@ -975,18 +953,12 @@
     }
   };
 
-  const CATEGORY_DESCRIPTIONS = {
-    tech: "최신 기술과 혁신 트렌드를 다룹니다.",
-    eat: "다양한 음식 문화와 맛집을 소개합니다.",
-    style: "패션, 뷰티, 라이프스타일을 탐구합니다.",
-    culture: "문화, 예술, 사회 현상을 분석합니다.",
-    life: "일상과 경험에서 얻은 통찰을 나눕니다.",
-    "editors-pick": "에디터가 직접 엄선한 글 모음입니다."
-  };
-
+  /* ===========================
+     Router actions
+     =========================== */
   const router = {
     goHome() {
-      document.querySelectorAll('.category-overlay, .post-overlay, .about-page, .search-overlay').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.category-overlay, .post-overlay, .about-page, .search-overlay, .editors-overlay').forEach(el => el.classList.remove('active'));
       window.scrollTo({ top: 0, behavior: 'smooth' });
       history.pushState({ page: 'home' }, '', '/');
     },
@@ -1008,6 +980,7 @@
       const overlay = document.getElementById('categoryOverlay');
       overlay.classList.remove('active');
       delete overlay.dataset.slug;
+      history.back();
     },
     openPost(post) {
       if(post && post.id) {
@@ -1019,6 +992,7 @@
     },
     closePost() {
       document.getElementById('postOverlay').classList.remove('active');
+      if(location.hash && location.hash.startsWith('#post-')) history.back();
     },
     openAbout() {
       document.getElementById('aboutPageSection').classList.add('active');
@@ -1027,11 +1001,47 @@
     },
     closeAbout() {
       document.getElementById('aboutPageSection').classList.remove('active');
+      if(location.hash === '#about') history.back();
+    },
+    openEditors() {
+      document.getElementById('editorsOverlay').classList.add('active');
+      renderEditorsList();
+      history.pushState({ page: 'editors' }, '', '#editors');
+    },
+    closeEditors() {
+      document.getElementById('editorsOverlay').classList.remove('active');
+      if(location.hash === '#editors') history.back();
+    },
+    openEditorPage(editorId) {
+      // render posts by editor
+      const editorPosts = Object.values(state.postsCache).filter(p => {
+        try {
+          if(p._embedded && p._embedded.author && p._embedded.author[0] && p._embedded.author[0].id) {
+            return p._embedded.author[0].id === editorId;
+          }
+          return false;
+        } catch(e) { return false; }
+      });
+      const container = document.getElementById('editorPostsContainer');
+      container.innerHTML = `<h3>작성 글 (${editorPosts.length})</h3>`;
+      if(editorPosts.length === 0) container.innerHTML += '<div>해당 에디터의 글이 없습니다.</div>';
+      else {
+        const ul = document.createElement('div');
+        ul.style.display='grid';
+        ul.style.gap='10px';
+        editorPosts.forEach(p=>{
+          const el = document.createElement('div');
+          el.innerHTML = `<a href="#post-${p.id}" onclick="openPostOverlayById(${p.id})" style="font-weight:700">${p.title && p.title.rendered ? p.title.rendered : '제목'}</a>`;
+          ul.appendChild(el);
+        });
+        container.appendChild(ul);
+      }
+      history.pushState({ page: 'editor', id: editorId }, '', `#editor-${editorId}`);
     }
   };
 
   /* ===========================
-     전역 헬퍼 바인딩 및 단축 함수
+     Global helper bindings
      =========================== */
   window.openAbout = function(){ router.openAbout(); };
   window.openCategory = function(catSlug){ router.openCategory(catSlug); };
@@ -1043,7 +1053,6 @@
   };
 
   function openNavlessSearch() {
-    // 네비를 열지 않고 바로 검색창 열기 (헤더의 검색 버튼)
     const nav = document.getElementById('navOverlay');
     nav.classList.remove('active');
     ui.openSearch();
@@ -1052,12 +1061,12 @@
   }
 
   /* ===========================
-     popstate (뒤로/앞으로) 핸들링 일원화
+     Popstate (back/forward) handling
      =========================== */
   (function setupHistoryHandlers() {
     window.addEventListener('popstate', function(event) {
-      // close everything first
-      document.querySelectorAll('.about-page, .category-overlay, .search-overlay, .post-overlay').forEach(el => el.classList.remove('active'));
+      // close overlays initially
+      document.querySelectorAll('.overlay-full').forEach(el => el.classList.remove('active'));
 
       if(event.state && event.state.page) {
         const pg = event.state.page;
@@ -1065,24 +1074,67 @@
         else if(pg === 'search') document.getElementById('searchOverlay').classList.add('active');
         else if(pg === 'category') {
           const slug = event.state.slug || null;
-          if(slug) {
-            router.openCategory(String(slug));
-          } else window.scrollTo({ top:0, behavior:'smooth' });
+          if(slug) router.openCategory(String(slug));
         } else if(pg === 'post') {
           const pid = event.state.id;
           if(pid) openPostOverlayById(pid);
+        } else if(pg === 'editor') {
+          const eid = event.state.id;
+          if(eid) router.openEditorPage(eid);
+        } else if(pg === 'editors') {
+          document.getElementById('editorsOverlay').classList.add('active');
+          renderEditorsList();
         } else if(pg === 'home') {
-          window.scrollTo({ top:0, behavior:'smooth' });
+          // nothing
         }
       } else {
-        // default: go home
-        window.scrollTo({ top:0, behavior:'smooth' });
+        // default: show home
+        // no-op: home layout already visible
       }
     }, false);
   })();
 
   /* ===========================
-     이벤트 바인딩
+     Editors list & render
+     =========================== */
+  function collectEditorsFromPosts() {
+    // scan postsCache and build editors map
+    const editors = {};
+    Object.values(state.postsCache).forEach(p => {
+      try {
+        if(p._embedded && p._embedded.author && p._embedded.author[0]) {
+          const a = p._embedded.author[0];
+          const id = a.id || a.slug || a.name;
+          if(!editors[id]) {
+            editors[id] = { id: a.id || id, name: a.name || '익명', avatar: (a.avatar_urls && (a.avatar_urls['96']||a.avatar_urls['48']||a.avatar_urls['24'])) ? (a.avatar_urls['48']||a.avatar_urls['24']) : placeholderDataURI(96,96,'U'), posts: [] };
+          }
+          editors[id].posts.push(p);
+        }
+      } catch(e){}
+    });
+    state.editors = editors;
+  }
+
+  function renderEditorsList() {
+    collectEditorsFromPosts();
+    const grid = document.getElementById('editorsGrid');
+    grid.innerHTML = '';
+    const editorsObj = state.editors;
+    if(!editorsObj || Object.keys(editorsObj).length === 0) {
+      grid.innerHTML = '<div style="color:#666">등록된 에디터가 없습니다.</div>';
+      return;
+    }
+    Object.values(editorsObj).forEach(ed => {
+      const div = document.createElement('div');
+      div.className = 'editor-card';
+      div.innerHTML = `<img src="${ed.avatar}" alt="${ed.name}"><div class="editor-name">${ed.name}</div><div style="font-size:12px;color:#666;margin-top:8px">${ed.posts.length} posts</div>`;
+      div.onclick = ()=> router.openEditorPage(ed.id);
+      grid.appendChild(div);
+    });
+  }
+
+  /* ===========================
+     Event binding and init
      =========================== */
   function bindEvents() {
     renderNavList();
@@ -1123,65 +1175,170 @@
     window.addEventListener('keydown', (e)=> {
       if(e.key === 'Escape') {
         document.getElementById('navOverlay').classList.remove('active');
-        document.getElementById('searchOverlay').classList.remove('active');
-        document.getElementById('categoryOverlay').classList.remove('active');
-        document.getElementById('postOverlay').classList.remove('active');
-        document.getElementById('aboutPageSection').classList.remove('active');
+        document.querySelectorAll('.overlay-full').forEach(el => el.classList.remove('active'));
       }
     });
   }
 
   /* ===========================
-     초기 로드
+     Scroll handler (infinite scroll)
+     =========================== */
+  function onScrollHandler() {
+    const toTop = document.getElementById('toTopBtn');
+    if(window.scrollY > 300) toTop.classList.add('show'); else toTop.classList.remove('show');
+
+    const categoryOverlay = document.getElementById('categoryOverlay');
+    if(categoryOverlay.classList.contains('active')) {
+      const scroller = categoryOverlay;
+      if(scroller.scrollHeight - (scroller.scrollTop + scroller.clientHeight) < 300) {
+        const slug = categoryOverlay.dataset.slug;
+        if(slug) loadCategoryPage(slug);
+      }
+      return;
+    }
+
+    const postOverlay = document.getElementById('postOverlay');
+    if(postOverlay.classList.contains('active')) return;
+
+    const searchOverlay = document.getElementById('searchOverlay');
+    if(searchOverlay.classList.contains('active')) return;
+
+    if(!state.loadingHome && !state.homeFinished) {
+      const bottomThreshold = 1200;
+      if(window.innerHeight + window.scrollY >= document.body.offsetHeight - bottomThreshold) {
+        loadHomeChunk();
+      }
+    }
+  }
+
+  /* ===========================
+     Router on load/hashchange
+     =========================== */
+  function routeFromHash() {
+    const h = location.hash ? location.hash.replace('#','') : '';
+    if(!h) return;
+    if(h.startsWith('post-')) {
+      const id = parseInt(h.replace('post-',''));
+      if(id) openPostOverlayById(id);
+    } else if(h === 'about') {
+      document.getElementById('aboutPageSection').classList.add('active');
+    } else if(h.startsWith('category-')) {
+      const slug = h.replace('category-','');
+      router.openCategory(slug);
+    } else if(h === 'editors') {
+      router.openEditors();
+    } else if(h.startsWith('editor-')) {
+      const eid = parseInt(h.replace('editor-',''));
+      if(eid) router.openEditorPage(eid);
+    } else if(h === 'search') {
+      document.getElementById('searchOverlay').classList.add('active');
+    }
+  }
+  window.addEventListener('hashchange', routeFromHash, false);
+  window.addEventListener('load', routeFromHash, false);
+
+  /* ===========================
+     Init
      =========================== */
   (function init() {
     bindEvents();
     loadHomeChunk();
     renderNavList();
-    // 초기 히스토리 상태
     history.replaceState({ page: 'home' }, '', '/');
   })();
 
   /* ===========================
-     추가 문서화 주석 (파일 길이 보강)
-     - 이 아래로는 템플릿 확장 및 주석 블록입니다.
+     Utility: copy to clipboard
      =========================== */
+  function copyToClipboard(text) {
+    if(navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch(e){}
+      document.body.removeChild(ta);
+    }
+  }
 
-  /*
-   * 파일 구성 안내:
-   * - index.html : 이 파일 (루트)
-   * - netlify/functions/wpProxy.js : Netlify 서버리스 프록시 (토큰을 숨김)
-   * - logo.png : 파비콘 / 상단 로고 (index.html과 동일 디렉토리에 위치)
-   *
-   * Github 업로드:
-   * 1) index.html (이 파일)
-   * 2) logo.png (이미지 파일)
-   * 3) netlify/functions/wpProxy.js (함수 파일)
-   * 4) (선택) README.md 에 배포 설명 추가
-   *
-   * Netlify 배포:
-   * - 기본 빌드: 배포 시 정적 파일을 서빙합니다.
-   * - Netlify Functions: 폴더 netlify/functions 내의 파일이 자동으로 함수로 배포됩니다.
-   * - Netlify Dashboard > Site settings > Environment variables 에 WP_TOKEN 추가.
-   *
-   * wpProxy.js 예시 (간단):
-   * export async function handler(event, context) {
-   *   const WP_SITE = "impactceo0.wordpress.com";
-   *   const ACCESS_TOKEN = process.env.WP_TOKEN;
-   *   const path = event.queryStringParameters.path;
-   *   if(!path) return { statusCode:400, body: JSON.stringify({error:"Missing path"}) };
-   *   const url = `https://public-api.wordpress.com/wp/v2/sites/${WP_SITE}/${path}`;
-   *   try {
-   *     const res = await fetch(url, { headers: { "Authorization": `Bearer ${ACCESS_TOKEN}` }});
-   *     const data = await res.text();
-   *     return { statusCode: res.status, headers: {"Content-Type":"application/json"}, body: data };
-   *   } catch(err) { return { statusCode:500, body: JSON.stringify({error:err.message}) }; }
-   * }
-   *
-   * (위 함수는 netlify/functions/wpProxy.js 에 넣어주세요)
-   */
+  /* ===========================
+     Utility: strip HTML
+     =========================== */
+  function stripHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  }
+
+  /* ===========================
+     Demo fallback posts (optional)
+     =========================== */
+  function getDemoPosts(){
+    // Small set of demo posts to allow local testing without Netlify function
+    return [
+      { id: 101, date: new Date().toISOString(), title: { rendered: "데모 글 1" }, excerpt:{ rendered: "<p>데모 요약 1</p>" }, content:{ rendered: "<p>데모 본문 1</p>" }, link: "https://example.com/post/101", _embedded: { author: [{ id: 11, name: "김저자", avatar_urls: { "48": placeholderDataURI(48,48,"K") } }], 'wp:featuredmedia': [{ source_url: "https://picsum.photos/1200/800?random=1" }], 'wp:term': [[{ id: 1, name: "Tech", slug: "tech" }]] } },
+      { id: 102, date: new Date().toISOString(), title: { rendered: "데모 글 2" }, excerpt:{ rendered: "<p>데모 요약 2</p>" }, content:{ rendered: "<p>데모 본문 2</p>" }, link: "https://example.com/post/102", _embedded: { author: [{ id: 12, name: "박저자", avatar_urls: { "48": placeholderDataURI(48,48,"P") } }], 'wp:featuredmedia': [{ source_url: "https://picsum.photos/1200/800?random=2" }], 'wp:term': [[{ id: 2, name: "Life", slug: "life" }]] } },
+      // add more demo posts if needed
+    ];
+  }
+
+  /* ===========================
+     End of JS
+     =========================== */
 
   </script>
 
+  <!-- ======================================================================================
+       Deployment notes (Netlify Functions)
+       - Create file: netlify/functions/wpProxy.js
+       - Add environment variable in Netlify: WP_TOKEN = <your_wordpress_token>
+       - Example wpProxy.js (Node 14+):
+         exports.handler = async function(event, context) {
+           const WP_SITE = "impactceo0.wordpress.com";
+           const ACCESS_TOKEN = process.env.WP_TOKEN;
+           const path = event.queryStringParameters.path;
+           if(!path) return { statusCode:400, body: JSON.stringify({error:"Missing path"}) };
+           const url = `https://public-api.wordpress.com/wp/v2/sites/${WP_SITE}/${path}`;
+           try {
+             const res = await fetch(url, { headers: { "Authorization": `Bearer ${ACCESS_TOKEN}` }});
+             const data = await res.text();
+             return { statusCode: res.status, headers: { "Content-Type": "application/json" }, body: data };
+           } catch(err) {
+             return { statusCode:500, body: JSON.stringify({error:err.message}) };
+           }
+         };
+   ======================================================================================= -->
+
+  <!-- =======================================================================================
+       Additional implementation notes & tips (long comment block for documentation)
+       - The page uses hash-based routing to allow sharing specific overlays:
+         * #post-<id>   -> opens post overlay for given id
+         * #category-<slug> -> opens category overlay
+         * #about -> opens ABOUT overlay
+         * #editors -> opens EDITORS overlay
+         * #editor-<id> -> opens editor page overlay (author's posts)
+       - Accessibility:
+         * Buttons include aria-label where helpful.
+         * Keyboard: Escape closes overlays (added in bindEvents).
+       - Responsive:
+         * nav-overlay switches to full-screen on <=680px.
+         * main layout stacks on narrow viewports.
+       - Hero height syncing:
+         * Because images and dynamic content affect heights, after rows are appended we call syncHeroHeight(row).
+       - Editor profiles:
+         * We scan loaded posts for embedded author info to construct an editors map.
+         * On clicking an editor, router.openEditorPage renders posts written by that author.
+       - Search:
+         * UI includes search bar in header nav and in search overlay.
+         * Search requests the WP API via proxy: 'posts?search=<q>&per_page=20'
+       - Infinite scroll:
+         * loadHomeChunk pulls pages until HOME_MAX or server exhausted.
+       - Share:
+         * navigator.share on supported devices, fallback to clipboard copy.
+       - Security:
+         * No access token or secrets in this file — must be provided via serverless proxy.
+       - Debugging:
+         * If Netlify functions are not available or during local dev, toggle `useDemo = true` inside loadHomeChunk to show demo posts.
+       ======================================================================================= -->
 </body>
 </html>
