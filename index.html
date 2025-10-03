@@ -909,12 +909,10 @@
   // 변경된 api(): Netlify 함수 프록시를 경유하도록 변경.
   // Netlify 함수는 /netlify/functions/wpProxy 이며, 실제 WP 요청 경로(쿼리 포함)는 query param 'path'에 넣어 보냅니다.
   function api(path) {
-    // Ensure the requested path always has _embed param included.
-    // If caller passed path that already contains query string, append with &; else use ?.
-    const p = path.includes('_embed') ? path : (path + (path.includes('?') ? '&' : '?') + '_embed');
-    // Use encodeURIComponent for safety
-    return `/netlify/functions/wpProxy?path=${encodeURIComponent(p)}`;
-  }
+  const p = path.includes('_embed') ? path : (path + (path.includes('?') ? '&' : '?') + '_embed');
+  return `/.netlify/functions/wpProxy?path=${encodeURIComponent(p)}`;
+}
+
 
   function headers() {
     // 클라이언트에서는 토큰을 사용하지 않으므로 빈 객체 반환.
