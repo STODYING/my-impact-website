@@ -55,7 +55,7 @@
     font-family:"Noto Sans KR","Apple SD Gothic Neo","Segoe UI",Roboto,Arial,sans-serif;
     -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
     scroll-behavior:smooth; overscroll-behavior-y:contain; -webkit-tap-highlight-color:transparent;
-    overflow-x: hidden;
+    overflow-x: hidden; /* 가로 스크롤 방지 */
   }
   a{ color:inherit; text-decoration:none; }
   img{ display:block; max-width:100%; height:auto; }
@@ -146,69 +146,18 @@
   }
 
   /* ===========================
-     HOME
+     HOME - 세로 잡지식 배열 (요청 1 반영)
      =========================== */
   .home{ max-width:1400px; margin:28px auto; display:flex; flex-direction:column; gap:28px; padding:0 20px 40px; }
   
-  /* PC: 왼쪽 큰카드 + 오른쪽 4개 작은카드 / 반대 패턴 */
-  .row{ 
-    display:grid; 
-    grid-template-columns:2fr 1fr; 
-    gap:20px; 
-    align-items:start; 
-    margin-bottom:20px;
-  }
-  .row.reverse { 
-    grid-template-columns:1fr 2fr; 
+  /* 기존의 row 구조 대신 그리드 카드 목록으로 대체 */
+  .home-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
   }
   
-  .col-hero{ 
-    position:relative; 
-    border-radius:12px; 
-    overflow:hidden; 
-    min-height:500px; 
-    background:#222; 
-    cursor:pointer; 
-  }
-  .col-hero .hero{ 
-    width:100%; 
-    height:100%; 
-    object-fit:cover; 
-    display:block; 
-    min-height:500px; 
-  }
-  .col-hero .hero-overlay{
-    position:absolute; 
-    inset:auto 0 0 0; 
-    padding:22px; 
-    display:flex; 
-    flex-direction:column; 
-    gap:12px;
-    background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.55)); 
-    color:#fff;
-  }
-  .col-hero .hero-title{ 
-    margin:0; 
-    font-size:28px; 
-    font-weight:900; 
-    line-height:1.05; 
-    max-width:92%; 
-  }
-  
-  .col-cards{ 
-    display:flex; 
-    flex-direction:column; 
-    gap:12px; 
-    height:500px;
-    overflow-y:auto;
-    padding-right:8px;
-  }
-  
-  /* 스크롤바 스타일 */
-  .col-cards::-webkit-scrollbar { width:6px; }
-  .col-cards::-webkit-scrollbar-track { background:var(--border); border-radius:3px; }
-  .col-cards::-webkit-scrollbar-thumb { background:var(--muted); border-radius:3px; }
-  .col-cards::-webkit-scrollbar-thumb:hover { background:var(--accent); }
+  /* 스크롤바 스타일 - 기존 .col-cards에서 제거됨 */
 
   .card{ 
     background:var(--card); 
@@ -227,7 +176,7 @@
   }
   .card .thumb{ 
     width:100%; 
-    height:120px; 
+    height:200px; /* 세로형으로 변경하며 높이 조정 */
     overflow:hidden; 
     background:#2b2f36; 
   }
@@ -237,12 +186,13 @@
     object-fit:cover; 
     display:block; 
   }
-  .card .card-body{ padding:12px; }
+  .card .card-body{ padding:16px; }
   .card h3{ 
-    font-size:16px; 
+    font-size:18px; 
     font-weight:800; 
-    margin:0 0 8px; 
+    margin:0 0 10px; 
     color:var(--text); 
+    line-height:1.3;
   }
   
   .cat-badge{ 
@@ -252,13 +202,6 @@
     font-weight:800; 
     font-size:12px; 
     color:#fff; 
-  }
-  .hero-cats{ 
-    position:absolute; 
-    right:16px; 
-    bottom:16px; 
-    display:flex; 
-    gap:6px; 
   }
   .cat-tech{ background:#1e90ff; } 
   .cat-eat{ background:#ff6347; }
@@ -299,33 +242,13 @@
     background:transparent; 
   }
 
-  /* 모바일: 세로 배치 */
-  @media (max-width:1100px){
-    .row, .row.reverse{ 
-      grid-template-columns:1fr; 
-      gap:12px;
-    }
-    .col-hero { 
-      min-height:300px; 
-      order:1;
-    }
-    .col-hero .hero { 
-      min-height:300px; 
-    }
-    .col-cards{ 
-      height:auto;
-      overflow-y:visible;
-      padding-right:0;
-      display:grid; 
-      grid-template-columns:repeat(2, 1fr);
-      gap:12px; 
-      order:2;
-    }
-  }
-  
+  /* 모바일 그리드 조정 */
   @media (max-width:600px){
-    .col-cards{ 
+    .home-grid{ 
       grid-template-columns:1fr;
+    }
+    .card .thumb{
+      height: 240px;
     }
   }
 
@@ -347,7 +270,7 @@
   }
   .post-overlay{ 
     z-index:1900; 
-    padding:0; /* 진행바를 위해 패딩 제거 */
+    padding:0; 
   }
   .category-overlay.active, .post-overlay.active, .search-overlay.active, .about-page.active, .editors-overlay.active{
     opacity:1; 
@@ -383,7 +306,7 @@
     border-bottom-right-radius:2px;
   }
 
-  /* 스크롤 시 나타나는 툴바 */
+  /* 스크롤 시 나타나는 툴바 (요청 4 유지) */
   .post-toolbar{
     position:fixed; 
     top:8px; 
@@ -506,6 +429,22 @@
     color:var(--text); 
     line-height:1.9; 
   }
+
+  /* 유튜브 등 임베드 요소 크기 제한 (요청 5 반영) */
+  .post-content iframe,
+  .post-content video,
+  .post-content embed,
+  .post-content object {
+    max-width:100% !important; /* PC/Mobile 공통: 컨테이너 너비를 초과하지 않도록 */
+    width:100% !important;
+    height:auto !important;
+  }
+  
+  .post-content .wp-video,
+  .post-content .video-container {
+    max-width:100% !important;
+    overflow:hidden;
+  }
   
   /* 모바일 포스트 레이아웃 */
   @media (max-width:768px) {
@@ -519,22 +458,6 @@
     
     .post-header-info h1 {
       font-size:24px;
-    }
-    
-    /* 유튜브 등 임베드 요소 크기 제한 */
-    .post-content iframe,
-    .post-content video,
-    .post-content embed,
-    .post-content object {
-      max-width:100% !important;
-      width:100% !important;
-      height:auto !important;
-    }
-    
-    .post-content .wp-video,
-    .post-content .video-container {
-      max-width:100% !important;
-      overflow:hidden;
     }
   }
 
@@ -631,7 +554,6 @@
 </head>
 <body>
 
-  <!-- HEADER -->
   <header class="header" id="siteHeader" role="banner" aria-label="사이트 헤더">
     <div class="header-inner wrap">
       <div class="brand" aria-label="IMPACT brand">
@@ -655,7 +577,6 @@
     </div>
   </header>
 
-  <!-- NAV OVERLAY -->
   <aside class="nav-overlay" id="navOverlay" aria-hidden="true" aria-label="카테고리 네비게이션">
     <button class="nav-close" aria-label="네비 닫기" onclick="ui.toggleNav(true)">×</button>
     <div style="display:flex;flex-direction:column;gap:12px;">
@@ -677,14 +598,12 @@
     </button>
   </aside>
 
-  <!-- HOME -->
   <main class="home" id="home" role="main" aria-live="polite" tabindex="-1">
-    <div id="rowsContainer" aria-live="polite"></div>
+    <div id="rowsContainer" class="home-grid" aria-live="polite"></div>
     <div id="homeLoading" style="text-align:center;color:var(--muted);padding:18px 0"></div>
     <nav id="homePager" class="pager" aria-label="페이지 이동"></nav>
   </main>
 
-  <!-- CATEGORY OVERLAY -->
   <section class="category-overlay" id="categoryOverlay" aria-hidden="true" role="region">
     <div class="wrap">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--border);padding-bottom:12px;">
@@ -700,7 +619,6 @@
     </div>
   </section>
 
-  <!-- EDITORS OVERLAY -->
   <section class="editors-overlay" id="editorsOverlay" aria-hidden="true" role="region">
     <div class="wrap">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--border);padding-bottom:14px;">
@@ -728,12 +646,9 @@
     </div>
   </section>
 
-  <!-- POST OVERLAY -->
   <article class="post-overlay" id="postOverlay" aria-hidden="true" role="article">
-    <!-- 상단 진행률 바 -->
     <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
     
-    <!-- 스크롤 시 나타나는 툴바 -->
     <div class="post-toolbar" id="postToolbar">
       <div class="tool-left" onclick="router.goHome()">
         <img src="logo.png" alt="IMPACT" style="width:24px;height:24px;border-radius:6px;object-fit:cover;">
@@ -751,7 +666,6 @@
         </div>
         <div class="post-article" id="postArticle"></div>
 
-        <!-- 관련 글 -->
         <section id="relatedSection" style="max-width:1200px;margin:28px auto 0;display:none;">
           <h3 style="font-size:20px;font-weight:900;margin:0 0 12px;">관련 글</h3>
           <div id="relatedGrid" style="display:grid; gap:16px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));"></div>
@@ -760,7 +674,6 @@
     </div>
   </article>
 
-  <!-- SEARCH OVERLAY -->
   <section class="search-overlay" id="searchOverlay" aria-hidden="true" role="search">
     <div class="wrap" style="max-width:1100px;margin:0 auto;">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px">
@@ -775,7 +688,6 @@
     </div>
   </section>
 
-  <!-- ABOUT PAGE -->
   <section class="about-page" id="aboutPageSection" aria-hidden="true" role="region">
     <div class="wrap">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px">
@@ -791,10 +703,8 @@
     </div>
   </section>
 
-  <!-- TO TOP -->
   <button class="to-top" id="toTopBtn" title="맨 위로" aria-label="맨 위로">↑</button>
 
-  <!-- FOOTER -->
   <footer class="site-footer" role="contentinfo" aria-label="사이트 푸터">
     <div class="wrap footer-inner">
       <div>
@@ -812,9 +722,8 @@
     </div>
   </footer>
 
-  <!-- 카드 템플릿 -->
   <template id="cardTpl">
-    <article class="card" role="article">
+    <article class="card" role="article" tabindex="0">
       <div class="thumb"><img src="" alt=""></div>
       <div class="card-body">
         <div class="cat-row"></div>
@@ -830,7 +739,6 @@
     </article>
   </template>
 
-  <!-- 에디터 카드 템플릿 -->
   <template id="editorTpl">
     <div class="editor-card" role="button" tabindex="0" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;">
       <img class="editor-avatar" src="" alt="" style="width:84px;height:84px;border-radius:50%;object-fit:cover;">
@@ -909,8 +817,13 @@ function renderNavList(){
 function createCardNode(post){
   const tpl=document.getElementById('cardTpl');
   const node=tpl.content.firstElementChild.cloneNode(true);
+  
+  // URL은 포스트 ID로, 썸네일 이미지 크기 명시
+  const thumbUrl=post._embedded?.['wp:featuredmedia']?.[0]?.media_details?.sizes?.medium_large?.source_url 
+                 || post._embedded?.['wp:featuredmedia']?.[0]?.source_url 
+                 || '';
+
   const imgEl=node.querySelector('.thumb img');
-  const thumbUrl=post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
   imgEl.src = thumbUrl || placeholderDataURI(1200,800,'No Image');
   imgEl.alt = (post.title?.rendered)?stripTags(post.title.rendered):'thumb';
   node.querySelector('.title').innerHTML = post.title?.rendered ?? '제목 없음';
@@ -932,7 +845,7 @@ function createCardNode(post){
   const catRow=document.createElement('div'); catRow.style.marginBottom='8px';
   const cats=post._embedded?.['wp:term']?.[0] || [];
   cats.forEach(c=>{
-    if(c?.name){
+    if(c?.name && c.taxonomy==='category'){ // 카테고리만 표시
       const span=document.createElement('span');
       span.className='cat-badge '+(pickCategoryClass(c.slug||c.name)||'');
       if(!pickCategoryClass(c.slug||c.name)) span.style.background='#666';
@@ -943,113 +856,36 @@ function createCardNode(post){
   node.querySelector('.card-body').insertBefore(catRow, node.querySelector('.title'));
 
   node.addEventListener('click', ()=> openPostOverlayById(post.id));
-  node.addEventListener('keydown', e=>{ if(e.key==='Enter') openPostOverlayById(post.id); });
+  node.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' ') openPostOverlayById(post.id); });
   return node;
 }
 
-/* 홈: 페이지 단위 로드 + 페이지네이션 */
+/* 홈: 페이지 단위 로드 + 페이지네이션 (요청 1 반영) */
 async function loadHome(page=1){
-  const rows=document.getElementById('rowsContainer');
+  const grid=document.getElementById('rowsContainer'); // rowsContainer를 grid로 사용
   const loading=document.getElementById('homeLoading');
   const pager=document.getElementById('homePager');
-  rows.innerHTML=''; loading.textContent='로딩 중...'; pager.innerHTML='';
+  grid.innerHTML=''; loading.textContent='로딩 중...'; pager.innerHTML='';
   try{
+    // 한 페이지에 20개씩 로드
     const res=await fetch(api(`posts?per_page=${HOME_PER_PAGE}&page=${page}`),{headers:headers()});
     if(!res.ok){ loading.textContent='글을 불러오지 못했습니다.'; return; }
     const posts=await res.json();
     const totalPages = parseInt(res.headers.get('X-WP-TotalPages')||'1',10);
     state.homePage=page; state.homeTotalPages=totalPages;
 
-    // 캐시
-    posts.forEach(p=> state.postsCache[p.id]=p);
-
-    // 패턴: 왼쪽 큰 + 오른쪽 4개, 다음은 반대
-    for(let i=0;i<posts.length;i+=5){
-      const group=posts.slice(i,i+5);
-      const row=document.createElement('div'); 
-      const isReverse = Math.floor(i/5) % 2 === 1;
-      row.className= isReverse ? 'row reverse' : 'row';
-
-      if(!isReverse) {
-        // 왼쪽 큰 카드
-        const leftPost=group[0];
-        const leftDiv=document.createElement('div'); leftDiv.className='col-hero';
-        const heroUrl=leftPost? (leftPost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '') : '';
-        leftDiv.innerHTML=`
-          <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero">
-          <div class="hero-overlay">
-            <h2 class="hero-title">${leftPost?.title?.rendered ?? '제목 없음'}</h2>
-            <div style="display:flex;align-items:center;gap:10px">
-              <img class="hero-avatar" src="" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
-              <div class="hero-author" style="font-weight:800;color:#fff"></div>
-              <div class="hero-date" style="margin-left:8px;color:#eee;opacity:.9"></div>
-            </div>
-          </div>
-        `;
-        const ha=leftPost?leftPost._embedded?.author?.[0]:null;
-        const heroAvatar=leftDiv.querySelector('.hero-avatar');
-        heroAvatar.src = (ha?.avatar_urls?.['48']||ha?.avatar_urls?.['24']) || placeholderDataURI(48,48,'U');
-        leftDiv.querySelector('.hero-author').textContent = ha?.name || '익명';
-        leftDiv.querySelector('.hero-date').textContent = leftPost?formatDate(leftPost.date):'';
-        leftDiv.addEventListener('click', ()=> openPostOverlayById(leftPost.id));
-
-        const catWrap=document.createElement('div'); catWrap.className='hero-cats';
-        const firstCat=leftPost? leftPost._embedded?.['wp:term']?.[0]?.[0] : null;
-        if(firstCat){
-          const span=document.createElement('span');
-          span.className='cat-badge '+pickCategoryClass(firstCat.slug||firstCat.name);
-          span.textContent=firstCat.name; catWrap.appendChild(span);
-        }
-        leftDiv.appendChild(catWrap);
-        row.appendChild(leftDiv);
-
-        // 오른쪽 4개
-        const rightDiv=document.createElement('div'); rightDiv.className='col-cards';
-        group.slice(1,5).forEach(p=>{ if(p){ state.postsCache[p.id]=p; rightDiv.appendChild(createCardNode(p)); } });
-        row.appendChild(rightDiv);
-      } else {
-        // 오른쪽 큰 카드 (반대 패턴)
-        const rightDiv=document.createElement('div'); rightDiv.className='col-cards';
-        group.slice(1,5).forEach(p=>{ if(p){ state.postsCache[p.id]=p; rightDiv.appendChild(createCardNode(p)); } });
-        row.appendChild(rightDiv);
-
-        const leftPost=group[0];
-        const leftDiv=document.createElement('div'); leftDiv.className='col-hero';
-        const heroUrl=leftPost? (leftPost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '') : '';
-        leftDiv.innerHTML=`
-          <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero">
-          <div class="hero-overlay">
-            <h2 class="hero-title">${leftPost?.title?.rendered ?? '제목 없음'}</h2>
-            <div style="display:flex;align-items:center;gap:10px">
-              <img class="hero-avatar" src="" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
-              <div class="hero-author" style="font-weight:800;color:#fff"></div>
-              <div class="hero-date" style="margin-left:8px;color:#eee;opacity:.9"></div>
-            </div>
-          </div>
-        `;
-        const ha=leftPost?leftPost._embedded?.author?.[0]:null;
-        const heroAvatar=leftDiv.querySelector('.hero-avatar');
-        heroAvatar.src = (ha?.avatar_urls?.['48']||ha?.avatar_urls?.['24']) || placeholderDataURI(48,48,'U');
-        leftDiv.querySelector('.hero-author').textContent = ha?.name || '익명';
-        leftDiv.querySelector('.hero-date').textContent = leftPost?formatDate(leftPost.date):'';
-        leftDiv.addEventListener('click', ()=> openPostOverlayById(leftPost.id));
-
-        const catWrap=document.createElement('div'); catWrap.className='hero-cats';
-        const firstCat=leftPost? leftPost._embedded?.['wp:term']?.[0]?.[0] : null;
-        if(firstCat){
-          const span=document.createElement('span');
-          span.className='cat-badge '+pickCategoryClass(firstCat.slug||firstCat.name);
-          span.textContent=firstCat.name; catWrap.appendChild(span);
-        }
-        leftDiv.appendChild(catWrap);
-        row.appendChild(leftDiv);
-      }
-      
-      rows.appendChild(row);
-    }
+    // 캐시 및 카드 노드 추가
+    posts.forEach(p=> { 
+      state.postsCache[p.id]=p; 
+      grid.appendChild(createCardNode(p));
+    });
 
     loading.textContent = posts.length ? '' : '아직 게시된 글이 없습니다.';
     renderPager(pager, page, totalPages, (to)=> loadHome(to));
+
+    // history.pushState({page:'home', homePage:page}, '', page > 1 ? `?p=${page}` : location.pathname.split('#')[0]);
+    history.replaceState({page:'home', homePage:page}, '', page > 1 ? `?p=${page}` : location.pathname.split('?')[0]);
+    window.scrollTo({top:0, behavior:'smooth'});
   }catch(e){
     console.error(e); loading.textContent='메인 글 불러오기 실패';
   }
@@ -1106,7 +942,28 @@ async function loadCategory(slug, page=1){
   const pager=document.getElementById('categoryPager'); pager.innerHTML='';
 
   try{
-    const catId=CATEGORIES[slug]; if(!catId){ document.getElementById('categoryLoading').textContent='알 수 없는 카테고리입니다.'; return; }
+    const catId=CATEGORIES[slug]; 
+    if(!catId){ 
+        if(slug==='editors-pick'){
+            // Editors' Pick은 태그 ID로 처리 (임시)
+            const editorsPickTagId = 259543; 
+            const res=await fetch(api(`posts?tags=${editorsPickTagId}&per_page=${HOME_PER_PAGE}&page=${page}`),{headers:headers()});
+            const posts=await res.json();
+            const totalPages=parseInt(res.headers.get('X-WP-TotalPages')||'1',10);
+            state.category.totalPages=totalPages;
+
+            if(Array.isArray(posts)){
+              posts.forEach(p=>{ state.postsCache[p.id]=p; grid.appendChild(createCardNode(p)); });
+            }
+            document.getElementById('categoryLoading').textContent='';
+            renderPager(pager, page, totalPages, (to)=> loadCategory(slug, to));
+            history.pushState({page:'category',slug,catPage:page}, '', `#category-${slug}?p=${page}`);
+            return;
+        } else {
+            document.getElementById('categoryLoading').textContent='알 수 없는 카테고리입니다.'; 
+            return; 
+        }
+    }
     const res=await fetch(api(`posts?categories=${catId}&per_page=${HOME_PER_PAGE}&page=${page}`),{headers:headers()});
     const posts=await res.json();
     const totalPages=parseInt(res.headers.get('X-WP-TotalPages')||'1',10);
@@ -1118,6 +975,7 @@ async function loadCategory(slug, page=1){
     document.getElementById('categoryLoading').textContent='';
     renderPager(pager, page, totalPages, (to)=> loadCategory(slug, to));
     history.pushState({page:'category',slug,catPage:page}, '', `#category-${slug}?p=${page}`);
+    window.scrollTo({top:0, behavior:'smooth'});
   }catch(e){ console.error(e); document.getElementById('categoryLoading').textContent='불러오기 실패'; }
 }
 
@@ -1146,7 +1004,7 @@ function renderEditorsGrid(){
     node.querySelector('.editor-name').textContent=u.name||u.slug||'unknown';
     node.querySelector('.editor-bio').textContent=u.description||'';
     node.addEventListener('click', ()=> openEditorProfile(u));
-    node.addEventListener('keydown', e=>{ if(e.key==='Enter') openEditorProfile(u); });
+    node.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' ') openEditorProfile(u); });
     wrap.appendChild(node);
   });
 }
@@ -1165,12 +1023,14 @@ async function openEditorProfile(user){
     if(Array.isArray(posts)){ posts.forEach(p=>{ state.postsCache[p.id]=p; grid.appendChild(createCardNode(p)); }); }
     document.getElementById('editorPostsLoading').textContent='';
     history.pushState({page:'editor', id:user.id}, '', `#editor-${user.id}`);
+    document.getElementById('editorsOverlay').scrollTop = 0;
   }catch(e){ console.error(e); document.getElementById('editorPostsLoading').textContent='불러오기 실패'; }
 }
 function showEditorsList(){
   document.getElementById('editorProfileSection').style.display='none';
   document.getElementById('editorsGridWrapper').style.display='block';
   history.pushState({page:'editors'}, '', '#editors');
+  document.getElementById('editorsOverlay').scrollTop = 0;
 }
 
 /* POST 오버레이 */
@@ -1183,10 +1043,10 @@ async function openPostOverlayById(id){
   try{
     const res=await fetch(api(`posts/${id}`),{headers:headers()});
     if(!res.ok) throw new Error('post fetch failed '+res.status);
-    const post=await res.json();
+    let post=await res.json();
     if(!(post._embedded?.author)){
       const res2=await fetch(api(`posts/${id}?_embed`),{headers:headers()});
-      if(res2.ok){ const p2=await res2.json(); state.postsCache[id]=p2; renderPostOverlay(p2); return; }
+      if(res2.ok){ post=await res2.json(); } else { throw new Error('post fetch failed 2'); }
     }
     state.postsCache[id]=post; renderPostOverlay(post);
   }catch(e){ console.error(e); alert('포스트 로드 실패'); }
@@ -1198,7 +1058,7 @@ function renderPostOverlay(post){
   const title=post.title?.rendered ?? '제목 없음';
   const authorName=post._embedded?.author?.[0]?.name ?? '익명';
   const avatar=post._embedded?.author?.[0]?.avatar_urls?.['96'] || post._embedded?.author?.[0]?.avatar_urls?.['48'] || '';
-  const cats=(post._embedded?.['wp:term']?.[0]||[]).map(t=>t.name).join(', ') || '-';
+  const cats=(post._embedded?.['wp:term']?.[0]||[]).filter(t=>t.taxonomy==='category').map(t=>t.name).join(', ') || '-';
   const dateStr=formatDate(post.date);
   const contentHTML=post.content?.rendered ?? post.excerpt?.rendered ?? '';
   const featuredUrl=post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
@@ -1226,14 +1086,17 @@ function renderPostOverlay(post){
     img.style.maxWidth='100%'; 
     img.style.height='auto'; 
     img.style.display='block'; 
-    img.style.margin='12px 0'; 
+    img.style.margin='12px auto'; // 중앙 정렬
   });
   
-  // 유튜브 등 임베드 요소 크기 제한
-  article.querySelectorAll('.post-content iframe, .post-content video, .post-content embed').forEach(el=>{
+  // 유튜브 등 임베드 요소 크기 제한 (요청 5 반영)
+  article.querySelectorAll('.post-content iframe, .post-content video, .post-content embed, .post-content object').forEach(el=>{
     el.style.maxWidth='100%';
     el.style.width='100%';
     el.style.height='auto';
+    el.style.display='block'; // 블록 요소로 변경
+    // 특히 iframe의 경우, height 속성이 인라인으로 지정된 경우가 많아 여기서 auto로 덮어쓰거나, 비율 유지를 위한 래퍼 사용을 고려해야 하지만,
+    // 여기서는 기본적으로 max-width:100%와 height:auto로 설정하여 기본 동작을 따르게 합니다.
   });
   
   // 불필요한 요소 제거
@@ -1282,11 +1145,11 @@ function updatePostProgress(){
   const pct = max>0 ? (ov.scrollTop / max) * 100 : 0;
   bar.style.width = Math.min(100, Math.max(0, pct)) + '%';
 
-  // 약간이라도 위로 스크롤하면 툴바 표시
+  // 약간이라도 위로 스크롤하면 툴바 표시 (요청 4 유지)
   const y = ov.scrollTop;
-  if(y < state.lastScrollY - 2){ // 위로 스크롤
+  if(y < state.lastScrollY - 2 && y > 100){ // 위로 스크롤 (단, 최상단 근처 스크롤은 무시)
     toolbar.classList.add('show');
-  }else if(y > state.lastScrollY + 50){ // 아래로 충분히 스크롤하면 숨기기
+  }else if(y > state.lastScrollY + 50 || y < 10){ // 아래로 충분히 스크롤하거나 최상단으로 가면 숨기기
     toolbar.classList.remove('show');
   }
   state.lastScrollY = y;
@@ -1328,13 +1191,23 @@ const ui={
 const router={
   goHome(){
     closeAllOverlays();
-    loadHome(1);
+    const urlParams = new URLSearchParams(window.location.search);
+    const page = parseInt(urlParams.get('p') || '1', 10);
+    loadHome(page);
     window.scrollTo({top:0, behavior:'smooth'});
-    history.pushState({page:'home'}, '', location.pathname.split('#')[0]);
+    history.pushState({page:'home', homePage:page}, '', location.pathname + (page > 1 ? `?p=${page}` : ''));
   },
   openCategory(slug){ closeAllOverlays(); loadCategory(slug,1); },
   closeCategory(){ smoothHide(document.getElementById('categoryOverlay'), ()=>router.goHome()); },
-  closePost(){ smoothHide(document.getElementById('postOverlay'), ()=>router.goHome()); },
+  closePost(){ 
+    smoothHide(document.getElementById('postOverlay'), ()=>{
+      const home=document.getElementById('home');
+      if(home.classList.contains('active')) window.scrollTo({top:state.currentScrollPos, behavior:'smooth'});
+    }); 
+    const hash = location.hash;
+    history.back();
+    if(hash.startsWith('#post')) history.replaceState(null, '', location.pathname + location.search); // 뒤로가기 대신 홈으로 이동
+  },
   openAbout(){ closeAllOverlays(); openOverlay(document.getElementById('aboutPageSection')); history.pushState({page:'about'}, '', '#about'); },
   closeAbout(){ smoothHide(document.getElementById('aboutPageSection'), ()=>router.goHome()); },
   openEditors(){ closeAllOverlays(); openOverlay(document.getElementById('editorsOverlay')); loadEditors(); history.pushState({page:'editors'}, '', '#editors'); },
@@ -1342,7 +1215,15 @@ const router={
 };
 
 function openOverlay(el){ el.classList.remove('closing'); el.classList.add('active'); el.setAttribute('aria-hidden','false'); }
-function smoothHide(el, after){ if(!el) return; el.classList.add('closing'); setTimeout(()=>{ el.classList.remove('active','closing'); el.setAttribute('aria-hidden','true'); if(typeof after==='function') after(); }, 180); }
+function smoothHide(el, after){ 
+  if(!el) return; 
+  el.classList.add('closing'); 
+  setTimeout(()=>{ 
+    el.classList.remove('active','closing'); 
+    el.setAttribute('aria-hidden','true'); 
+    if(typeof after==='function') after(); 
+  }, 180); 
+}
 function closeAllOverlays(){ ['categoryOverlay','postOverlay','searchOverlay','aboutPageSection','editorsOverlay'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.classList.remove('active','closing'); el.setAttribute('aria-hidden','true'); } }); }
 
 function openNavlessSearch(){ closeAllOverlays(); openOverlay(document.getElementById('searchOverlay')); const input=document.getElementById('searchInputTop'); if(input) input.focus(); history.pushState({page:'search'}, '', '#search'); }
@@ -1350,12 +1231,17 @@ function openNavlessSearch(){ closeAllOverlays(); openOverlay(document.getElemen
 /* URL 직접 진입 라우팅 */
 function routeFromURL(){
   const h=location.hash;
-  if(!h || h==='#' || h.startsWith('#home')) return;
+  const p=new URLSearchParams(location.search).get('p');
+  const page=parseInt(p||'1',10);
+
+  if(!h || h==='#' || h.startsWith('#home')){ loadHome(page); return; }
+  
   if(h.startsWith('#post-')){ const id=parseInt(h.replace('#post-','')); if(id) openPostOverlayById(id); }
   else if(h.startsWith('#category-')){ const slug=h.replace('#category-','').split('?')[0]; const qs=new URLSearchParams(h.split('?')[1]||''); const p=parseInt(qs.get('p')||'1',10); loadCategory(slug, p); }
   else if(h.startsWith('#search')){ const q=new URLSearchParams(h.split('?')[1]).get('q'); q ? doSearch(q) : openNavlessSearch(); }
   else if(h==='#editors'){ router.openEditors(); }
   else if(h==='#about'){ router.openAbout(); }
+  else { loadHome(page); }
 }
 
 /* 스크롤 이벤트: 홈 to-top / 포스트 진행률 */
@@ -1379,8 +1265,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }
 
   renderNavList();
-  loadHome(1);
-  routeFromURL();
+  routeFromURL(); // URL 해시/쿼리 파라미터 기반 라우팅
 
   const topInput=document.getElementById('searchInputTop');
   if(topInput){
@@ -1400,7 +1285,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
     });
   }
 
-  window.addEventListener('popstate', ()=>{ closeAllOverlays(); routeFromURL(); });
+  window.addEventListener('popstate', (e)=>{ 
+    closeAllOverlays(); 
+    if(e.state?.page === 'home' && e.state?.homePage) {
+        const page = e.state.homePage;
+        loadHome(page);
+    } else {
+        routeFromURL();
+    }
+  });
 });
   </script>
 </body>
