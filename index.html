@@ -816,9 +816,15 @@ function showEditorsList() {
 async function openPostOverlayById(id) {
   if(!id) return;
   
+  // 현재 페이지 정보를 저장 (게시물 열기 전 상태)
+  const currentHash = window.location.hash;
+  const fromPage = currentHash.startsWith('#search') ? 'search' : 
+                   currentHash.startsWith('#category-') ? 'category' : 
+                   currentHash.startsWith('#editors') ? 'editors' : 'home';
+  
   const cached = state.postsCache[id];
   if(cached && cached.content && cached.content.rendered) {
-    renderPostOverlay(cached);
+    renderPostOverlay(cached, fromPage, currentHash);
     return;
   }
   try {
@@ -830,19 +836,19 @@ async function openPostOverlayById(id) {
       if(res2.ok) {
         const post2 = await res2.json();
         state.postsCache[id] = post2;
-        renderPostOverlay(post2);
+        renderPostOverlay(post2, fromPage, currentHash);
         return;
       }
     }
     state.postsCache[id] = post;
-    renderPostOverlay(post);
+    renderPostOverlay(post, fromPage, currentHash);
   } catch(e) {
     console.error(e);
     alert('포스트 로드 실패');
   }
 }
 
-function renderPostOverlay(post) {
+function renderPostOverlay(post, fromPage, fromHash) {
   const overlay = document.getElementById('postOverlay');
   const article = document.getElementById('postArticle');
 
@@ -895,7 +901,15 @@ function renderPostOverlay(post) {
   overlay.classList.add('active');
   overlay.setAttribute('aria-hidden','false');
   overlay.scrollTop = 0;
-  history.pushState({page:'post', id: post.id}, '', `#post-${post.id}`);
+  
+  // pushState에 출발 페이지 정보 포함
+  history.pushState({
+    page:'post', 
+    id: post.id,
+    fromPage: fromPage,
+    fromHash: fromHash,
+    scrollPos: state.currentScrollPos
+  }, '', `#post-${post.id}`);
 }
 
 async function doSearch(q) {
@@ -1000,9 +1014,45 @@ const router = {
     document.getElementById('postOverlay').classList.remove('active');
     document.getElementById('postOverlay').setAttribute('aria-hidden','true');
     
-    // 이전 페이지로 돌아가기
-    if(history.state && history.state.scrollPos !== undefined) {
-      setTimeout(() => window.scrollTo(0, history.state.scrollPos), 50);
+    // history의 state에서 이전 페이지 정보 가져오기
+    const currentState = history.state;
+    
+    if(currentState && currentState.fromHash) {
+      // 이전 페이지 URL로 돌아가기
+      history.pushState({
+        page: currentState.fromPage,
+        scrollPos: currentState.scrollPos
+      }, '', currentState.fromHash);
+      
+      // 이전 페이지 복원
+      if(currentState.fromPage === 'search') {
+        const urlParams = new URLSearchParams(currentState.fromHash.split('?')[1]);
+        const query = urlParams.get('q');
+        if(query) {
+          document.getElementById('searchInputTop').value = query;
+          // 검색 결과 다시 로드하지 않고 오버레이만 열기
+          document.getElementById('searchOverlay').classList.add('active');
+          document.getElementById('searchOverlay').setAttribute('aria-hidden','false');
+        }
+      } else if(currentState.fromPage === 'category') {
+        const slug = currentState.fromHash.replace('#category-', '').split('?')[0];
+        if(slug) {
+          // 카테고리 다시 로드하지 않고 오버레이만 열기
+          document.getElementById('categoryOverlay').classList.add('active');
+          document.getElementById('categoryOverlay').setAttribute('aria-hidden','false');
+        }
+      } else if(currentState.fromPage === 'editors') {
+        document.getElementById('editorsOverlay').classList.add('active');
+        document.getElementById('editorsOverlay').setAttribute('aria-hidden','false');
+      }
+      
+      // 스크롤 위치 복원
+      if(currentState.scrollPos !== undefined) {
+        setTimeout(() => window.scrollTo(0, currentState.scrollPos), 50);
+      }
+    } else {
+      // 정보 없으면 홈으로
+      router.goHome();
     }
   },
   openAbout() {
