@@ -230,6 +230,9 @@
     padding:28px;
     animation: overlayIn .28s ease;
   }
+  .post-overlay {
+    z-index:1900;
+  }
   .category-overlay.active, .post-overlay.active, .search-overlay.active, .about-page.active, .editors-overlay.active { display:block; }
   @keyframes overlayIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
 
@@ -905,12 +908,6 @@ function showEditorsList() {
    ============== */
 async function openPostOverlayById(id) {
   if(!id) return;
-  
-  // 검색 오버레이가 열려있으면 닫기
-  const searchOverlay = document.getElementById('searchOverlay');
-  if(searchOverlay && searchOverlay.classList.contains('active')) {
-    ui.closeSearch();
-  }
   
   const cached = state.postsCache[id];
   if(cached && cached.content && cached.content.rendered) {
