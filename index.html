@@ -242,8 +242,128 @@
   .category-grid { margin-top:18px; display:grid; gap:18px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); padding:20px 0 80px; }
 
   .post-article { margin:0 auto; max-width:900px; }
-  .post-article h1 { font-size:34px; font-weight:900; margin-bottom:12px; color:#111; }
-  .post-content { color:#222; line-height:1.9; }
+  .post-article h1 { font-size:34px; font-weight:900; margin-bottom:12px; color:#111; line-height:1.2; }
+  .post-content { color:#222; line-height:1.9; font-size:17px; }
+  .post-content h1 { font-size:32px; font-weight:800; margin:32px 0 16px; color:#111; }
+  .post-content h2 { font-size:28px; font-weight:800; margin:28px 0 14px; color:#111; }
+  .post-content h3 { font-size:24px; font-weight:700; margin:24px 0 12px; color:#111; }
+  .post-content h4 { font-size:20px; font-weight:700; margin:20px 0 10px; color:#111; }
+  .post-content p { margin:16px 0; }
+  .post-content ul, .post-content ol { margin:16px 0; padding-left:28px; }
+  .post-content li { margin:8px 0; }
+  .post-content blockquote { 
+    margin:24px 0; 
+    padding:16px 20px; 
+    border-left:4px solid #2e8b57; 
+    background:#f9f9f9; 
+    font-style:italic;
+    color:#555;
+  }
+  .post-content pre { 
+    background:#f5f5f5; 
+    padding:16px; 
+    border-radius:8px; 
+    overflow-x:auto; 
+    margin:16px 0;
+    font-size:14px;
+  }
+  .post-content code { 
+    background:#f0f0f0; 
+    padding:2px 6px; 
+    border-radius:4px; 
+    font-family:'Courier New', monospace;
+    font-size:15px;
+  }
+  .post-content pre code { 
+    background:none; 
+    padding:0;
+  }
+  .post-content a { 
+    color:#2e8b57; 
+    text-decoration:underline;
+    transition: color .15s ease;
+  }
+  .post-content a:hover { color:#1f7a6f; }
+  .post-content img { 
+    max-width:100%; 
+    height:auto; 
+    border-radius:8px; 
+    margin:20px 0;
+  }
+  .post-content figure { 
+    margin:24px 0; 
+  }
+  .post-content figcaption { 
+    text-align:center; 
+    color:#666; 
+    font-size:14px; 
+    margin-top:8px;
+    font-style:italic;
+  }
+  .post-content table {
+    width:100%;
+    border-collapse:collapse;
+    margin:20px 0;
+  }
+  .post-content table th,
+  .post-content table td {
+    border:1px solid #ddd;
+    padding:10px;
+    text-align:left;
+  }
+  .post-content table th {
+    background:#f5f5f5;
+    font-weight:700;
+  }
+  .post-content hr {
+    border:none;
+    border-top:2px solid #eee;
+    margin:32px 0;
+  }
+  
+  /* WordPress 블록 에디터 스타일 */
+  .post-content .wp-block-quote { 
+    margin:24px 0; 
+    padding:16px 20px; 
+    border-left:4px solid #2e8b57; 
+    background:#f9f9f9; 
+  }
+  .post-content .wp-block-image { 
+    margin:24px 0; 
+  }
+  .post-content .wp-block-gallery {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));
+    gap:16px;
+    margin:24px 0;
+  }
+  .post-content .wp-block-embed {
+    margin:24px 0;
+  }
+  .post-content .wp-block-embed iframe,
+  .post-content iframe {
+    max-width:100%;
+    border-radius:8px;
+  }
+  
+  /* 반응형 비디오 임베드 */
+  .post-content .wp-block-embed__wrapper,
+  .post-content .embed-container {
+    position:relative;
+    padding-bottom:56.25%;
+    height:0;
+    overflow:hidden;
+    max-width:100%;
+    margin:20px 0;
+  }
+  .post-content .wp-block-embed__wrapper iframe,
+  .post-content .embed-container iframe {
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+  }
 
   /* ----------------------------
      SEARCH OVERLAY (모바일/데스크탑 스타일)
@@ -943,34 +1063,170 @@ function renderPostOverlay(post) {
   const title = post.title && post.title.rendered ? post.title.rendered : '제목 없음';
   const authorName = (post._embedded && post._embedded.author && post._embedded.author[0] && post._embedded.author[0].name) ? post._embedded.author[0].name : '익명';
   const avatar = (post._embedded && post._embedded.author && post._embedded.author[0] && post._embedded.author[0].avatar_urls) ? (post._embedded.author[0].avatar_urls['96'] || post._embedded.author[0].avatar_urls['48']) : '';
-  const categories = (post._embedded && post._embedded['wp:term'] && post._embedded['wp:term'][0]) ? post._embedded['wp:term'][0].map(t=>t.name).join(', ') : '-';
+  const categories = (post._embedded && post._embedded['wp:term'] && post._embedded['wp:term'][0]) ? post._embedded['wp:term'][0] : [];
+  const tags = (post._embedded && post._embedded['wp:term'] && post._embedded['wp:term'][1]) ? post._embedded['wp:term'][1] : [];
   const dateStr = formatDate(post.date);
-  const contentHTML = post.content && post.content.rendered ? post.content.rendered : (post.excerpt && post.excerpt.rendered ? post.excerpt.rendered : '');
+  const modifiedStr = post.modified ? formatDate(post.modified) : null;
+  let contentHTML = post.content && post.content.rendered ? post.content.rendered : (post.excerpt && post.excerpt.rendered ? post.excerpt.rendered : '');
+  
+  // Featured Image 추가
+  let featuredImageHTML = '';
+  if(post._embedded && post._embedded['wp:featuredmedia'] && post._embedded['wp:featuredmedia'][0]) {
+    const media = post._embedded['wp:featuredmedia'][0];
+    const imgUrl = media.source_url || '';
+    const imgAlt = media.alt_text || stripTags(title);
+    const imgCaption = media.caption && media.caption.rendered ? media.caption.rendered : '';
+    if(imgUrl) {
+      featuredImageHTML = `
+        <div class="post-featured-image" style="margin:24px 0;">
+          <img src="${imgUrl}" alt="${imgAlt}" style="width:100%;height:auto;border-radius:12px;">
+          ${imgCaption ? `<div class="image-caption" style="text-align:center;color:#666;font-size:14px;margin-top:8px;font-style:italic;">${imgCaption}</div>` : ''}
+        </div>
+      `;
+    }
+  }
+
+  // 카테고리 배지
+  let categoryBadgesHTML = '';
+  if(categories.length > 0) {
+    categoryBadgesHTML = categories.map(c => {
+      const cls = pickCategoryClass(c.slug || c.name);
+      return `<span class="cat-badge ${cls}" style="margin-right:6px;">${c.name}</span>`;
+    }).join('');
+  }
+
+  // 태그
+  let tagsHTML = '';
+  if(tags.length > 0) {
+    tagsHTML = `
+      <div class="post-tags" style="margin-top:24px;padding-top:20px;border-top:1px solid #eee;">
+        <div style="font-weight:700;font-size:14px;color:#666;margin-bottom:8px;">태그</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          ${tags.map(t => `<span style="display:inline-block;padding:4px 10px;background:#f0f0f0;border-radius:6px;font-size:13px;color:#555;">#${t.name}</span>`).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // 수정일 표시
+  let modifiedHTML = '';
+  if(modifiedStr && modifiedStr !== dateStr) {
+    modifiedHTML = `<div style="color:#888;font-size:12px;margin-top:4px;">수정일: ${modifiedStr}</div>`;
+  }
 
   article.innerHTML = `
     <h1>${title}</h1>
-    <div class="post-meta" style="margin-bottom:14px;display:flex;gap:12px;align-items:center;">
+    <div class="post-meta" style="margin-bottom:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
       <img src="${avatar || placeholderDataURI(96,96,'U')}" alt="author" style="width:52px;height:52px;border-radius:50%;object-fit:cover;">
-      <div style="display:flex;flex-direction:column">
+      <div style="display:flex;flex-direction:column;flex:1;">
         <div style="font-weight:800;color:#111">${authorName}</div>
-        <div style="color:#666;font-size:13px">${dateStr} · ${categories}</div>
+        <div style="color:#666;font-size:13px;">${dateStr}</div>
+        ${modifiedHTML}
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+        ${categoryBadgesHTML}
       </div>
     </div>
+    ${featuredImageHTML}
     <div class="post-content">${contentHTML}</div>
+    ${tagsHTML}
+    <div class="post-share" style="margin-top:32px;padding-top:24px;border-top:2px solid #eee;">
+      <div style="font-weight:700;font-size:16px;margin-bottom:12px;color:#111;">이 글 공유하기</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button onclick="sharePost('twitter', '${title.replace(/'/g, "\\'")}', '${window.location.href}')" class="btn" style="background:#1DA1F2;color:#fff;border:none;">트위터</button>
+        <button onclick="sharePost('facebook', '${title.replace(/'/g, "\\'")}', '${window.location.href}')" class="btn" style="background:#4267B2;color:#fff;border:none;">페이스북</button>
+        <button onclick="sharePost('linkedin', '${title.replace(/'/g, "\\'")}', '${window.location.href}')" class="btn" style="background:#0077b5;color:#fff;border:none;">링크드인</button>
+        <button onclick="copyPostURL('${window.location.href}')" class="btn">링크 복사</button>
+      </div>
+    </div>
   `;
 
-  // 이미지 스타일 정리
+  // 이미지 lazy loading 및 스타일 처리
   article.querySelectorAll('.post-content img').forEach(img=>{
-    img.style.maxWidth = '100%';
-    img.style.height = 'auto';
-    img.style.display = 'block';
-    img.style.margin = '12px 0';
+    img.loading = 'lazy';
+    if(!img.style.maxWidth) img.style.maxWidth = '100%';
+    if(!img.style.height) img.style.height = 'auto';
+    if(!img.style.display) img.style.display = 'block';
+    if(!img.style.margin) img.style.margin = '12px auto';
+  });
+
+  // 외부 링크에 target="_blank" 추가
+  article.querySelectorAll('.post-content a').forEach(link => {
+    const href = link.getAttribute('href');
+    if(href && (href.startsWith('http://') || href.startsWith('https://')) && !href.includes(window.location.hostname)) {
+      link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noopener noreferrer');
+    }
+  });
+
+  // iframe 반응형 처리
+  article.querySelectorAll('.post-content iframe').forEach(iframe => {
+    if(!iframe.parentElement.classList.contains('embed-container') && !iframe.parentElement.classList.contains('wp-block-embed__wrapper')) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'embed-container';
+      iframe.parentNode.insertBefore(wrapper, iframe);
+      wrapper.appendChild(iframe);
+    }
   });
 
   overlay.classList.add('active');
   overlay.setAttribute('aria-hidden','false');
   overlay.scrollTop = 0;
   history.pushState({page:'post', id: post.id}, '', `#post-${post.id}`);
+}
+
+/* ==============
+   소셜 공유 함수
+   ============== */
+function sharePost(platform, title, url) {
+  const encodedUrl = encodeURIComponent(url);
+  const encodedTitle = encodeURIComponent(title);
+  let shareUrl = '';
+  
+  switch(platform) {
+    case 'twitter':
+      shareUrl = `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`;
+      break;
+    case 'facebook':
+      shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+      break;
+    case 'linkedin':
+      shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+      break;
+  }
+  
+  if(shareUrl) {
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+  }
+}
+
+function copyPostURL(url) {
+  if(navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      alert('링크가 클립보드에 복사되었습니다!');
+    }).catch(err => {
+      console.error('복사 실패:', err);
+      fallbackCopyText(url);
+    });
+  } else {
+    fallbackCopyText(url);
+  }
+}
+
+function fallbackCopyText(text) {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-999999px';
+  document.body.appendChild(textArea);
+  textArea.select();
+  try {
+    document.execCommand('copy');
+    alert('링크가 클립보드에 복사되었습니다!');
+  } catch (err) {
+    alert('링크 복사 실패. 직접 복사해주세요: ' + text);
+  }
+  document.body.removeChild(textArea);
 }
 
 /* ==============
@@ -1206,7 +1462,9 @@ window.__IMPACT = {
   loadEditors,
   openPostOverlayById,
   doSearch,
-  checkURLAndLoadPost
+  checkURLAndLoadPost,
+  sharePost,
+  copyPostURL
 };
 
 </script>
