@@ -821,12 +821,19 @@ async function openPostOverlayById(id) {
   const fromPage = currentHash.startsWith('#search') ? 'search' : 
                    currentHash.startsWith('#category-') ? 'category' : 
                    currentHash.startsWith('#editors') || currentHash.startsWith('#editor-') ? 'editors' : 'home'; // 에디터 상세 페이지에서도 포스트를 열 수 있도록 수정
+
+  // [수정된 부분]: fromPage가 'home'일 경우, 닫을 때 메인 URL로 돌아가도록 fromHash를 빈 문자열로 설정합니다.
+  let fromHash = currentHash;
+  if(fromPage === 'home') {
+    // #post-XX 형태의 직접 접근이든, 메인에서 클릭했든, 닫을 때 메인 URL (해시 없음)로 돌아가도록 설정
+    fromHash = '';
+  }
   
   state.currentScrollPos = window.scrollY; // 포스트 열기 전 스크롤 위치 저장
 
   const cached = state.postsCache[id];
   if(cached && cached.content && cached.content.rendered) {
-    renderPostOverlay(cached, fromPage, currentHash);
+    renderPostOverlay(cached, fromPage, fromHash);
     return;
   }
   try {
@@ -838,12 +845,12 @@ async function openPostOverlayById(id) {
       if(res2.ok) {
         const post2 = await res2.json();
         state.postsCache[id] = post2;
-        renderPostOverlay(post2, fromPage, currentHash);
+        renderPostOverlay(post2, fromPage, fromHash);
         return;
       }
     }
     state.postsCache[id] = post;
-    renderPostOverlay(post, fromPage, currentHash);
+    renderPostOverlay(post, fromPage, fromHash);
   } catch(e) {
     console.error(e);
     alert('포스트 로드 실패');
@@ -905,12 +912,12 @@ function renderPostOverlay(post, fromPage, fromHash) {
   document.body.style.overflow = 'hidden'; // 포스트 열 때 스크롤 비활성화
   overlay.scrollTop = 0;
   
-  // pushState에 출발 페이지 정보 포함
+  // pushState에 출발 페이지 정보 포함 (fromHash는 openPostOverlayById에서 결정됨)
   history.pushState({
     page:'post', 
     id: post.id,
     fromPage: fromPage,
-    fromHash: fromHash,
+    fromHash: fromHash, // 수정된 fromHash 값 사용
     scrollPos: state.currentScrollPos
   }, '', `#post-${post.id}`);
 }
@@ -997,11 +1004,8 @@ const router = {
     document.body.style.overflow = ''; // 홈으로 갈 때 스크롤 활성화
     
     // URL 업데이트 (스크롤 위치 포함)
-    if(state.currentScrollPos > 0) {
-      history.pushState({page:'home', scrollPos:state.currentScrollPos}, '', `#home?scroll=${state.currentScrollPos}`);
-    } else {
-      history.pushState({page:'home'}, '', location.pathname.split('#')[0]);
-    }
+    // NOTE: 해시를 제거하고, 스크롤 위치는 상태에만 저장하여 깔끔한 루트 URL을 유지
+    history.pushState({page:'home', scrollPos:state.currentScrollPos}, '', location.pathname.split('#')[0]);
     
     // 스크롤 위치 복원은 하지 않음 (현재 위치 유지)
   },
@@ -1015,6 +1019,7 @@ const router = {
   closeCategory() {
     document.getElementById('categoryOverlay').classList.remove('active');
     document.getElementById('categoryOverlay').setAttribute('aria-hidden','true');
+    // NOTE: goHome()으로 URL 복구
     router.goHome();
   },
   // openPost 함수는 openPostOverlayById를 통해 간접적으로 처리됩니다.
@@ -1026,37 +1031,35 @@ const router = {
     // history의 state에서 이전 페이지 정보 가져오기
     const currentState = history.state;
     
+    // currentState.fromHash가 빈 문자열이면 (home에서 왔으면) goHome()을 호출하도록 조건 수정
     if(currentState && currentState.fromHash) {
-      // 이전 페이지 URL로 돌아가기
-      // NOTE: fromHash에 이미 fromPage 정보가 있으므로 state는 단순화
+      // 이전 페이지 URL (검색, 카테고리 등)로 돌아가기
       history.pushState({
         page: currentState.fromPage,
         scrollPos: currentState.scrollPos
       }, '', currentState.fromHash);
       
-      // 이전 페이지 복원
+      // 이전 페이지 복원 (오버레이 열기)
       if(currentState.fromPage === 'search') {
         const urlParams = new URLSearchParams(currentState.fromHash.split('?')[1]);
         const query = urlParams.get('q');
         if(query) {
           document.getElementById('searchInputTop').value = query;
-          // 검색 결과 다시 로드하지 않고 오버레이만 열기
           document.getElementById('searchOverlay').classList.add('active');
           document.getElementById('searchOverlay').setAttribute('aria-hidden','false');
-          document.body.style.overflow = ''; // 스크롤 활성화 유지
+          document.body.style.overflow = '';
         }
       } else if(currentState.fromPage === 'category') {
         const slug = currentState.fromHash.replace('#category-', '').split('?')[0];
         if(slug) {
-          // 카테고리 다시 로드하지 않고 오버레이만 열기
           document.getElementById('categoryOverlay').classList.add('active');
           document.getElementById('categoryOverlay').setAttribute('aria-hidden','false');
-          document.body.style.overflow = ''; // 스크롤 활성화 유지
+          document.body.style.overflow = '';
         }
       } else if(currentState.fromPage === 'editors') {
         document.getElementById('editorsOverlay').classList.add('active');
         document.getElementById('editorsOverlay').setAttribute('aria-hidden','false');
-        document.body.style.overflow = ''; // 스크롤 활성화 유지
+        document.body.style.overflow = '';
       }
       
       // 스크롤 위치 복원
@@ -1064,7 +1067,8 @@ const router = {
         setTimeout(() => window.scrollTo(0, currentState.scrollPos), 50);
       }
     } else {
-      // 정보 없으면 홈으로
+      // fromHash가 없거나 빈 문자열인 경우 (home에서 왔거나 직접 접근 후 새로고침한 경우)
+      // 메인 홈으로 돌아가고 URL 복원
       router.goHome();
     }
   },
@@ -1243,8 +1247,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll('.close-btn').forEach(btn => {
     btn.addEventListener('click', () => {
+      // 닫기 버튼이 searchOverlay에만 있어서 검색 오버레이 닫는 코드와 goHome을 분리하여 사용
+      // postOverlay의 닫기 버튼은 closePost를 호출하고 있으므로 여기서는 search/category/about 등의 닫기 버튼만 처리
       ui.closeSearch();
-      router.goHome();
+      router.goHome(); 
     });
   });
 
@@ -1256,7 +1262,7 @@ document.addEventListener('DOMContentLoaded', () => {
     closeAllOverlays();
     
     if(!s) {
-      // state 없으면 URL로 라우팅
+      // state 없으면 URL로 라우팅 (새로고침 직후 등)
       routeFromURL();
       return;
     }
