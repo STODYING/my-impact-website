@@ -107,8 +107,8 @@
   .nav-overlay {
     position: fixed;
     top: 0;
-    right: -100%;
-    width: 100%;
+    right: -50%;
+    width: 50%;
     height: 100vh;
     background: rgba(255,255,255,0.98);
     z-index: 2200;
@@ -117,8 +117,9 @@
     flex-direction: column;
     padding: 64px 40px;
     box-shadow: -6px 0 40px rgba(0,0,0,0.08);
+    pointer-events: none;
   }
-  .nav-overlay.active { right: 0; }
+  .nav-overlay.active { right: 0; pointer-events: auto; }
   .nav-close {
     position:absolute; top:28px; right:28px;
     background:none; border:none; font-size:30px; cursor:pointer;
@@ -217,6 +218,7 @@
 
   .category-top { display:flex; justify-content:space-between; align-items:center; gap:12px; border-bottom:1px solid rgba(0,0,0,0.06); padding-bottom:12px; }
   .category-title { font-size:24px; font-weight:900; color:#111; }
+  .category-sub { font-size:13px; color:#666; margin-top:4px; }
   .category-grid { margin-top:18px; display:grid; gap:18px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); padding:20px 0 80px; }
 
   .post-article { margin:0 auto; max-width:900px; }
@@ -774,6 +776,18 @@ async function loadCategory(slug) {
   overlay.classList.add('active');
   overlay.setAttribute('aria-hidden','false');
   document.getElementById('categoryOverlayTitle').textContent = slug.toUpperCase();
+  
+  // 카테고리 설명 추가
+  const descriptions = {
+    'tech': '기술과 혁신에 대한 심층 분석',
+    'eat': '음식과 외식 문화 탐구',
+    'style': '패션과 라이프스타일 트렌드',
+    'culture': '문화와 예술에 대한 인사이트',
+    'life': '일상과 삶에 대한 이야기',
+    'editors-pick': '에디터가 선정한 추천 콘텐츠'
+  };
+  document.getElementById('categoryOverlaySubtitle').textContent = descriptions[slug] || '카테고리 설명';
+  
   const grid = document.getElementById('categoryGrid');
   grid.innerHTML = '';
   document.getElementById('categoryLoading').textContent = '로딩 중...';
