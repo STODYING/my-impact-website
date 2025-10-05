@@ -107,8 +107,8 @@
   .nav-overlay {
     position: fixed;
     top: 0;
-    right: -50%;
-    width: 50%;
+    right: -100%;
+    width: 100%;
     height: 100vh;
     background: rgba(255,255,255,0.98);
     z-index: 2200;
@@ -122,6 +122,8 @@
   .nav-close {
     position:absolute; top:28px; right:28px;
     background:none; border:none; font-size:30px; cursor:pointer;
+    color: #111;
+    z-index: 2300;
   }
   .nav-search { display:flex; align-items:center; gap:10px; margin-bottom:36px; }
   .nav-search input[type="search"] {
@@ -135,11 +137,21 @@
   .nav-footer-links { margin-top:auto; display:flex; gap:12px; align-items:center; font-weight:800; }
   .nav-footer-links a { color:#111; font-size:13px; }
 
-  /* 모바일에서 전체화면 네비로 동작하도록 덮어쓰기 */
+  /* 모바일에서 전체화면 네비로 동작하도록 조정 */
   @media (max-width: 680px) {
-    .nav-overlay { left:0; right:0; width:100%; padding:36px 20px; box-shadow:none; }
-    .nav-overlay.active { right:0; }
+    .nav-overlay { 
+      left:0; 
+      right:-100%; 
+      width:100%; 
+      padding:36px 20px; 
+      box-shadow:none; 
+    }
+    .nav-overlay.active { right:0; left:0; }
     .nav-list li { font-size:22px; }
+    .nav-close {
+      top: 20px;
+      right: 20px;
+    }
   }
 
   /* ----------------------------
@@ -301,7 +313,7 @@
 
   <!-- NAV OVERLAY -->
   <aside class="nav-overlay" id="navOverlay" aria-hidden="true" aria-label="카테고리 네비게이션">
-    <button class="nav-close" aria-label="네비 닫기" onclick="ui.toggleNav()">×</button>
+    <button class="nav-close" aria-label="네비 닫기" onclick="ui.toggleNav(true)">×</button>
     <div style="display:flex;flex-direction:column;gap:12px;">
       <div class="nav-search" role="search" aria-label="네비 검색">
         <span style="font-size:18px">🔍</span>
@@ -313,15 +325,12 @@
       </ul>
 
       <div class="nav-footer-links" aria-hidden="false">
-        <a href="javascript:void(0)" onclick="ui.toggleNav(); router.openAbout()">ABOUT</a>
-        <a href="javascript:void(0)" onclick="ui.toggleNav(); router.openEditors()">EDITORS</a>
+        <a href="javascript:void(0)" onclick="ui.toggleNav(true); router.openAbout()">ABOUT</a>
+        <a href="javascript:void(0)" onclick="ui.toggleNav(true); router.openEditors()">EDITORS</a>
         <a href="javascript:void(0)" onclick="alert('NEWSLETTER 페이지는 추후 구현됩니다')">NEWSLETTER</a>
         <a href="https://www.instagram.com/ceo_impact_official" target="_blank" rel="noopener">INSTAGRAM</a>
       </div>
 
-      <div class="nav-extra" style="margin-top:18px;color:#777;font-size:13px">
-        IMPACT는 WordPress 기반으로 콘텐츠를 받아와 사이트 내에서 자체 포스트 페이지로 표시합니다.
-      </div>
     </div>
   </aside>
 
@@ -447,7 +456,6 @@
 
       <div class="footer-right">
         <div style="font-weight:800;color:#fff">IMPACT CEO. ALL RIGHTS RESERVED.</div>
-        <div style="color:#999;font-size:13px;margin-top:10px">사이트는 WordPress.com API로부터 콘텐츠를 가져옵니다.</div>
       </div>
     </div>
   </footer>
@@ -479,16 +487,9 @@
     </div>
   </template>
 
-  <!-- ============================
-       JS (PART 2) 넣는 위치
-       아래 주석 위치에 2차(자바스크립트) 코드를 붙여 넣으세요.
-       - 완성본을 원하시면 2차 코드를 여기 바로 이어붙이면 동작합니다.
-     ============================ -->
-
   <script>
 /* =========================================================================
    IMPACT - PART 2 : JavaScript 전체
-   붙여넣기 위치: <!-- INSERT PART 2 HERE -->
    ========================================================================= */
 
 /* ==============
@@ -569,10 +570,11 @@ function renderNavList() {
     li.tabIndex = 0;
     li.setAttribute('role','menuitem');
     li.addEventListener('click', () => {
-      ui.toggleNav(false);
+      ui.toggleNav(true);
       const slug = item.toLowerCase().replace(/'/g,'').replace(/\s/g,'-');
       if(slug === 'editors-pick') {
-        router.openEditors();
+        // EDITORS' PICK을 클릭했을 때 카테고리 페이지를 열도록 수정
+        router.openCategory(slug);
       } else if(CATEGORIES[slug]) {
         router.openCategory(slug);
       } else {
@@ -895,8 +897,7 @@ async function openPostOverlayById(id) {
     renderPostOverlay(post);
   } catch(e) {
     console.error(e);
-    alert('포스트 로드 실패 — 원문으로 이동합니다.');
-    if(cached && cached.link) window.open(cached.link, '_blank');
+    alert('포스트 로드 실패');
   }
 }
 
@@ -921,7 +922,6 @@ function renderPostOverlay(post) {
       </div>
     </div>
     <div class="post-content">${contentHTML}</div>
-    <div class="original-link"><a href="${post.link}" target="_blank" rel="noopener">원문 보기</a></div>
   `;
 
   // 이미지 스타일 정리
@@ -989,16 +989,19 @@ function adjustHeroContrast(imgEl, titleEl, overlayEl) {
    UI 유틸: 네비 토글, 검색 닫기
    ============== */
 const ui = {
-  toggleNav(close=false) {
+  toggleNav(close) {
     const ov = document.getElementById('navOverlay');
-    if(close === false) {
-      ov.classList.toggle('active');
-    } else {
+    if(close === true) {
       ov.classList.remove('active');
+    } else if(close === false) {
+      ov.classList.add('active');
+    } else {
+      ov.classList.toggle('active');
     }
     const expanded = ov.classList.contains('active');
     const ctrl = document.querySelector('[aria-controls="navOverlay"]');
     if(ctrl) ctrl.setAttribute('aria-expanded', expanded);
+    ov.setAttribute('aria-hidden', !expanded);
   },
   closeSearch() {
     document.getElementById('searchOverlay').classList.remove('active');
@@ -1016,13 +1019,25 @@ const router = {
     history.pushState({}, '', location.pathname);
   },
   openCategory(slug) { loadCategory(slug); },
-  closeCategory() { document.getElementById('categoryOverlay').classList.remove('active'); },
+  closeCategory() { 
+    document.getElementById('categoryOverlay').classList.remove('active'); 
+    document.getElementById('categoryOverlay').setAttribute('aria-hidden','true');
+  },
   openPost() { closeAllOverlays(); document.getElementById('postOverlay').classList.add('active'); },
-  closePost() { document.getElementById('postOverlay').classList.remove('active'); },
-  openAbout() { closeAllOverlays(); document.getElementById('aboutPageSection').classList.add('active'); },
-  closeAbout() { document.getElementById('aboutPageSection').classList.remove('active'); },
-  openEditors() { closeAllOverlays(); document.getElementById('editorsOverlay').classList.add('active'); loadEditors(); },
-  closeEditors() { document.getElementById('editorsOverlay').classList.remove('active'); }
+  closePost() { 
+    document.getElementById('postOverlay').classList.remove('active'); 
+    document.getElementById('postOverlay').setAttribute('aria-hidden','true');
+  },
+  openAbout() { closeAllOverlays(); document.getElementById('aboutPageSection').classList.add('active'); document.getElementById('aboutPageSection').setAttribute('aria-hidden','false'); },
+  closeAbout() { 
+    document.getElementById('aboutPageSection').classList.remove('active'); 
+    document.getElementById('aboutPageSection').setAttribute('aria-hidden','true');
+  },
+  openEditors() { closeAllOverlays(); document.getElementById('editorsOverlay').classList.add('active'); document.getElementById('editorsOverlay').setAttribute('aria-hidden','false'); loadEditors(); },
+  closeEditors() { 
+    document.getElementById('editorsOverlay').classList.remove('active'); 
+    document.getElementById('editorsOverlay').setAttribute('aria-hidden','true');
+  }
 };
 
 function closeAllOverlays() {
@@ -1056,7 +1071,8 @@ function openNavlessSearch() {
   const input = document.getElementById('searchInputTop');
   if(input) input.focus();
 }
-// top search enter
+
+// DOMContentLoaded 이벤트 핸들러
 document.addEventListener('DOMContentLoaded', () => {
   renderNavList();
   loadHomeChunk();
@@ -1077,7 +1093,7 @@ document.addEventListener('DOMContentLoaded', () => {
     globalNavSearch.addEventListener('keydown', e => {
       if(e.key === 'Enter') {
         const q = e.target.value;
-        ui.toggleNav(false); // 닫기
+        ui.toggleNav(true); // 닫기
         openNavlessSearch();
         // 포커스 이전 검색어 전달
         setTimeout(()=> { const top = document.getElementById('searchInputTop'); if(top) top.value = q; if(q) doSearch(q); }, 120);
@@ -1087,7 +1103,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // nav close button accessible
   const navClose = document.querySelector('.nav-close');
-  if(navClose) navClose.addEventListener('click', ()=> ui.toggleNav(true));
+  if(navClose) {
+    navClose.addEventListener('click', ()=> ui.toggleNav(true));
+    navClose.addEventListener('keydown', e => { 
+      if(e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        ui.toggleNav(true);
+      }
+    });
+  }
 
   // search close button
   document.querySelectorAll('.close-btn').forEach(btn => {
@@ -1121,12 +1145,7 @@ window.__IMPACT = {
   doSearch
 };
 
-/* =========================================================================
-   End of PART 2
-   붙여넣기 위치: <!-- INSERT PART 2 HERE -->
-   ========================================================================= */
 </script>
-
 
 </body>
 </html>
