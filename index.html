@@ -457,7 +457,7 @@
     </div>
   </template>
 
-  <script>
+<script>
 const WP_SITE = "impactceo0.wordpress.com";
 const HOME_PER_PAGE = 5;
 const HOME_MAX = 40;
@@ -820,8 +820,10 @@ async function openPostOverlayById(id) {
   const currentHash = window.location.hash;
   const fromPage = currentHash.startsWith('#search') ? 'search' : 
                    currentHash.startsWith('#category-') ? 'category' : 
-                   currentHash.startsWith('#editors') ? 'editors' : 'home';
+                   currentHash.startsWith('#editors') || currentHash.startsWith('#editor-') ? 'editors' : 'home'; // 에디터 상세 페이지에서도 포스트를 열 수 있도록 수정
   
+  state.currentScrollPos = window.scrollY; // 포스트 열기 전 스크롤 위치 저장
+
   const cached = state.postsCache[id];
   if(cached && cached.content && cached.content.rendered) {
     renderPostOverlay(cached, fromPage, currentHash);
@@ -900,6 +902,7 @@ function renderPostOverlay(post, fromPage, fromHash) {
 
   overlay.classList.add('active');
   overlay.setAttribute('aria-hidden','false');
+  document.body.style.overflow = 'hidden'; // 포스트 열 때 스크롤 비활성화
   overlay.scrollTop = 0;
   
   // pushState에 출발 페이지 정보 포함
@@ -921,6 +924,7 @@ async function doSearch(q) {
   closeAllOverlays();
   document.getElementById('searchOverlay').classList.add('active');
   document.getElementById('searchOverlay').setAttribute('aria-hidden','false');
+  document.body.style.overflow = ''; // 검색 오버레이에는 스크롤 허용 (검색 결과가 길 수 있음)
   
   // URL 업데이트
   history.pushState({page:'search', query:q, scrollPos:state.currentScrollPos}, '', `#search?q=${encodeURIComponent(q)}`);
@@ -973,10 +977,14 @@ const ui = {
     const ctrl = document.querySelector('[aria-controls="navOverlay"]');
     if(ctrl) ctrl.setAttribute('aria-expanded', expanded);
     ov.setAttribute('aria-hidden', !expanded);
+
+    // 네비게이션 오버레이 열림/닫힘에 따라 body 스크롤 제어
+    document.body.style.overflow = expanded ? 'hidden' : '';
   },
   closeSearch() {
     document.getElementById('searchOverlay').classList.remove('active');
     document.getElementById('searchOverlay').setAttribute('aria-hidden','true');
+    document.body.style.overflow = ''; // 오버레이 닫을 때 스크롤 활성화
   }
 };
 
@@ -986,6 +994,7 @@ const router = {
     state.currentScrollPos = window.scrollY;
     
     closeAllOverlays();
+    document.body.style.overflow = ''; // 홈으로 갈 때 스크롤 활성화
     
     // URL 업데이트 (스크롤 위치 포함)
     if(state.currentScrollPos > 0) {
@@ -998,7 +1007,9 @@ const router = {
   },
   openCategory(slug) {
     state.currentScrollPos = window.scrollY;
+    closeAllOverlays();
     loadCategory(slug);
+    document.body.style.overflow = ''; // 카테고리 오버레이는 스크롤 허용
     history.pushState({page:'category', slug:slug, scrollPos:state.currentScrollPos}, '', `#category-${slug}`);
   },
   closeCategory() {
@@ -1006,19 +1017,18 @@ const router = {
     document.getElementById('categoryOverlay').setAttribute('aria-hidden','true');
     router.goHome();
   },
-  openPost() {
-    closeAllOverlays();
-    document.getElementById('postOverlay').classList.add('active');
-  },
+  // openPost 함수는 openPostOverlayById를 통해 간접적으로 처리됩니다.
   closePost() {
     document.getElementById('postOverlay').classList.remove('active');
     document.getElementById('postOverlay').setAttribute('aria-hidden','true');
+    document.body.style.overflow = ''; // 포스트 닫을 때 스크롤 활성화
     
     // history의 state에서 이전 페이지 정보 가져오기
     const currentState = history.state;
     
     if(currentState && currentState.fromHash) {
       // 이전 페이지 URL로 돌아가기
+      // NOTE: fromHash에 이미 fromPage 정보가 있으므로 state는 단순화
       history.pushState({
         page: currentState.fromPage,
         scrollPos: currentState.scrollPos
@@ -1033,6 +1043,7 @@ const router = {
           // 검색 결과 다시 로드하지 않고 오버레이만 열기
           document.getElementById('searchOverlay').classList.add('active');
           document.getElementById('searchOverlay').setAttribute('aria-hidden','false');
+          document.body.style.overflow = ''; // 스크롤 활성화 유지
         }
       } else if(currentState.fromPage === 'category') {
         const slug = currentState.fromHash.replace('#category-', '').split('?')[0];
@@ -1040,10 +1051,12 @@ const router = {
           // 카테고리 다시 로드하지 않고 오버레이만 열기
           document.getElementById('categoryOverlay').classList.add('active');
           document.getElementById('categoryOverlay').setAttribute('aria-hidden','false');
+          document.body.style.overflow = ''; // 스크롤 활성화 유지
         }
       } else if(currentState.fromPage === 'editors') {
         document.getElementById('editorsOverlay').classList.add('active');
         document.getElementById('editorsOverlay').setAttribute('aria-hidden','false');
+        document.body.style.overflow = ''; // 스크롤 활성화 유지
       }
       
       // 스크롤 위치 복원
@@ -1060,6 +1073,7 @@ const router = {
     closeAllOverlays();
     document.getElementById('aboutPageSection').classList.add('active');
     document.getElementById('aboutPageSection').setAttribute('aria-hidden','false');
+    document.body.style.overflow = ''; // ABOUT 오버레이는 스크롤 허용
     history.pushState({page:'about', scrollPos:state.currentScrollPos}, '', '#about');
   },
   closeAbout() {
@@ -1072,6 +1086,7 @@ const router = {
     closeAllOverlays();
     document.getElementById('editorsOverlay').classList.add('active');
     document.getElementById('editorsOverlay').setAttribute('aria-hidden','false');
+    document.body.style.overflow = ''; // EDITORS 오버레이는 스크롤 허용
     loadEditors();
     history.pushState({page:'editors', scrollPos:state.currentScrollPos}, '', '#editors');
   },
@@ -1087,13 +1102,17 @@ function closeAllOverlays() {
     const el = document.getElementById(id);
     if(el) { el.classList.remove('active'); el.setAttribute('aria-hidden','true'); }
   });
+  // 모든 오버레이 닫을 때 스크롤 활성화 (postOverlay는 closePost에서, navOverlay는 toggleNav에서 별도 처리)
+  if(!document.getElementById('navOverlay').classList.contains('active')) {
+    document.body.style.overflow = '';
+  }
 }
 
 // URL 라우팅: 페이지 로드 시 URL 확인
 function routeFromURL() {
   const hash = window.location.hash;
   
-  if(!hash || hash === '#' || hash === '#home') {
+  if(!hash || hash === '#' || hash.startsWith('#home')) { // #home 처리 수정
     // 홈 - 스크롤 위치 복원
     const urlParams = new URLSearchParams(hash.split('?')[1]);
     const scrollPos = urlParams.get('scroll');
@@ -1103,10 +1122,14 @@ function routeFromURL() {
     return;
   }
   
+  // URL로 진입하는 경우 스크롤은 오버레이 내부 스크롤이므로 body 스크롤 활성화
+  document.body.style.overflow = '';
+  
   if(hash.startsWith('#post-')) {
     const postId = hash.replace('#post-', '').split('?')[0];
     if(postId && !isNaN(postId)) {
       openPostOverlayById(parseInt(postId));
+      document.body.style.overflow = 'hidden'; // 포스트만 스크롤 비활성화
     }
   } else if(hash.startsWith('#category-')) {
     const slug = hash.replace('#category-', '').split('?')[0];
@@ -1126,7 +1149,15 @@ function routeFromURL() {
     const editorId = hash.replace('#editor-', '').split('?')[0];
     if(editorId && !isNaN(editorId)) {
       router.openEditors();
-      setTimeout(() => openEditorProfile({id:parseInt(editorId)}), 300);
+      // 에디터 목록 로드가 비동기이므로 setTimeout 사용
+      const checkAndOpen = () => {
+        if (state.editorsLoaded) {
+          openEditorProfile(state.editorsList.find(e => e.id === parseInt(editorId)));
+        } else {
+          setTimeout(checkAndOpen, 100);
+        }
+      };
+      setTimeout(checkAndOpen, 300);
     }
   } else if(hash === '#editors') {
     router.openEditors();
@@ -1156,6 +1187,7 @@ function openNavlessSearch() {
   closeAllOverlays();
   document.getElementById('searchOverlay').classList.add('active');
   document.getElementById('searchOverlay').setAttribute('aria-hidden','false');
+  document.body.style.overflow = ''; // 검색 오버레이에는 스크롤 허용
   const input = document.getElementById('searchInputTop');
   if(input) input.focus();
   history.pushState({page:'search', scrollPos:state.currentScrollPos}, '', '#search');
@@ -1187,7 +1219,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const q = e.target.value;
         ui.toggleNav(true);
         openNavlessSearch();
-        setTimeout(()=> { const top = document.getElementById('searchInputTop'); if(top) top.value = q; if(q) doSearch(q); }, 120);
+        setTimeout(()=> { 
+            const top = document.getElementById('searchInputTop'); 
+            if(top) { 
+                top.value = q; 
+                if(q) doSearch(q); 
+            } 
+        }, 120);
       }
     });
   }
@@ -1225,13 +1263,16 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // state 기반 라우팅
     if(s.page === 'home') {
+      document.body.style.overflow = '';
       if(s.scrollPos !== undefined) {
         setTimeout(() => window.scrollTo(0, s.scrollPos), 50);
       }
     } else if(s.page === 'post' && s.id) {
       openPostOverlayById(s.id);
+      document.body.style.overflow = 'hidden';
     } else if(s.page === 'category' && s.slug) {
       loadCategory(s.slug);
+      document.body.style.overflow = '';
     } else if(s.page === 'search') {
       if(s.query) {
         document.getElementById('searchInputTop').value = s.query;
@@ -1239,16 +1280,27 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         openNavlessSearch();
       }
+      document.body.style.overflow = '';
       if(s.scrollPos !== undefined) {
         setTimeout(() => window.scrollTo(0, s.scrollPos), 50);
       }
     } else if(s.page === 'editor' && s.id) {
       router.openEditors();
-      setTimeout(() => openEditorProfile({id:s.id}), 300);
+      document.body.style.overflow = '';
+      const checkAndOpen = () => {
+        if (state.editorsLoaded) {
+          openEditorProfile(state.editorsList.find(e => e.id === s.id));
+        } else {
+          setTimeout(checkAndOpen, 100);
+        }
+      };
+      setTimeout(checkAndOpen, 300);
     } else if(s.page === 'editors') {
       router.openEditors();
+      document.body.style.overflow = '';
     } else if(s.page === 'about') {
       router.openAbout();
+      document.body.style.overflow = '';
     }
   });
 });
@@ -1263,6 +1315,5 @@ window.__IMPACT = {
 };
 
 </script>
-
 </body>
 </html>
