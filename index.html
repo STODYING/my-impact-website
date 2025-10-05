@@ -8,7 +8,6 @@
 
   <link rel="icon" href="logo.png" type="image/png">
   
-  <!-- iOS 홈 화면 아이콘 -->
   <link rel="apple-touch-icon" href="logo.png">
   <link rel="apple-touch-icon" sizes="152x152" href="logo.png">
   <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
@@ -253,7 +252,15 @@
   footer.site-footer { background:#111; color:#eee; padding:40px 20px; margin-top:20px; }
   .footer-inner { max-width:1400px; margin:0 auto; display:flex; justify-content:space-between; gap:20px; align-items:flex-start; flex-wrap:wrap; }
   .footer-brand { font-size:40px; font-weight:900; color:#fff; font-style:italic; }
-  .footer-links a { color:#ddd; cursor:pointer; }
+  /* --- 수정된 부분 시작 --- */
+  .footer-links a { 
+    color:#ddd; 
+    cursor:pointer;
+    display: block; /* 세로 배치 */
+    font-weight: 800; /* 볼드 처리 */
+    margin-bottom: 8px; /* 링크 간 간격 추가 */
+  }
+  /* --- 수정된 부분 끝 --- */
 
   .editors-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap:16px; padding:18px 0; }
   .editor-card { background:#fff; border-radius:12px; padding:12px; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; border:1px solid rgba(0,0,0,0.06); cursor:pointer; }
