@@ -1111,6 +1111,9 @@ function openNavlessSearch() {
 document.addEventListener('DOMContentLoaded', () => {
   renderNavList();
   loadHomeChunk();
+  
+  // URL에서 게시물 ID 확인 및 로드
+  checkURLAndLoadPost();
 
   const topInput = document.getElementById('searchInputTop');
   if(topInput) {
@@ -1165,9 +1168,34 @@ document.addEventListener('DOMContentLoaded', () => {
       // loadEditors 후 openEditorProfile will push its own history
       setTimeout(()=> openEditorProfile({id:s.id}), 300);
     }
+    // state가 없으면 URL 확인
+    if(!s) {
+      checkURLAndLoadPost();
+    }
   });
 
 });
+
+/* ==============
+   URL에서 게시물 ID 확인 및 로드
+   ============== */
+function checkURLAndLoadPost() {
+  const hash = window.location.hash;
+  if(hash && hash.startsWith('#post-')) {
+    const postId = hash.replace('#post-', '');
+    if(postId && !isNaN(postId)) {
+      openPostOverlayById(parseInt(postId));
+    }
+  } else if(hash && hash.startsWith('#editor-')) {
+    const editorId = hash.replace('#editor-', '');
+    if(editorId && !isNaN(editorId)) {
+      router.openEditors();
+      setTimeout(()=> openEditorProfile({id:parseInt(editorId)}), 300);
+    }
+  } else if(hash === '#editors') {
+    router.openEditors();
+  }
+}
 
 /* ==============
    작은 헬퍼 함수: 로컬 테스트용 호출
@@ -1177,7 +1205,8 @@ window.__IMPACT = {
   loadCategory,
   loadEditors,
   openPostOverlayById,
-  doSearch
+  doSearch,
+  checkURLAndLoadPost
 };
 
 </script>
