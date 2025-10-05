@@ -3,639 +3,291 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>IMPACT – MAKE A IMPACT</title>
-  <meta name="description" content="IMPACT – 카테고리 퀵내비, 진행률 바, 관련글, 페이지네이션, 다크모드 지원">
+  <title>IMPACT — MAKE A IMPACT</title>
+  <meta name="description" content="Innovation Management Passion Acceleration Creativity Technology">
 
   <link rel="icon" href="logo.png" type="image/png">
+  
   <link rel="apple-touch-icon" href="logo.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="logo.png">
+  
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="IMPACT">
 
   <style>
-  /* ===========================
-     색상 토큰 & 다크 모드
-     =========================== */
-  :root{
-    --bg: #f6f7f9;
-    --text: #111;
-    --muted: #666;
-    --card: #fff;
-    --border: rgba(0,0,0,0.08);
-    --shadow: rgba(0,0,0,0.06);
-    --accent: #2e8b57;
-    --overlay: #fff;
-    --progress: #ff7a1a;
-  }
-  
-  [data-theme="dark"]{
-    --bg: #0f1115;
-    --text: #f1f3f5;
-    --muted: #a6adbb;
-    --card: #171a21;
-    --border: rgba(255,255,255,0.08);
-    --shadow: rgba(0,0,0,0.35);
-    --accent: #39c07c;
-    --overlay: #12151b;
-    --progress: #ff9f45;
-  }
-  
-  [data-theme="dark"] img, 
-  [data-theme="dark"] video { 
-    filter: none !important; 
-  }
-
-  /* ===========================
-     기본/리셋
-     =========================== */
+  /* CSS는 이전과 동일 */
   *, *::before, *::after { box-sizing: border-box; }
   html, body { height: 100%; }
-  body{
-    margin:0; background:var(--bg); color:var(--text); line-height:1.6;
-    font-family:"Noto Sans KR","Apple SD Gothic Neo","Segoe UI",Roboto,Arial,sans-serif;
-    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-    scroll-behavior:smooth; overscroll-behavior-y:contain; -webkit-tap-highlight-color:transparent;
-    overflow-x: hidden;
+  body {
+    margin: 0;
+    font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Segoe UI", Roboto, Arial, sans-serif;
+    background: #f6f7f9;
+    color: #111;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+    overscroll-behavior-y: contain;
+    -webkit-tap-highlight-color: transparent;
   }
-  a{ color:inherit; text-decoration:none; }
-  img{ display:block; max-width:100%; height:auto; }
-  input[type="search"]::-webkit-search-cancel-button{ cursor:pointer; }
+  a { color: inherit; text-decoration: none; }
+  img { display: block; max-width: 100%; height: auto; }
 
-  .wrap{ max-width:1400px; margin:0 auto; padding:0 20px; }
-  .hidden{ display:none !important; }
-  .visually-hidden{
-    position:absolute !important; height:1px; width:1px; overflow:hidden;
-    clip:rect(1px,1px,1px,1px); white-space:nowrap;
+  input[type="search"]::-webkit-search-cancel-button { cursor: pointer; }
+
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+  .hidden { display:none !important; }
+  .visually-hidden {
+    position: absolute !important;
+    height: 1px; width: 1px;
+    overflow: hidden;
+    clip: rect(1px, 1px, 1px, 1px);
+    white-space: nowrap;
   }
 
-  /* ===========================
-     HEADER
-     =========================== */
-  header.header{
-    position:sticky; top:0; z-index:1200; background:var(--card);
-    border-bottom:1px solid var(--border); backdrop-filter: blur(6px);
+  header.header {
+    position: sticky;
+    top: 0;
+    z-index: 1200;
+    background: #fff;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    backdrop-filter: blur(6px);
     transition: box-shadow .25s ease, transform .18s ease;
   }
-  .header-inner{
-    height:72px; display:flex; align-items:center; gap:16px;
-    max-width:1400px; margin:0 auto; padding:0 20px;
-    justify-content: space-between;
-  }
-  .brand{ display:flex; align-items:center; gap:12px; }
-  .brand .logo{
-    display:flex; gap:8px; align-items:center; font-weight:900; font-size:26px; letter-spacing:1px; cursor:pointer;
-  }
-  .brand .logo small{ font-size:11px; color:var(--muted); font-weight:800; display:block; line-height:1; }
-
-  .header-actions{ display:flex; gap:8px; align-items:center; }
-  
-  .icon-btn{
-    background:none; border:none; color:var(--text); cursor:pointer; 
-    font-size:20px; padding:8px; display:flex; align-items:center; justify-content:center;
-  }
-  
-  .hamburger-icon {
-    width:24px; height:24px; position:relative; display:inline-block;
-  }
-  .hamburger-icon span,
-  .hamburger-icon span::before,
-  .hamburger-icon span::after {
-    display:block; position:absolute; height:2px; width:20px;
-    background:var(--text); border-radius:2px;
-  }
-  .hamburger-icon span { top:50%; transform:translateY(-50%); }
-  .hamburger-icon span::before { content:''; top:-7px; }
-  .hamburger-icon span::after { content:''; top:7px; }
-
-  /* ===========================
-     NAV OVERLAY
-     =========================== */
-  .nav-overlay{
-    position:fixed; top:0; right:-50%; width:50%; height:100vh;
-    background:var(--overlay); z-index:2200; transition:right .32s cubic-bezier(.2,.9,.2,1), visibility 0s .32s, opacity .32s;
-    display:flex; flex-direction:column; padding:64px 40px; box-shadow:-6px 0 40px var(--shadow);
-    visibility:hidden; opacity:0; color:var(--text);
-  }
-  .nav-overlay.active{ right:0; visibility:visible; opacity:1; transition:right .32s cubic-bezier(.2,.9,.2,1), visibility 0s, opacity .32s; }
-  .nav-close{ position:absolute; top:28px; right:28px; background:none; border:none; font-size:30px; cursor:pointer; color:var(--text); z-index:2300; }
-  .nav-search{ display:flex; align-items:center; gap:10px; margin-bottom:36px; }
-  .nav-search input[type="search"]{ flex:1; border:none; border-bottom:2px solid var(--text); padding:10px 8px; outline:none; font-weight:700; font-size:16px; background:transparent; color:var(--text); }
-  .nav-list{ list-style:none; padding:0; margin:0 0 24px; display:flex; flex-direction:column; gap:18px; }
-  .nav-list li{ font-size:28px; font-weight:900; cursor:pointer; color:var(--text); transition: color .16s ease; }
-  .nav-list li:hover{ color:var(--accent); }
-  .nav-footer-links{ margin-top:auto; display:flex; gap:12px; align-items:center; font-weight:800; flex-wrap:wrap; }
-  .nav-footer-links a{ color:var(--text); font-size:13px; cursor:pointer; }
-  
-  /* 테마 전환 버튼 */
-  .theme-toggle {
-    position:absolute; bottom:40px; left:40px;
-    background:var(--card); border:1px solid var(--border); 
-    border-radius:8px; padding:8px 12px; cursor:pointer;
-    display:flex; align-items:center; gap:6px;
-    font-weight:700; font-size:14px; color:var(--text);
-    transition: transform .12s ease;
-  }
-  .theme-toggle:hover { transform:translateY(-2px); box-shadow:0 4px 12px var(--shadow); }
-
-  @media (max-width:680px){
-    .nav-overlay{ left:0; right:-100%; width:100%; padding:36px 20px; box-shadow:none; }
-    .nav-overlay.active{ right:0; left:0; }
-    .nav-list li{ font-size:22px; }
-    .nav-close{ top:20px; right:20px; }
-    .theme-toggle{ bottom:20px; left:20px; }
-  }
-
-  /* ===========================
-     HOME
-     =========================== */
-  .home{ max-width:1400px; margin:28px auto; display:flex; flex-direction:column; gap:28px; padding:0 20px 40px; }
-  
-  /* PC: 왼쪽 큰카드 + 오른쪽 4개 작은카드 / 반대 패턴 */
-  .row{ 
-    display:grid; 
-    grid-template-columns:2fr 1fr; 
-    gap:20px; 
-    align-items:start; 
-    margin-bottom:20px;
-  }
-  .row.reverse { 
-    grid-template-columns:1fr 2fr; 
-  }
-  
-  .col-hero{ 
-    position:relative; 
-    border-radius:12px; 
-    overflow:hidden; 
-    min-height:500px; 
-    background:#222; 
-    cursor:pointer; 
-  }
-  .col-hero .hero{ 
-    width:100%; 
-    height:100%; 
-    object-fit:cover; 
-    display:block; 
-    min-height:500px; 
-  }
-  .col-hero .hero-overlay{
-    position:absolute; 
-    inset:auto 0 0 0; 
-    padding:22px; 
-    display:flex; 
-    flex-direction:column; 
+  .header-inner {
+    height: 72px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
     gap:12px;
-    background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.55)); 
+    max-width:1400px;
+    margin:0 auto;
+    padding: 0 20px;
+  }
+  .brand { display:flex; gap:12px; align-items:center; }
+  .brand .logo {
+    display:flex;
+    gap:8px;
+    align-items:center;
+    font-weight:900;
+    font-size:26px;
+    letter-spacing:1px;
+    color:#111;
+    cursor:pointer;
+  }
+  .brand .logo small { font-size:11px; color:#777; font-weight:800; display:block; line-height:1; }
+  .header-actions { display:flex; gap:8px; align-items:center; }
+
+  .btn {
+    border-radius:10px;
+    background:#fff;
+    padding:8px 12px;
+    border:1px solid rgba(0,0,0,0.08);
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary {
+    background: linear-gradient(135deg,#2e8b57,#1f7a6f);
+    color:#fff;
+    border:none;
+  }
+
+  .nav-overlay {
+    position: fixed;
+    top: 0;
+    right: -50%;
+    width: 50%;
+    height: 100vh;
+    background: rgba(255,255,255,0.98);
+    z-index: 2200;
+    transition: right 0.32s cubic-bezier(.2,.9,.2,1), visibility 0s 0.32s, opacity 0.32s;
+    display: flex;
+    flex-direction: column;
+    padding: 64px 40px;
+    box-shadow: -6px 0 40px rgba(0,0,0,0.08);
+    visibility: hidden;
+    opacity: 0;
+  }
+  .nav-overlay.active { 
+    right: 0; 
+    visibility: visible;
+    opacity: 1;
+    transition: right 0.32s cubic-bezier(.2,.9,.2,1), visibility 0s, opacity 0.32s;
+  }
+  .nav-close {
+    position:absolute; top:28px; right:28px;
+    background:none; border:none; font-size:30px; cursor:pointer;
+    color: #111;
+    z-index: 2300;
+  }
+  .nav-search { display:flex; align-items:center; gap:10px; margin-bottom:36px; }
+  .nav-search input[type="search"] {
+    flex:1; border:none; border-bottom:2px solid #111; padding:10px 8px; outline:none; font-weight:700; font-size:16px;
+    background:transparent;
+  }
+  .nav-list { list-style:none; padding:0; margin:0 0 24px; display:flex; flex-direction:column; gap:18px; }
+  .nav-list li { font-size:28px; font-weight:900; cursor:pointer; color:#111; transition: color .16s ease; }
+  .nav-list li:hover { color:#2e8b57; }
+
+  .nav-footer-links { margin-top:auto; display:flex; gap:12px; align-items:center; font-weight:800; }
+  .nav-footer-links a { color:#111; font-size:13px; cursor:pointer; }
+
+  @media (max-width: 680px) {
+    .nav-overlay { 
+      left:0; 
+      right:-100%; 
+      width:100%; 
+      padding:36px 20px; 
+      box-shadow:none; 
+    }
+    .nav-overlay.active { right:0; left:0; }
+    .nav-list li { font-size:22px; }
+    .nav-close {
+      top: 20px;
+      right: 20px;
+    }
+  }
+
+  .home {
+    max-width:1400px;
+    margin: 28px auto;
+    display:flex;
+    flex-direction:column;
+    gap:28px;
+    padding: 0 20px 60px;
+  }
+
+  .row { display:grid; grid-template-columns: 2fr 1fr; gap:20px; align-items:start; }
+  .col-left { position:relative; border-radius:12px; overflow:hidden; min-height:360px; background:#eee; cursor:pointer; }
+  .col-left .hero { width:100%; height:100%; object-fit:cover; display:block; min-height:360px; }
+  .col-left .hero-overlay {
+    position:absolute; inset:auto 0 0 0; padding:22px; display:flex; flex-direction:column; gap:12px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.0), rgba(0,0,0,0.55));
     color:#fff;
   }
-  .col-hero .hero-title{ 
-    margin:0; 
-    font-size:28px; 
-    font-weight:900; 
-    line-height:1.05; 
-    max-width:92%; 
-  }
-  
-  .col-cards{ 
-    display:flex; 
-    flex-direction:column; 
-    gap:12px; 
-    height:500px;
-    overflow-y:auto;
-    padding-right:8px;
-  }
-  
-  /* 스크롤바 스타일 */
-  .col-cards::-webkit-scrollbar { width:6px; }
-  .col-cards::-webkit-scrollbar-track { background:var(--border); border-radius:3px; }
-  .col-cards::-webkit-scrollbar-thumb { background:var(--muted); border-radius:3px; }
-  .col-cards::-webkit-scrollbar-thumb:hover { background:var(--accent); }
+  .col-left .hero-title { margin:0; font-size:28px; font-weight:900; line-height:1.05; max-width:92%; }
+  .col-left .meta { display:flex; align-items:center; gap:10px; color:#fff; font-size:13px; opacity:0.95; }
+  .col-right { display:flex; flex-direction:column; gap:12px; }
 
-  .card{ 
-    background:var(--card); 
-    border-radius:10px; 
-    overflow:hidden; 
-    border:1px solid var(--border);
-    transition: box-shadow .16s ease, transform .12s ease; 
-    cursor:pointer; 
-    position:relative; 
-    z-index:1; 
-    color:var(--text); 
-  }
-  .card:hover{ 
-    transform:translateY(-6px); 
-    box-shadow:0 12px 30px var(--shadow); 
-  }
-  .card .thumb{ 
-    width:100%; 
-    height:120px; 
-    overflow:hidden; 
-    background:#2b2f36; 
-  }
-  .card .thumb img{ 
-    width:100%; 
-    height:100%; 
-    object-fit:cover; 
-    display:block; 
-  }
-  .card .card-body{ padding:12px; }
-  .card h3{ 
-    font-size:16px; 
-    font-weight:800; 
-    margin:0 0 8px; 
-    color:var(--text); 
-  }
-  
-  .cat-badge{ 
-    display:inline-block; 
-    padding:6px 10px; 
-    border-radius:6px; 
-    font-weight:800; 
-    font-size:12px; 
-    color:#fff; 
-  }
-  .hero-cats{ 
-    position:absolute; 
-    right:16px; 
-    bottom:16px; 
-    display:flex; 
-    gap:6px; 
-  }
-  .cat-tech{ background:#1e90ff; } 
+  .card { background:#fff; border-radius:10px; overflow:hidden; border:1px solid rgba(0,0,0,0.06); transition: box-shadow .16s ease, transform .12s ease; cursor:pointer; position:relative; z-index:1; }
+  .card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(0,0,0,0.06); }
+  .card .thumb { width:100%; height:120px; overflow:hidden; background:#efefef; }
+  .card .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .card .card-body { padding:12px; }
+  .card h3 { font-size:16px; font-weight:800; margin:0 0 8px; color:#111; }
+  .card .meta { display:flex; align-items:center; gap:8px; color:#666; font-size:13px; }
+
+  .cat-badge { display:inline-block; padding:6px 10px; border-radius:6px; font-weight:800; font-size:12px; color:#fff; }
+
+  .hero-cats { position:absolute; right:16px; bottom:16px; display:flex; gap:6px; }
+
+  .cat-tech{ background:#1e90ff; }
   .cat-eat{ background:#ff6347; }
-  .cat-style{ background:#32cd32; } 
+  .cat-style{ background:#32cd32; }
   .cat-culture{ background:#8a2be2; }
-  .cat-life{ background:#ffa500; color:#000; } 
+  .cat-life{ background:#ffa500; color:#000; }
   .cat-editors-pick{ background:#ff1493; }
 
-  /* 페이지네이션 */
-  .pager{ 
-    display:flex; 
-    justify-content:center; 
-    align-items:center; 
-    gap:8px; 
-    padding:18px 0 8px; 
-    flex-wrap:wrap; 
-    color:var(--text);
-  }
-  .pager a, .pager button{
-    background:var(--card); 
-    border:1px solid var(--border); 
-    color:var(--text);
-    padding:6px 10px; 
-    border-radius:8px; 
-    cursor:pointer; 
-    font-weight:800; 
-    font-size:13px;
-  }
-  .pager .current{ 
-    background:transparent; 
-    border:none; 
-    color:#ff7a1a; 
-    font-weight:900; 
-  }
-  .pager .ellipsis{ 
-    opacity:.6; 
-    border:none; 
-    background:transparent; 
-  }
-
-  /* 모바일: 세로 배치 */
-  @media (max-width:1100px){
-    .row, .row.reverse{ 
-      grid-template-columns:1fr; 
-      gap:12px;
-    }
-    .col-hero { 
-      min-height:300px; 
-      order:1;
-    }
-    .col-hero .hero { 
-      min-height:300px; 
-    }
-    .col-cards{ 
-      height:auto;
-      overflow-y:visible;
-      padding-right:0;
-      display:grid; 
-      grid-template-columns:repeat(2, 1fr);
-      gap:12px; 
-      order:2;
-    }
-  }
-  
-  @media (max-width:600px){
-    .col-cards{ 
-      grid-template-columns:1fr;
-    }
-  }
-
-  /* ===========================
-     공통 오버레이
-     =========================== */
-  .category-overlay, .post-overlay, .search-overlay, .about-page, .editors-overlay{
-    position:fixed; 
-    inset:0; 
-    z-index:1800; 
-    overflow:auto; 
-    padding:28px; 
-    background:var(--overlay);
-    opacity:0; 
-    visibility:hidden; 
-    transform:translateY(8px);
-    transition:opacity .18s ease-out, transform .18s ease-out, visibility 0s .18s; 
-    color:var(--text);
-  }
-  .post-overlay{ 
-    z-index:1900; 
-    padding:0; /* 진행바를 위해 패딩 제거 */
-  }
-  .category-overlay.active, .post-overlay.active, .search-overlay.active, .about-page.active, .editors-overlay.active{
-    opacity:1; 
-    visibility:visible; 
-    transform:translateY(0); 
-    transition:opacity .18s ease-out, transform .18s ease-out, visibility 0s;
-  }
-  .category-overlay.closing, .post-overlay.closing, .search-overlay.closing, .about-page.closing, .editors-overlay.closing{
-    opacity:0; 
-    transform:translateY(8px); 
-    visibility:visible;
-  }
-
-  /* ===========================
-     POST 화면
-     =========================== */
-  /* 진행률 바 - 최상단 고정 */
-  .progress-wrap{
+  .category-overlay, .post-overlay, .search-overlay, .about-page, .editors-overlay {
+    display:none;
     position:fixed;
-    top:0;
-    left:0;
-    right:0;
-    z-index:2100; 
-    background:transparent; 
-    height:4px;
-  }
-  .progress-bar{
-    width:0%; 
-    height:4px; 
-    background:var(--progress);
-    transition:width .08s linear; 
-    border-top-right-radius:2px; 
-    border-bottom-right-radius:2px;
-  }
-
-  /* 스크롤 시 나타나는 툴바 */
-  .post-toolbar{
-    position:fixed; 
-    top:8px; 
-    left:50%; 
-    transform:translateX(-50%) translateY(-60px);
-    width:min(1200px, calc(100% - 24px)); 
-    height:48px; 
-    display:flex; 
-    justify-content:space-between; 
-    align-items:center;
-    padding:0 12px; 
-    border-radius:12px; 
-    background:color-mix(in oklab, var(--overlay) 88%, transparent);
-    border:1px solid var(--border); 
-    box-shadow:0 6px 20px var(--shadow);
-    backdrop-filter: blur(8px);
-    transition:transform .18s ease; 
-    opacity:1; 
-    pointer-events:none;
-    color:var(--text);
-  }
-  .post-toolbar.show{ 
-    transform:translateX(-50%) translateY(0); 
-    pointer-events:auto;
-  }
-  .post-toolbar .tool-left{ 
-    display:flex; 
-    align-items:center; 
-    gap:10px; 
-    font-weight:900; 
-    cursor:pointer; 
-  }
-  .post-toolbar .tool-right .hamburger{ 
-    width:36px; 
-    height:28px; 
-    border-radius:8px; 
-    border:1px solid var(--border); 
-    background:var(--card); 
-    cursor:pointer; 
-    display:flex; 
-    align-items:center; 
-    justify-content:center; 
-  }
-  .post-toolbar .hamburger span{ 
-    display:block; 
-    width:18px; 
-    height:2px; 
-    background:var(--text); 
-    position:relative; 
-  }
-  .post-toolbar .hamburger span::before, 
-  .post-toolbar .hamburger span::after{
-    content:""; 
-    position:absolute; 
-    left:0; 
-    width:18px; 
-    height:2px; 
-    background:var(--text);
-  }
-  .post-toolbar .hamburger span::before{ top:-6px; }
-  .post-toolbar .hamburger span::after{ top:6px; }
-  
-  /* 포스트 내용 영역 */
-  .post-content-wrapper {
+    inset:0;
+    background:#fff;
+    z-index:1800;
+    overflow:auto;
     padding:28px;
-    padding-top:40px; /* 진행바 공간 */
+    animation: overlayIn .28s ease;
   }
-  
-  .post-article{ 
-    margin:0 auto; 
-    max-width:900px; 
+  .post-overlay {
+    z-index:1900;
   }
-  
-  /* 포스트 헤더 섹션 */
-  .post-header {
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:24px;
-    margin-bottom:32px;
-    align-items:center;
-  }
-  
-  .post-header-image {
+  .category-overlay.active, .post-overlay.active, .search-overlay.active, .about-page.active, .editors-overlay.active { display:block; }
+  @keyframes overlayIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
+
+  .category-top { display:flex; justify-content:space-between; align-items:center; gap:12px; border-bottom:1px solid rgba(0,0,0,0.06); padding-bottom:12px; }
+  .category-title { font-size:24px; font-weight:900; color:#111; }
+  .category-sub { font-size:13px; color:#666; margin-top:4px; }
+  .category-grid { margin-top:18px; display:grid; gap:18px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); padding:20px 0 80px; }
+
+  .post-article { margin:0 auto; max-width:900px; }
+  .post-article h1 { font-size:34px; font-weight:900; margin-bottom:12px; color:#111; }
+  .post-content { color:#222; line-height:1.9; }
+
+  .post-hero {
     width:100%;
-    height:400px;
+    max-height: 520px;
     overflow:hidden;
     border-radius:12px;
-    background:#000;
+    margin: 0 0 16px 0;
   }
-  
-  .post-header-image img {
+  .post-hero img {
     width:100%;
     height:100%;
     object-fit:cover;
     display:block;
   }
-  
-  .post-header-info {
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    gap:16px;
-  }
-  
-  .post-header-info h1 {
-    font-size:32px;
-    font-weight:900;
-    margin:0;
-    color:var(--text);
-    line-height:1.2;
-  }
-  
-  .post-meta {
-    display:flex;
-    gap:12px;
-    align-items:center;
-  }
-  
-  .post-content{ 
-    color:var(--text); 
-    line-height:1.9; 
-  }
-  
-  /* 모바일 포스트 레이아웃 */
-  @media (max-width:768px) {
-    .post-header {
-      grid-template-columns:1fr;
-    }
-    
-    .post-header-image {
-      height:300px;
-    }
-    
-    .post-header-info h1 {
-      font-size:24px;
-    }
-    
-    /* 유튜브 등 임베드 요소 크기 제한 */
-    .post-content iframe,
-    .post-content video,
-    .post-content embed,
-    .post-content object {
-      max-width:100% !important;
-      width:100% !important;
-      height:auto !important;
-    }
-    
-    .post-content .wp-video,
-    .post-content .video-container {
-      max-width:100% !important;
-      overflow:hidden;
-    }
+
+  .search-bar { display:flex; align-items:center; background:#fff; border-radius:50px; box-shadow:0 6px 20px rgba(0,0,0,0.06); padding:6px 10px; gap:8px; }
+  .search-bar input[type="search"] { flex:1; border:none; outline:none; font-size:16px; padding:12px 14px; border-radius:50px; }
+  .search-bar .close-btn { background:none; border:none; font-size:20px; cursor:pointer; color:#666; }
+
+  @media (max-width: 680px) {
+    .search-bar { padding:6px 10px; }
   }
 
-  /* 검색바 */
-  .search-bar{ 
-    display:flex; 
-    align-items:center; 
-    background:var(--card); 
-    border-radius:50px; 
-    box-shadow:0 6px 20px var(--shadow); 
-    padding:6px 10px; 
-    gap:8px; 
-    border:1px solid var(--border); 
+  .to-top {
+    position: fixed; right:22px; bottom:22px; width:52px; height:52px; border-radius:12px; background:#fff; color:#000;
+    display:flex; align-items:center; justify-content:center; font-size:22px; z-index:2500; box-shadow:0 12px 30px rgba(0,0,0,0.08); opacity:0; transform:translateY(20px); transition:all .28s cubic-bezier(.2,.9,.2,1);
+    border:1px solid rgba(0,0,0,0.06);
+    cursor: pointer;
   }
-  .search-bar input[type="search"]{ 
-    flex:1; 
-    border:none; 
-    outline:none; 
-    font-size:16px; 
-    padding:12px 14px; 
-    border-radius:50px; 
-    background:transparent; 
-    color:var(--text); 
-  }
-  .search-bar .close-btn{ 
-    background:none; 
-    border:none; 
-    font-size:20px; 
-    cursor:pointer; 
-    color:var(--muted); 
-  }
+  .to-top.show { opacity:1; transform:translateY(0); }
 
-  /* TO TOP */
-  .to-top{
-    position:fixed; 
-    right:22px; 
-    bottom:22px; 
-    width:52px; 
-    height:52px; 
-    border-radius:12px; 
-    background:var(--card); 
-    color:var(--text);
-    display:flex; 
-    align-items:center; 
-    justify-content:center; 
-    font-size:22px; 
-    z-index:2500; 
-    box-shadow:0 12px 30px var(--shadow);
-    opacity:0; 
-    transform:translateY(20px); 
-    border:1px solid var(--border); 
-    transition:all .28s cubic-bezier(.2,.9,.2,1); 
-    cursor:pointer;
-  }
-  .to-top.show{ 
-    opacity:1; 
-    transform:translateY(0); 
-  }
-
-  /* FOOTER */
-  footer.site-footer{ 
-    background:#111; 
-    color:#eee; 
-    padding:40px 20px; 
-    margin-top:20px; 
-  }
-  [data-theme="dark"] footer.site-footer{ 
-    background:#0b0c10; 
-    color:#cfd3dc; 
-  }
-  .footer-inner{ 
-    max-width:1400px; 
-    margin:0 auto; 
-    display:flex; 
-    justify-content:space-between; 
-    gap:20px; 
-    align-items:flex-start; 
-    flex-wrap:wrap; 
-  }
-  .footer-brand{ 
-    font-size:40px; 
-    font-weight:900; 
-    color:#fff; 
-    font-style:italic; 
-  }
-  .footer-links a{ 
+  footer.site-footer { background:#111; color:#eee; padding:40px 20px; margin-top:20px; }
+  .footer-inner { max-width:1400px; margin:0 auto; display:flex; justify-content:space-between; gap:20px; align-items:flex-start; flex-wrap:wrap; }
+  .footer-brand { font-size:40px; font-weight:900; color:#fff; font-style:italic; }
+  /* --- 수정된 부분 시작 --- */
+  .footer-links a { 
     color:#ddd; 
-    cursor:pointer; 
-    display:block; 
-    font-weight:800; 
-    margin-bottom:8px; 
+    cursor:pointer;
+    display: block; /* 세로 배치 */
+    font-weight: 800; /* 볼드 처리 */
+    margin-bottom: 8px; /* 링크 간 간격 추가 */
+  }
+  /* --- 수정된 부분 끝 --- */
+
+  .editors-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap:16px; padding:18px 0; }
+  .editor-card { background:#fff; border-radius:12px; padding:12px; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; border:1px solid rgba(0,0,0,0.06); cursor:pointer; }
+  .editor-avatar { width:84px; height:84px; border-radius:50%; object-fit:cover; }
+  .editor-name { font-weight:800; font-size:15px; }
+  .editor-bio { font-size:12px; color:#666; }
+
+  .original-link { margin-top:18px; display:inline-block; }
+  .original-link a { display:inline-block; padding:10px 14px; border-radius:10px; border:1px solid rgba(0,0,0,0.08); background:#fff; font-weight:800; }
+  @media (max-width:680px) {
+    .original-link { display:block; width:100%; }
+    .original-link a { width:100%; box-sizing:border-box; display:block; text-align:center; }
+    .post-article { padding:0 12px; }
+  }
+
+  @media (max-width: 1100px) {
+    .row { grid-template-columns: 1fr; }
+    .col-right { grid-auto-rows: unset; grid-template-columns: 1fr; display:grid; gap:12px; }
   }
   </style>
 </head>
 <body>
 
-  <!-- HEADER -->
   <header class="header" id="siteHeader" role="banner" aria-label="사이트 헤더">
     <div class="header-inner wrap">
-      <div class="brand" aria-label="IMPACT brand">
-        <div class="logo" id="logoBtn" onclick="router.goHome()" tabindex="0" title="IMPACT – go home">
+      <div class="brand" role="img" aria-label="IMPACT brand">
+        <div class="logo" id="logoBtn" onclick="router.goHome()" tabindex="0" title="IMPACT — go home">
           <img src="logo.png" alt="IMPACT logo" style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
           <div>
             <div style="line-height:1">IMPACT</div>
@@ -645,17 +297,12 @@
       </div>
 
       <div class="header-actions" role="navigation" aria-label="상단 메뉴">
-        <button class="icon-btn" id="topSearchBtn" onclick="openNavlessSearch()" title="검색" aria-label="검색">
-          🔍
-        </button>
-        <button class="icon-btn" aria-controls="navOverlay" aria-expanded="false" onclick="ui.toggleNav()" title="메뉴" aria-label="메뉴">
-          <span class="hamburger-icon"><span></span></span>
-        </button>
+        <button class="btn" id="topSearchBtn" onclick="openNavlessSearch()">검색</button>
+        <button class="btn" aria-controls="navOverlay" aria-expanded="false" onclick="ui.toggleNav()">더보기</button>
       </div>
     </div>
   </header>
 
-  <!-- NAV OVERLAY -->
   <aside class="nav-overlay" id="navOverlay" aria-hidden="true" aria-label="카테고리 네비게이션">
     <button class="nav-close" aria-label="네비 닫기" onclick="ui.toggleNav(true)">×</button>
     <div style="display:flex;flex-direction:column;gap:12px;">
@@ -663,745 +310,1023 @@
         <span style="font-size:18px">🔍</span>
         <input type="search" id="globalNavSearch" placeholder="검색어 입력" aria-label="네비 검색어">
       </div>
+
       <ul class="nav-list" id="navList" role="menu" aria-label="카테고리 목록"></ul>
-      <div class="nav-footer-links">
+
+      <div class="nav-footer-links" aria-hidden="false">
         <a href="javascript:void(0)" onclick="ui.toggleNav(true); router.openAbout()">ABOUT</a>
         <a href="javascript:void(0)" onclick="ui.toggleNav(true); router.openEditors()">EDITORS</a>
         <a href="javascript:void(0)" onclick="alert('NEWSLETTER 페이지는 추후 구현됩니다')">NEWSLETTER</a>
         <a href="https://www.instagram.com/ceo_impact_official" target="_blank" rel="noopener">INSTAGRAM</a>
       </div>
     </div>
-    <button class="theme-toggle" onclick="toggleTheme()">
-      <span id="themeIcon">🌙</span>
-      <span id="themeText">다크모드</span>
-    </button>
   </aside>
 
-  <!-- HOME -->
   <main class="home" id="home" role="main" aria-live="polite" tabindex="-1">
     <div id="rowsContainer" aria-live="polite"></div>
-    <div id="homeLoading" style="text-align:center;color:var(--muted);padding:18px 0"></div>
-    <nav id="homePager" class="pager" aria-label="페이지 이동"></nav>
+    <div id="homeLoading" style="text-align:center;color:#666;padding:36px 0">로딩 중...</div>
   </main>
 
-  <!-- CATEGORY OVERLAY -->
   <section class="category-overlay" id="categoryOverlay" aria-hidden="true" role="region">
     <div class="wrap">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--border);padding-bottom:12px;">
+      <div class="category-top">
         <div>
-          <div id="categoryOverlayTitle" style="font-size:24px;font-weight:900;">CATEGORY</div>
-          <div id="categoryOverlaySubtitle" style="font-size:13px;color:var(--muted);margin-top:4px;">카테고리 설명</div>
+          <div class="category-title" id="categoryOverlayTitle">CATEGORY</div>
+          <div class="category-sub" id="categoryOverlaySubtitle">카테고리 설명</div>
         </div>
-        <div><button class="icon-btn" onclick="router.closeCategory()" style="font-size:24px;">×</button></div>
+        <div>
+          <button class="btn" onclick="router.closeCategory()">닫기</button>
+        </div>
       </div>
-      <div id="categoryGrid" class="category-grid" style="margin-top:18px; display:grid; gap:18px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); padding:20px 0 10px;"></div>
-      <nav id="categoryPager" class="pager" aria-label="카테고리 페이지 이동"></nav>
-      <div id="categoryLoading" style="text-align:center;color:var(--muted);padding:14px 0"></div>
+
+      <div class="category-grid" id="categoryGrid" aria-live="polite"></div>
+      <div id="categoryLoading" style="text-align:center;color:#666;padding:28px 0"></div>
     </div>
   </section>
 
-  <!-- EDITORS OVERLAY -->
   <section class="editors-overlay" id="editorsOverlay" aria-hidden="true" role="region">
     <div class="wrap">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--border);padding-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid rgba(0,0,0,0.06);padding-bottom:14px;">
         <div>
           <h2 style="font-size:24px;margin:0">EDITORS</h2>
-          <div style="color:var(--muted);font-size:13px">참여 에디터와 글을 확인하세요.</div>
+          <div style="color:#666;font-size:13px">IMPACT에 참여하는 에디터 목록과 각 에디터의 작성 글을 확인할 수 있습니다.</div>
         </div>
-        <div><button class="icon-btn" onclick="router.closeEditors()" style="font-size:24px;">×</button></div>
+        <div>
+          <button class="btn" onclick="router.closeEditors()">닫기</button>
+        </div>
       </div>
+
       <div id="editorsGridWrapper" style="margin-top:18px;">
-        <div id="editorsGrid" class="editors-grid" style="display:grid; grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); gap:16px;"></div>
-        <div id="editorsLoading" style="text-align:center;color:var(--muted);padding:18px 0"></div>
+        <div id="editorsGrid" class="editors-grid"></div>
+        <div id="editorsLoading" style="text-align:center;color:#666;padding:18px 0"></div>
       </div>
+
       <div id="editorProfileSection" style="display:none;margin-top:18px;">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;">
           <div>
             <div id="editorProfileName" style="font-weight:900;font-size:20px"></div>
-            <div id="editorProfileBio" style="color:var(--muted);font-size:13px"></div>
+            <div id="editorProfileBio" style="color:#666;font-size:13px"></div>
           </div>
-          <div><button class="icon-btn" onclick="showEditorsList()" style="font-size:16px;">목록으로</button></div>
+          <div>
+            <button class="btn" onclick="showEditorsList()">목록으로</button>
+          </div>
         </div>
-        <div id="editorPostsGrid" class="category-grid" style="display:grid; gap:18px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));"></div>
-        <div id="editorPostsLoading" style="text-align:center;color:var(--muted);padding:18px 0"></div>
+        <div id="editorPostsGrid" class="category-grid"></div>
+        <div id="editorPostsLoading" style="text-align:center;color:#666;padding:18px 0"></div>
       </div>
     </div>
   </section>
 
-  <!-- POST OVERLAY -->
   <article class="post-overlay" id="postOverlay" aria-hidden="true" role="article">
-    <!-- 상단 진행률 바 -->
-    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
-    
-    <!-- 스크롤 시 나타나는 툴바 -->
-    <div class="post-toolbar" id="postToolbar">
-      <div class="tool-left" onclick="router.goHome()">
-        <img src="logo.png" alt="IMPACT" style="width:24px;height:24px;border-radius:6px;object-fit:cover;">
-        <span>IMPACT</span>
+    <div style="width:100%;max-width:1200px;margin:0 auto;">
+      <div style="display:flex;justify-content:flex-end;gap:12px;margin-bottom:18px">
+        <button class="btn" onclick="router.closePost()">닫기</button>
       </div>
-      <div class="tool-right">
-        <button class="hamburger" aria-label="메뉴" onclick="ui.toggleNav(false)"><span></span></button>
-      </div>
-    </div>
-
-    <div class="post-content-wrapper">
-      <div style="width:100%;max-width:1200px;margin:0 auto;">
-        <div style="display:flex;justify-content:flex-end;gap:12px;margin-bottom:18px">
-          <button class="icon-btn" onclick="router.closePost()" style="font-size:24px;">×</button>
-        </div>
-        <div class="post-article" id="postArticle"></div>
-
-        <!-- 관련 글 -->
-        <section id="relatedSection" style="max-width:1200px;margin:28px auto 0;display:none;">
-          <h3 style="font-size:20px;font-weight:900;margin:0 0 12px;">관련 글</h3>
-          <div id="relatedGrid" style="display:grid; gap:16px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));"></div>
-        </section>
-      </div>
+      <div class="post-article" id="postArticle"></div>
     </div>
   </article>
 
-  <!-- SEARCH OVERLAY -->
   <section class="search-overlay" id="searchOverlay" aria-hidden="true" role="search">
     <div class="wrap" style="max-width:1100px;margin:0 auto;">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px">
         <div style="flex:1">
           <div class="search-bar" role="search" aria-label="사이트 검색">
-            <input type="search" class="search-input" id="searchInputTop" placeholder="검색어 입력 (Enter)" aria-label="검색어">
+            <input type="search" class="search-input" id="searchInputTop" placeholder="검색어 입력 (Enter로 검색)" aria-label="검색어">
             <button type="button" class="close-btn" onclick="ui.closeSearch()">×</button>
           </div>
         </div>
       </div>
-      <div id="searchResults" class="category-grid" style="display:grid; gap:18px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));"></div>
+
+      <div id="searchResults" class="category-grid" aria-live="polite"></div>
     </div>
   </section>
 
-  <!-- ABOUT PAGE -->
   <section class="about-page" id="aboutPageSection" aria-hidden="true" role="region">
-    <div class="wrap">
+    <div class="wrap about-content">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px">
         <div>
           <h2 style="font-size:32px;margin-bottom:10px">ABOUT</h2>
-          <div style="color:var(--text);font-size:15px;line-height:1.8">
-            <p><strong>IMPACT</strong> 는 現·前 KAIST IP-CEO 및 POSTECH CEO 학생들이 함께 만드는 심층 콘텐츠 플랫폼입니다.</p>
-            <p>기술·경영·창의성의 교차점에서 데이터를 바탕으로 통찰을 전달합니다.</p>
+          <div style="color:#333;font-size:15px;line-height:1.8">
+            <p><strong>IMPACT</strong> 은 現 & 前 KAIST IP-CEO 학생들과 POSTECH CEO 학생들이 함께 작성하는 심층 콘텐츠 플랫폼입니다.</p>
+            <p>학생 저자들의 경험과 분석을 바탕으로 기술·경영·창의성을 결합한 글을 제공합니다. 현장의 사례, 데이터 인텔리전스, 깊이 있는 분석을 통해 독자에게 통찰을 전달합니다.</p>
           </div>
-          <div style="margin-top:20px"><button class="icon-btn" onclick="router.closeAbout()" style="font-size:24px;">×</button></div>
+          <div style="margin-top:20px"><button class="btn" onclick="router.closeAbout()">닫기</button></div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- TO TOP -->
   <button class="to-top" id="toTopBtn" title="맨 위로" aria-label="맨 위로">↑</button>
 
-  <!-- FOOTER -->
   <footer class="site-footer" role="contentinfo" aria-label="사이트 푸터">
     <div class="wrap footer-inner">
       <div>
         <div class="footer-brand">IMPACT</div>
-        <div style="margin-top:10px;color:#ddd;font-size:13px">광고 제휴 | <a href="mailto:ceo.impact.official@gmail.com">ceo.impact.official@gmail.com</a></div>
+        <div style="margin-top:10px;color:#ddd;font-size:13px">광고 제휴 문의 | <a href="mailto:ceo.impact.official@gmail.com">ceo.impact.official@gmail.com</a></div>
         <div style="color:#ddd;font-size:13px;margin-top:6px">보도자료 | <a href="mailto:ceo.impact.official@gmail.com">ceo.impact.official@gmail.com</a></div>
       </div>
+
       <div class="footer-links">
         <a href="javascript:void(0)" onclick="router.openAbout()">ABOUT</a>
         <a href="javascript:void(0)" onclick="router.openEditors()">EDITORS</a>
         <a href="javascript:void(0)" onclick="alert('NEWSLETTER 페이지는 추후 구현됩니다')">NEWSLETTER</a>
         <a href="https://www.instagram.com/ceo_impact_official" target="_blank" rel="noopener">INSTAGRAM</a>
       </div>
-      <div class="footer-right"><div style="font-weight:800;color:#fff">IMPACT CEO. ALL RIGHTS RESERVED.</div></div>
+
+      <div class="footer-right">
+        <div style="font-weight:800;color:#fff">IMPACT CEO. ALL RIGHTS RESERVED.</div>
+      </div>
     </div>
   </footer>
 
-  <!-- 카드 템플릿 -->
   <template id="cardTpl">
     <article class="card" role="article">
       <div class="thumb"><img src="" alt=""></div>
       <div class="card-body">
         <div class="cat-row"></div>
         <h3 class="title"></h3>
-        <div class="meta" style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;">
+        <div class="meta">
           <img class="author-avatar" src="" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
           <div>
-            <div class="author-name" style="color:var(--text);font-weight:800;"></div>
-            <div class="date" style="font-size:12px;"></div>
+            <div class="author-name"></div>
+            <div class="date" style="font-size:12px;color:#777"></div>
           </div>
         </div>
       </div>
     </article>
   </template>
 
-  <!-- 에디터 카드 템플릿 -->
   <template id="editorTpl">
-    <div class="editor-card" role="button" tabindex="0" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;">
-      <img class="editor-avatar" src="" alt="" style="width:84px;height:84px;border-radius:50%;object-fit:cover;">
-      <div class="editor-name" style="font-weight:800;font-size:15px;color:var(--text)"></div>
-      <div class="editor-bio" style="font-size:12px;color:var(--muted)"></div>
+    <div class="editor-card" role="button" tabindex="0">
+      <img class="editor-avatar" src="" alt="">
+      <div class="editor-name"></div>
+      <div class="editor-bio"></div>
     </div>
   </template>
 
-  <script>
-/* ==========================================================
-   상수/상태
-   ========================================================== */
-const HOME_PER_PAGE = 20;
-const CATEGORIES = { tech:318, eat:123073, style:2286, culture:1098, life:124, "editors-pick":259543 };
+<script>
+const WP_SITE = "impactceo0.wordpress.com";
+const HOME_PER_PAGE = 5;
+const HOME_MAX = 40;
+const CATEGORIES = {
+  "tech": 318,
+  "eat": 123073,
+  "style": 2286,
+  "culture": 1098,
+  "life": 124,
+  "editors-pick": 259543
+};
 const NAV_ORDER = ["TECH","EAT","STYLE","CULTURE","LIFE","EDITORS' PICK"];
 
 const state = {
   homePage: 1,
-  homeTotalPages: 1,
+  homeLoaded: 0,
+  homeFinished: false,
+  loadingHome: false,
   postsCache: {},
+  categoryPages: {},
+  categoryFinished: {},
   editorsList: [],
   editorsLoaded: false,
-  currentScrollPos: 0,
-  lastScrollY: 0,
-  category: { slug:null, page:1, totalPages:1 }
+  currentScrollPos: 0 // 스크롤 위치 저장
 };
 
-function api(path){
+function api(path) {
   const p = path.includes('_embed') ? path : (path + (path.includes('?') ? '&' : '?') + '_embed');
   return `/.netlify/functions/wpProxy?path=${encodeURIComponent(p)}`;
 }
-function headers(){ return {}; }
+function headers() { return {}; }
 
-/* 테마 전환 */
-function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', newTheme);
-  localStorage.setItem('theme', newTheme);
-  
-  const icon = document.getElementById('themeIcon');
-  const text = document.getElementById('themeText');
-  if (newTheme === 'dark') {
-    icon.textContent = '☀️';
-    text.textContent = '라이트모드';
-  } else {
-    icon.textContent = '🌙';
-    text.textContent = '다크모드';
-  }
+function formatDate(dstr) {
+  try {
+    const d = new Date(dstr);
+    return `${d.getFullYear()}. ${String(d.getMonth()+1).padStart(2,'0')}. ${String(d.getDate()).padStart(2,'0')}.`;
+  } catch(e) { return ''; }
 }
 
-/* 유틸 */
-function formatDate(dstr){ try{ const d=new Date(dstr); return `${d.getFullYear()}. ${String(d.getMonth()+1).padStart(2,'0')}. ${String(d.getDate()).padStart(2,'0')}.`; }catch(e){ return ''; } }
-function placeholderDataURI(w=600,h=400,txt='No Image'){ const svg=`<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'><rect width='100%' height='100%' fill='#2b2f36'/><text x='50%' y='50%' fill='#9aa3af' font-size='20' text-anchor='middle' dominant-baseline='middle'>${txt}</text></svg>`; return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg); }
-function pickCategoryClass(s){ if(!s) return ''; s=String(s).toLowerCase(); if(s.includes('tech'))return'cat-tech'; if(s.includes('eat'))return'cat-eat'; if(s.includes('style'))return'cat-style'; if(s.includes('culture'))return'cat-culture'; if(s.includes('life'))return'cat-life'; if(s.includes('editor'))return'cat-editors-pick'; return ''; }
-function stripTags(str=''){ return str.replace(/<\/?[^>]+(>|$)/g,""); }
+function placeholderDataURI(w=600,h=400,txt='No Image') {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'><rect width='100%' height='100%' fill='#efefef'/><text x='50%' y='50%' fill='#aaa' font-size='20' text-anchor='middle' dominant-baseline='middle'>${txt}</text></svg>`;
+  return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+}
 
-/* NAV 목록 */
-function renderNavList(){
-  const navList=document.getElementById('navList');
-  navList.innerHTML='';
-  NAV_ORDER.forEach(item=>{
-    const li=document.createElement('li');
-    li.textContent=item; li.tabIndex=0; li.setAttribute('role','menuitem');
-    li.addEventListener('click', ()=>{
+function pickCategoryClass(nameOrSlug) {
+  if(!nameOrSlug) return '';
+  const s = String(nameOrSlug).toLowerCase();
+  if(s.includes('tech') || s.includes('technology')) return 'cat-tech';
+  if(s.includes('eat')) return 'cat-eat';
+  if(s.includes('style')) return 'cat-style';
+  if(s.includes('culture')) return 'cat-culture';
+  if(s.includes('life')) return 'cat-life';
+  if(s.includes('editor') || s.includes('editors')) return 'cat-editors-pick';
+  return '';
+}
+
+function renderNavList() {
+  const navList = document.getElementById('navList');
+  navList.innerHTML = '';
+  NAV_ORDER.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = item;
+    li.tabIndex = 0;
+    li.setAttribute('role','menuitem');
+    li.addEventListener('click', () => {
       ui.toggleNav(true);
-      const slug=item.toLowerCase().replace(/'/g,'').replace(/\s/g,'-');
-      if(CATEGORIES[slug]||slug==='editors-pick') router.openCategory(slug);
+      const slug = item.toLowerCase().replace(/'/g,'').replace(/\s/g,'-');
+      if(slug === 'editors-pick') {
+        router.openCategory(slug);
+      } else if(CATEGORIES[slug]) {
+        router.openCategory(slug);
+      } else {
+        alert('해당 카테고리는 현재 사용할 수 없습니다.');
+      }
     });
-    li.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' ') li.click(); });
+    li.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' ') li.click(); });
     navList.appendChild(li);
   });
 }
 
-/* 카드 */
-function createCardNode(post){
-  const tpl=document.getElementById('cardTpl');
-  const node=tpl.content.firstElementChild.cloneNode(true);
-  const imgEl=node.querySelector('.thumb img');
-  const thumbUrl=post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
-  imgEl.src = thumbUrl || placeholderDataURI(1200,800,'No Image');
-  imgEl.alt = (post.title?.rendered)?stripTags(post.title.rendered):'thumb';
-  node.querySelector('.title').innerHTML = post.title?.rendered ?? '제목 없음';
+function createCardNode(post) {
+  const tpl = document.getElementById('cardTpl');
+  const node = tpl.content.firstElementChild.cloneNode(true);
 
-  const avatarImg=node.querySelector('.author-avatar');
-  const authorNameEl=node.querySelector('.author-name');
-  const dateEl=node.querySelector('.date');
-  if(post._embedded?.author?.[0]){
-    const a=post._embedded.author[0];
-    const av=a.avatar_urls ? (a.avatar_urls['48']||a.avatar_urls['24']) : '';
-    avatarImg.src = av || placeholderDataURI(96,96,'U');
+  const imgEl = node.querySelector('.thumb img');
+  let thumbUrl = '';
+  try {
+    thumbUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+  } catch(e) { thumbUrl = ''; }
+  imgEl.src = thumbUrl || placeholderDataURI(1200,800,'No Image');
+  imgEl.alt = (post.title && post.title.rendered) ? stripTags(post.title.rendered) : 'thumb';
+
+  node.querySelector('.title').innerHTML = post.title && post.title.rendered ? post.title.rendered : '제목 없음';
+
+  const avatarImg = node.querySelector('.author-avatar');
+  const authorNameEl = node.querySelector('.author-name');
+  const dateEl = node.querySelector('.date');
+
+  if(post._embedded && post._embedded.author && post._embedded.author[0]) {
+    const a = post._embedded.author[0];
+    const avatarUrl = a.avatar_urls ? (a.avatar_urls['48']||a.avatar_urls['24']||'') : '';
+    avatarImg.src = avatarUrl || placeholderDataURI(96,96,'U');
     avatarImg.alt = a.name || 'author';
     authorNameEl.textContent = a.name || '익명';
-  }else{
-    avatarImg.src = placeholderDataURI(96,96,'U'); authorNameEl.textContent='익명';
+  } else {
+    avatarImg.src = placeholderDataURI(96,96,'U');
+    authorNameEl.textContent = '익명';
   }
   dateEl.textContent = formatDate(post.date);
 
-  const catRow=document.createElement('div'); catRow.style.marginBottom='8px';
-  const cats=post._embedded?.['wp:term']?.[0] || [];
-  cats.forEach(c=>{
-    if(c?.name){
-      const span=document.createElement('span');
-      span.className='cat-badge '+(pickCategoryClass(c.slug||c.name)||'');
-      if(!pickCategoryClass(c.slug||c.name)) span.style.background='#666';
-      span.textContent=c.name;
-      catRow.appendChild(span);
-    }
-  });
-  node.querySelector('.card-body').insertBefore(catRow, node.querySelector('.title'));
+  const catRow = node.querySelector('.cat-row');
+  catRow.innerHTML = '';
+  if(post._embedded && post._embedded['wp:term'] && post._embedded['wp:term'][0]) {
+    const cats = post._embedded['wp:term'][0];
+    cats.forEach(c => {
+      if(c && c.name) {
+        const span = document.createElement('span');
+        span.className = 'cat-badge';
+        span.textContent = c.name;
+        const cls = pickCategoryClass(c.slug || c.name);
+        if(cls) span.classList.add(cls);
+        else span.style.background = '#666';
+        catRow.appendChild(span);
+      }
+    });
+  }
 
   node.addEventListener('click', ()=> openPostOverlayById(post.id));
-  node.addEventListener('keydown', e=>{ if(e.key==='Enter') openPostOverlayById(post.id); });
+  node.addEventListener('keydown', e => { if(e.key==='Enter') openPostOverlayById(post.id); });
   return node;
 }
 
-/* 홈: 페이지 단위 로드 + 페이지네이션 */
-async function loadHome(page=1){
-  const rows=document.getElementById('rowsContainer');
-  const loading=document.getElementById('homeLoading');
-  const pager=document.getElementById('homePager');
-  rows.innerHTML=''; loading.textContent='로딩 중...'; pager.innerHTML='';
-  try{
-    const res=await fetch(api(`posts?per_page=${HOME_PER_PAGE}&page=${page}`),{headers:headers()});
-    if(!res.ok){ loading.textContent='글을 불러오지 못했습니다.'; return; }
-    const posts=await res.json();
-    const totalPages = parseInt(res.headers.get('X-WP-TotalPages')||'1',10);
-    state.homePage=page; state.homeTotalPages=totalPages;
+function stripTags(str='') {
+  return str.replace(/<\/?[^>]+(>|$)/g, "");
+}
 
-    // 캐시
-    posts.forEach(p=> state.postsCache[p.id]=p);
+async function loadHomeChunk() {
+  if(state.loadingHome || state.homeFinished) return;
+  state.loadingHome = true;
+  const loadingEl = document.getElementById('homeLoading');
+  loadingEl.textContent = '로딩 중...';
 
-    // 패턴: 왼쪽 큰 + 오른쪽 4개, 다음은 반대
-    for(let i=0;i<posts.length;i+=5){
-      const group=posts.slice(i,i+5);
-      const row=document.createElement('div'); 
-      const isReverse = Math.floor(i/5) % 2 === 1;
-      row.className= isReverse ? 'row reverse' : 'row';
-
-      if(!isReverse) {
-        // 왼쪽 큰 카드
-        const leftPost=group[0];
-        const leftDiv=document.createElement('div'); leftDiv.className='col-hero';
-        const heroUrl=leftPost? (leftPost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '') : '';
-        leftDiv.innerHTML=`
-          <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero">
-          <div class="hero-overlay">
-            <h2 class="hero-title">${leftPost?.title?.rendered ?? '제목 없음'}</h2>
-            <div style="display:flex;align-items:center;gap:10px">
-              <img class="hero-avatar" src="" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
-              <div class="hero-author" style="font-weight:800;color:#fff"></div>
-              <div class="hero-date" style="margin-left:8px;color:#eee;opacity:.9"></div>
-            </div>
-          </div>
-        `;
-        const ha=leftPost?leftPost._embedded?.author?.[0]:null;
-        const heroAvatar=leftDiv.querySelector('.hero-avatar');
-        heroAvatar.src = (ha?.avatar_urls?.['48']||ha?.avatar_urls?.['24']) || placeholderDataURI(48,48,'U');
-        leftDiv.querySelector('.hero-author').textContent = ha?.name || '익명';
-        leftDiv.querySelector('.hero-date').textContent = leftPost?formatDate(leftPost.date):'';
-        leftDiv.addEventListener('click', ()=> openPostOverlayById(leftPost.id));
-
-        const catWrap=document.createElement('div'); catWrap.className='hero-cats';
-        const firstCat=leftPost? leftPost._embedded?.['wp:term']?.[0]?.[0] : null;
-        if(firstCat){
-          const span=document.createElement('span');
-          span.className='cat-badge '+pickCategoryClass(firstCat.slug||firstCat.name);
-          span.textContent=firstCat.name; catWrap.appendChild(span);
-        }
-        leftDiv.appendChild(catWrap);
-        row.appendChild(leftDiv);
-
-        // 오른쪽 4개
-        const rightDiv=document.createElement('div'); rightDiv.className='col-cards';
-        group.slice(1,5).forEach(p=>{ if(p){ state.postsCache[p.id]=p; rightDiv.appendChild(createCardNode(p)); } });
-        row.appendChild(rightDiv);
+  try {
+    const res = await fetch(api(`posts?per_page=${HOME_PER_PAGE}&page=${state.homePage}`), { headers: headers() });
+    if(!res.ok) {
+      if(res.status === 400) {
+        state.homeFinished = true;
+        loadingEl.textContent = '더 이상 글이 없습니다.';
       } else {
-        // 오른쪽 큰 카드 (반대 패턴)
-        const rightDiv=document.createElement('div'); rightDiv.className='col-cards';
-        group.slice(1,5).forEach(p=>{ if(p){ state.postsCache[p.id]=p; rightDiv.appendChild(createCardNode(p)); } });
-        row.appendChild(rightDiv);
-
-        const leftPost=group[0];
-        const leftDiv=document.createElement('div'); leftDiv.className='col-hero';
-        const heroUrl=leftPost? (leftPost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '') : '';
-        leftDiv.innerHTML=`
-          <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero">
-          <div class="hero-overlay">
-            <h2 class="hero-title">${leftPost?.title?.rendered ?? '제목 없음'}</h2>
-            <div style="display:flex;align-items:center;gap:10px">
-              <img class="hero-avatar" src="" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
-              <div class="hero-author" style="font-weight:800;color:#fff"></div>
-              <div class="hero-date" style="margin-left:8px;color:#eee;opacity:.9"></div>
-            </div>
-          </div>
-        `;
-        const ha=leftPost?leftPost._embedded?.author?.[0]:null;
-        const heroAvatar=leftDiv.querySelector('.hero-avatar');
-        heroAvatar.src = (ha?.avatar_urls?.['48']||ha?.avatar_urls?.['24']) || placeholderDataURI(48,48,'U');
-        leftDiv.querySelector('.hero-author').textContent = ha?.name || '익명';
-        leftDiv.querySelector('.hero-date').textContent = leftPost?formatDate(leftPost.date):'';
-        leftDiv.addEventListener('click', ()=> openPostOverlayById(leftPost.id));
-
-        const catWrap=document.createElement('div'); catWrap.className='hero-cats';
-        const firstCat=leftPost? leftPost._embedded?.['wp:term']?.[0]?.[0] : null;
-        if(firstCat){
-          const span=document.createElement('span');
-          span.className='cat-badge '+pickCategoryClass(firstCat.slug||firstCat.name);
-          span.textContent=firstCat.name; catWrap.appendChild(span);
-        }
-        leftDiv.appendChild(catWrap);
-        row.appendChild(leftDiv);
+        loadingEl.textContent = '메인 글 불러오기 실패';
       }
-      
-      rows.appendChild(row);
+      state.loadingHome = false;
+      return;
+    }
+    const posts = await res.json();
+    if(!Array.isArray(posts) || posts.length === 0) {
+      state.homeFinished = true;
+      loadingEl.textContent = '아직 게시된 글이 없습니다.';
+      state.loadingHome = false;
+      return;
     }
 
-    loading.textContent = posts.length ? '' : '아직 게시된 글이 없습니다.';
-    renderPager(pager, page, totalPages, (to)=> loadHome(to));
-  }catch(e){
-    console.error(e); loading.textContent='메인 글 불러오기 실패';
+    posts.forEach(p => state.postsCache[p.id] = p);
+
+    const container = document.getElementById('rowsContainer');
+
+    for(let i=0;i<posts.length;i+=5) {
+      const group = posts.slice(i,i+5);
+      if(state.homeLoaded >= HOME_MAX) { state.homeFinished = true; break; }
+      const row = document.createElement('div');
+      row.className = 'row';
+
+      const leftPost = group[0];
+      const leftDiv = document.createElement('div');
+      leftDiv.className = 'col-left';
+
+      let heroUrl = leftPost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+      leftDiv.innerHTML = `
+        <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero">
+        <div class="hero-overlay">
+          <h2 class="hero-title"></h2>
+          <div style="display:flex;align-items:center;gap:10px">
+            <img class="hero-avatar" src="" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+            <div class="hero-author" style="font-weight:800;color:#fff"></div>
+            <div class="hero-date" style="margin-left:8px;color:#eee;opacity:.9"></div>
+          </div>
+        </div>
+      `;
+
+      const catWrap = document.createElement('div');
+      catWrap.className = 'hero-cats';
+      const firstCat = leftPost._embedded?.['wp:term']?.[0]?.[0];
+      if(firstCat) {
+        const span = document.createElement('span');
+        span.className = 'cat-badge ' + pickCategoryClass(firstCat.slug || firstCat.name);
+        span.textContent = firstCat.name;
+        catWrap.appendChild(span);
+      }
+      leftDiv.appendChild(catWrap);
+
+      const heroTitle = leftDiv.querySelector('.hero-title');
+      heroTitle.innerHTML = leftPost.title && leftPost.title.rendered ? leftPost.title.rendered : '제목 없음';
+      const heroAvatar = leftDiv.querySelector('.hero-avatar');
+      const heroAuthor = leftDiv.querySelector('.hero-author');
+      const heroDate = leftDiv.querySelector('.hero-date');
+
+      if(leftPost._embedded && leftPost._embedded.author && leftPost._embedded.author[0]) {
+        const a = leftPost._embedded.author[0];
+        const av = a.avatar_urls ? (a.avatar_urls['48']||a.avatar_urls['24']||'') : '';
+        heroAvatar.src = av || placeholderDataURI(48,48,'U');
+        heroAuthor.textContent = a.name || '익명';
+      } else {
+        heroAvatar.src = placeholderDataURI(48,48,'U');
+        heroAuthor.textContent = '익명';
+      }
+      heroDate.textContent = formatDate(leftPost.date);
+
+      adjustHeroContrast(leftDiv.querySelector('.hero'), heroTitle, leftDiv.querySelector('.hero-overlay'));
+      leftDiv.addEventListener('click', ()=> openPostOverlayById(leftPost.id));
+      row.appendChild(leftDiv);
+
+      const rightDiv = document.createElement('div');
+      rightDiv.className = 'col-right';
+      const smalls = group.slice(1,5);
+      smalls.forEach(s => {
+        const node = createCardNode(s);
+        rightDiv.appendChild(node);
+      });
+      row.appendChild(rightDiv);
+
+      container.appendChild(row);
+
+      state.homeLoaded += group.length;
+      if(state.homeLoaded >= HOME_MAX) { state.homeFinished = true; break; }
+    }
+
+    state.homePage += 1;
+    loadingEl.textContent = '';
+  } catch(err) {
+    console.error(err);
+    document.getElementById('homeLoading').textContent = '메인 글 불러오기 실패';
+  } finally {
+    state.loadingHome = false;
   }
 }
 
-/* 공통 페이지네이션 렌더 */
-function renderPager(container, current, total, onChange){
-  container.innerHTML='';
-  if(total<=1) return;
-  const mkBtn=(label, page, isCurrent=false, disabled=false)=>{
-    const el=document.createElement('button');
-    el.textContent=label;
-    if(isCurrent){ el.className='current'; el.disabled=true; }
-    else if(disabled){ el.disabled=true; }
-    else{ el.addEventListener('click', ()=> onChange(page)); }
-    container.appendChild(el);
-  };
-  const mkEll=()=>{ const s=document.createElement('span'); s.className='ellipsis'; s.textContent='…'; container.appendChild(s); };
-
-  mkBtn('«', 1, false, current===1);
-  if(total<=9){
-    for(let p=1;p<=total;p++) mkBtn(p, p, p===current);
-  }else{
-    if(current<=4){
-      for(let p=1;p<=5;p++) mkBtn(p,p,p===current);
-      mkEll(); mkBtn(total, total);
-    }else if(current>=total-3){
-      mkBtn(1,1); mkEll();
-      for(let p=total-4;p<=total;p++) mkBtn(p,p,p===current);
-    }else{
-      mkBtn(1,1); mkEll();
-      for(let p=current-1;p<=current+1;p++) mkBtn(p,p,p===current);
-      mkEll(); mkBtn(total,total);
-    }
-  }
-  mkBtn('»', total, false, current===total);
-}
-
-/* 카테고리 페이지 */
-async function loadCategory(slug, page=1){
+async function loadCategory(slug) {
   if(!slug) return;
-  state.category.slug=slug; state.category.page=page;
+  const overlay = document.getElementById('categoryOverlay');
+  overlay.classList.add('active');
+  overlay.setAttribute('aria-hidden','false');
+  document.getElementById('categoryOverlayTitle').textContent = slug.toUpperCase();
+  
+  const descriptions = {
+    'tech': '기술과 혁신에 대한 심층 분석',
+    'eat': '음식과 외식 문화 탐구',
+    'style': '패션과 라이프스타일 트렌드',
+    'culture': '문화와 예술에 대한 인사이트',
+    'life': '일상과 삶에 대한 이야기',
+    'editors-pick': '에디터가 선정한 추천 콘텐츠'
+  };
+  document.getElementById('categoryOverlaySubtitle').textContent = descriptions[slug] || '카테고리 설명';
+  
+  const grid = document.getElementById('categoryGrid');
+  grid.innerHTML = '';
+  document.getElementById('categoryLoading').textContent = '로딩 중...';
 
-  const overlay=document.getElementById('categoryOverlay');
-  openOverlay(overlay);
-
-  const title=document.getElementById('categoryOverlayTitle');
-  const sub=document.getElementById('categoryOverlaySubtitle');
-  const desc={ tech:'기술과 혁신 심층 분석', eat:'음식과 외식 문화', style:'패션·라이프스타일', culture:'문화와 예술', life:'일상과 삶', 'editors-pick':'에디터 추천' };
-  title.textContent=slug.toUpperCase(); sub.textContent=desc[slug] || '카테고리';
-
-  const grid=document.getElementById('categoryGrid'); grid.innerHTML='';
-  document.getElementById('categoryLoading').textContent='로딩 중...';
-  const pager=document.getElementById('categoryPager'); pager.innerHTML='';
-
-  try{
-    const catId=CATEGORIES[slug]; if(!catId){ document.getElementById('categoryLoading').textContent='알 수 없는 카테고리입니다.'; return; }
-    const res=await fetch(api(`posts?categories=${catId}&per_page=${HOME_PER_PAGE}&page=${page}`),{headers:headers()});
-    const posts=await res.json();
-    const totalPages=parseInt(res.headers.get('X-WP-TotalPages')||'1',10);
-    state.category.totalPages=totalPages;
-
-    if(Array.isArray(posts)){
-      posts.forEach(p=>{ state.postsCache[p.id]=p; grid.appendChild(createCardNode(p)); });
+  try {
+    const catId = CATEGORIES[slug];
+    if(!catId) { document.getElementById('categoryLoading').textContent = '알 수 없는 카테고리입니다.'; return; }
+    const res = await fetch(api(`posts?categories=${catId}&per_page=20`), { headers: headers() });
+    const posts = await res.json();
+    if(Array.isArray(posts)) {
+      posts.forEach(p => {
+        state.postsCache[p.id] = p;
+        const card = createCardNode(p);
+        grid.appendChild(card);
+      });
     }
-    document.getElementById('categoryLoading').textContent='';
-    renderPager(pager, page, totalPages, (to)=> loadCategory(slug, to));
-    history.pushState({page:'category',slug,catPage:page}, '', `#category-${slug}?p=${page}`);
-  }catch(e){ console.error(e); document.getElementById('categoryLoading').textContent='불러오기 실패'; }
+    document.getElementById('categoryLoading').textContent = '';
+  } catch(e) {
+    console.error(e);
+    document.getElementById('categoryLoading').textContent = '불러오기 실패';
+  }
 }
 
-/* 에디터 */
-async function loadEditors(){
+async function loadEditors() {
   if(state.editorsLoaded) return;
-  document.getElementById('editorsLoading').textContent='로딩 중...';
-  try{
-    const res=await fetch(api(`users?per_page=100`),{headers:headers()});
-    if(!res.ok) throw new Error('editors api fail '+res.status);
-    const users=await res.json();
-    state.editorsList=Array.isArray(users)?users:[];
+  document.getElementById('editorsLoading').textContent = '로딩 중...';
+  try {
+    const res = await fetch(api(`users?per_page=100`), { headers: headers() });
+    if(!res.ok) throw new Error('editors api fail ' + res.status);
+    const users = await res.json();
+    state.editorsList = Array.isArray(users) ? users : [];
     renderEditorsGrid();
-    state.editorsLoaded=true;
-    document.getElementById('editorsLoading').textContent='';
-  }catch(e){ console.error(e); document.getElementById('editorsLoading').textContent='에디터 목록을 불러오지 못했습니다.'; }
+    state.editorsLoaded = true;
+    document.getElementById('editorsLoading').textContent = '';
+  } catch(e) {
+    console.error(e);
+    document.getElementById('editorsLoading').textContent = '에디터 목록을 불러오지 못했습니다.';
+  }
 }
-function renderEditorsGrid(){
-  const wrap=document.getElementById('editorsGrid'); wrap.innerHTML='';
-  const tpl=document.getElementById('editorTpl');
-  state.editorsList.forEach(u=>{
-    const node=tpl.content.firstElementChild.cloneNode(true);
-    const img=node.querySelector('.editor-avatar');
-    img.src=(u.avatar_urls && (u.avatar_urls['96']||u.avatar_urls['48']||u.avatar_urls['24'])) || placeholderDataURI(96,96,'U');
-    img.alt=u.name||u.slug||'editor';
-    node.querySelector('.editor-name').textContent=u.name||u.slug||'unknown';
-    node.querySelector('.editor-bio').textContent=u.description||'';
-    node.addEventListener('click', ()=> openEditorProfile(u));
-    node.addEventListener('keydown', e=>{ if(e.key==='Enter') openEditorProfile(u); });
+
+function renderEditorsGrid() {
+  const wrap = document.getElementById('editorsGrid');
+  wrap.innerHTML = '';
+  const tpl = document.getElementById('editorTpl');
+  state.editorsList.forEach(u => {
+    const node = tpl.content.firstElementChild.cloneNode(true);
+    const img = node.querySelector('.editor-avatar');
+    img.src = (u.avatar_urls && (u.avatar_urls['96']||u.avatar_urls['48']||u.avatar_urls['24'])) ? (u.avatar_urls['96']||u.avatar_urls['48']||u.avatar_urls['24']) : placeholderDataURI(96,96,'U');
+    img.alt = u.name || u.slug || 'editor';
+    node.querySelector('.editor-name').textContent = u.name || u.slug || 'unknown';
+    node.querySelector('.editor-bio').textContent = u.description || '';
+    node.addEventListener('click', () => openEditorProfile(u));
+    node.addEventListener('keydown', e => { if(e.key === 'Enter') openEditorProfile(u); });
     wrap.appendChild(node);
   });
 }
-async function openEditorProfile(user){
-  if(!user?.id) return;
-  document.getElementById('editorsGridWrapper').style.display='none';
-  const section=document.getElementById('editorProfileSection'); section.style.display='block';
-  document.getElementById('editorProfileName').textContent=user.name||user.slug||'';
-  document.getElementById('editorProfileBio').textContent=user.description||'';
-  const grid=document.getElementById('editorPostsGrid'); grid.innerHTML='';
-  document.getElementById('editorPostsLoading').textContent='로딩 중...';
 
-  try{
-    const res=await fetch(api(`posts?author=${user.id}&per_page=50`),{headers:headers()});
-    const posts=await res.json();
-    if(Array.isArray(posts)){ posts.forEach(p=>{ state.postsCache[p.id]=p; grid.appendChild(createCardNode(p)); }); }
-    document.getElementById('editorPostsLoading').textContent='';
+async function openEditorProfile(user) {
+  if(!user || !user.id) return;
+  document.getElementById('editorsGridWrapper').style.display = 'none';
+  const section = document.getElementById('editorProfileSection');
+  section.style.display = 'block';
+  document.getElementById('editorProfileName').textContent = user.name || user.slug || '';
+  document.getElementById('editorProfileBio').textContent = user.description || '';
+  const grid = document.getElementById('editorPostsGrid');
+  grid.innerHTML = '';
+  document.getElementById('editorPostsLoading').textContent = '로딩 중...';
+
+  try {
+    const res = await fetch(api(`posts?author=${user.id}&per_page=50`), { headers: headers() });
+    const posts = await res.json();
+    if(Array.isArray(posts)) {
+      posts.forEach(p => {
+        state.postsCache[p.id] = p;
+        const card = createCardNode(p);
+        grid.appendChild(card);
+      });
+    }
+    document.getElementById('editorPostsLoading').textContent = '';
     history.pushState({page:'editor', id:user.id}, '', `#editor-${user.id}`);
-  }catch(e){ console.error(e); document.getElementById('editorPostsLoading').textContent='불러오기 실패'; }
+  } catch(e) {
+    console.error(e);
+    document.getElementById('editorPostsLoading').textContent = '불러오기 실패';
+  }
 }
-function showEditorsList(){
-  document.getElementById('editorProfileSection').style.display='none';
-  document.getElementById('editorsGridWrapper').style.display='block';
+
+function showEditorsList() {
+  document.getElementById('editorProfileSection').style.display = 'none';
+  document.getElementById('editorsGridWrapper').style.display = 'block';
   history.pushState({page:'editors'}, '', '#editors');
 }
 
-/* POST 오버레이 */
-async function openPostOverlayById(id){
+async function openPostOverlayById(id) {
   if(!id) return;
-  state.currentScrollPos=window.scrollY;
+  
+  // 현재 페이지 정보를 저장 (게시물 열기 전 상태)
+  const currentHash = window.location.hash;
+  const fromPage = currentHash.startsWith('#search') ? 'search' : 
+                   currentHash.startsWith('#category-') ? 'category' : 
+                   currentHash.startsWith('#editors') || currentHash.startsWith('#editor-') ? 'editors' : 'home'; // 에디터 상세 페이지에서도 포스트를 열 수 있도록 수정
 
-  const cached=state.postsCache[id];
-  if(cached?.content?.rendered){ renderPostOverlay(cached); return; }
-  try{
-    const res=await fetch(api(`posts/${id}`),{headers:headers()});
-    if(!res.ok) throw new Error('post fetch failed '+res.status);
-    const post=await res.json();
-    if(!(post._embedded?.author)){
-      const res2=await fetch(api(`posts/${id}?_embed`),{headers:headers()});
-      if(res2.ok){ const p2=await res2.json(); state.postsCache[id]=p2; renderPostOverlay(p2); return; }
+  // [수정된 부분]: fromPage가 'home'일 경우, 닫을 때 메인 URL로 돌아가도록 fromHash를 빈 문자열로 설정합니다.
+  let fromHash = currentHash;
+  if(fromPage === 'home') {
+    // #post-XX 형태의 직접 접근이든, 메인에서 클릭했든, 닫을 때 메인 URL (해시 없음)로 돌아가도록 설정
+    fromHash = '';
+  }
+  
+  state.currentScrollPos = window.scrollY; // 포스트 열기 전 스크롤 위치 저장
+
+  const cached = state.postsCache[id];
+  if(cached && cached.content && cached.content.rendered) {
+    renderPostOverlay(cached, fromPage, fromHash);
+    return;
+  }
+  try {
+    const res = await fetch(api(`posts/${id}`), { headers: headers() });
+    if(!res.ok) throw new Error('post fetch failed ' + res.status);
+    const post = await res.json();
+    if(!(post._embedded && post._embedded.author)) {
+      const res2 = await fetch(api(`posts/${id}?_embed`), { headers: headers() });
+      if(res2.ok) {
+        const post2 = await res2.json();
+        state.postsCache[id] = post2;
+        renderPostOverlay(post2, fromPage, fromHash);
+        return;
+      }
     }
-    state.postsCache[id]=post; renderPostOverlay(post);
-  }catch(e){ console.error(e); alert('포스트 로드 실패'); }
+    state.postsCache[id] = post;
+    renderPostOverlay(post, fromPage, fromHash);
+  } catch(e) {
+    console.error(e);
+    alert('포스트 로드 실패');
+  }
 }
 
-function renderPostOverlay(post){
-  const overlay=document.getElementById('postOverlay');
-  const article=document.getElementById('postArticle');
-  const title=post.title?.rendered ?? '제목 없음';
-  const authorName=post._embedded?.author?.[0]?.name ?? '익명';
-  const avatar=post._embedded?.author?.[0]?.avatar_urls?.['96'] || post._embedded?.author?.[0]?.avatar_urls?.['48'] || '';
-  const cats=(post._embedded?.['wp:term']?.[0]||[]).map(t=>t.name).join(', ') || '-';
-  const dateStr=formatDate(post.date);
-  const contentHTML=post.content?.rendered ?? post.excerpt?.rendered ?? '';
-  const featuredUrl=post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+function renderPostOverlay(post, fromPage, fromHash) {
+  const overlay = document.getElementById('postOverlay');
+  const article = document.getElementById('postArticle');
 
-  // 새로운 포스트 레이아웃: 썸네일과 제목/정보 먼저 표시
-  article.innerHTML=`
-    <div class="post-header">
-      ${featuredUrl?`<div class="post-header-image"><img src="${featuredUrl}" alt="featured image"></div>`:`<div class="post-header-image"><img src="${placeholderDataURI(800,600,'No Image')}" alt="no image"></div>`}
-      <div class="post-header-info">
-        <h1>${title}</h1>
-        <div class="post-meta">
-          <img src="${avatar || placeholderDataURI(96,96,'U')}" alt="author" style="width:52px;height:52px;border-radius:50%;object-fit:cover;">
-          <div>
-            <div style="font-weight:800;">${authorName}</div>
-            <div style="color:var(--muted);font-size:13px">${dateStr} · ${cats}</div>
-          </div>
-        </div>
+  const title = post.title && post.title.rendered ? post.title.rendered : '제목 없음';
+  const authorName = (post._embedded && post._embedded.author && post._embedded.author[0] && post._embedded.author[0].name) ? post._embedded.author[0].name : '익명';
+  const avatar = (post._embedded && post._embedded.author && post._embedded.author[0] && post._embedded.author[0].avatar_urls) ? (post._embedded.author[0].avatar_urls['96'] || post._embedded.author[0].avatar_urls['48']) : '';
+  const categories = (post._embedded && post._embedded['wp:term'] && post._embedded['wp:term'][0]) ? post._embedded['wp:term'][0].map(t=>t.name).join(', ') : '-';
+  const dateStr = formatDate(post.date);
+  const contentHTML = post.content && post.content.rendered ? post.content.rendered : (post.excerpt && post.excerpt.rendered ? post.excerpt.rendered : '');
+
+  const featuredUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+
+  article.innerHTML = `
+    ${featuredUrl ? `
+      <figure class="post-hero">
+        <img src="${featuredUrl}" alt="featured image">
+      </figure>
+    ` : ``}
+    <h1>${title}</h1>
+    <div class="post-meta" style="margin-bottom:14px;display:flex;gap:12px;align-items:center;">
+      <img src="${avatar || placeholderDataURI(96,96,'U')}" alt="author" style="width:52px;height:52px;border-radius:50%;object-fit:cover;">
+      <div style="display:flex;flex-direction:column">
+        <div style="font-weight:800;color:#111">${authorName}</div>
+        <div style="color:#666;font-size:13px">${dateStr} · ${categories}</div>
       </div>
     </div>
     <div class="post-content">${contentHTML}</div>
   `;
-  
-  // 이미지 및 임베드 요소 스타일 조정
-  article.querySelectorAll('.post-content img').forEach(img=>{ 
-    img.style.maxWidth='100%'; 
-    img.style.height='auto'; 
-    img.style.display='block'; 
-    img.style.margin='12px 0'; 
-  });
-  
-  // 유튜브 등 임베드 요소 크기 제한
-  article.querySelectorAll('.post-content iframe, .post-content video, .post-content embed').forEach(el=>{
-    el.style.maxWidth='100%';
-    el.style.width='100%';
-    el.style.height='auto';
-  });
-  
-  // 불필요한 요소 제거
-  try{ Array.from(article.querySelectorAll('.post-content *')).forEach(el=>{ if(el.textContent?.trim().includes('이 글 공유하기')) el.remove(); }); }catch(e){}
-  try{ article.querySelectorAll('.updated, time[itemprop="dateModified"], [data-modified], .post-modified, .modified-date').forEach(el=>el.remove()); }catch(e){}
 
-  // 관련 글 불러오기
-  loadRelatedPosts(post);
+  article.querySelectorAll('.post-content img').forEach(img=>{
+    img.style.maxWidth = '100%';
+    img.style.height = 'auto';
+    img.style.display = 'block';
+    img.style.margin = '12px 0';
+  });
 
-  // 진행률 바 초기화
-  updatePostProgress();
-  overlay.classList.remove('closing'); 
-  overlay.classList.add('active'); 
+  try {
+    const allNodes = Array.from(article.querySelectorAll('.post-content *'));
+    allNodes.forEach(el => {
+      if (el && el.textContent && el.textContent.trim().includes('이 글 공유하기')) {
+        el.remove();
+      }
+    });
+  } catch(e) { }
+
+  try {
+    article.querySelectorAll('.updated, time[itemprop="dateModified"], [data-modified], .post-modified, .modified-date').forEach(el => el.remove());
+  } catch(e) { }
+
+  overlay.classList.add('active');
   overlay.setAttribute('aria-hidden','false');
+  document.body.style.overflow = 'hidden'; // 포스트 열 때 스크롤 비활성화
   overlay.scrollTop = 0;
-
-  // 주소 기록
-  history.pushState({page:'post',id:post.id}, '', `#post-${post.id}`);
+  
+  // pushState에 출발 페이지 정보 포함 (fromHash는 openPostOverlayById에서 결정됨)
+  history.pushState({
+    page:'post', 
+    id: post.id,
+    fromPage: fromPage,
+    fromHash: fromHash, // 수정된 fromHash 값 사용
+    scrollPos: state.currentScrollPos
+  }, '', `#post-${post.id}`);
 }
 
-/* 관련 글 */
-async function loadRelatedPosts(post){
-  const cats = post.categories || [];
-  const catId = Array.isArray(cats) && cats.length ? cats[0] : null;
-  const section=document.getElementById('relatedSection');
-  const grid=document.getElementById('relatedGrid');
-  grid.innerHTML=''; section.style.display='none';
-  if(!catId){ return; }
-  try{
-    const res=await fetch(api(`posts?categories=${catId}&per_page=5&orderby=date&order=desc&exclude=${post.id}`),{headers:headers()});
-    if(!res.ok) return;
-    const arr=await res.json();
-    const pick=Array.isArray(arr) ? arr.slice(0,4) : [];
-    pick.forEach(p=>{ state.postsCache[p.id]=p; grid.appendChild(createCardNode(p)); });
-    if(pick.length){ section.style.display='block'; }
-  }catch(e){ console.error(e); }
-}
+async function doSearch(q) {
+  if(!q || !q.trim()) return;
+  
+  // 검색 시 스크롤 위치 저장
+  state.currentScrollPos = window.scrollY;
+  
+  closeAllOverlays();
+  document.getElementById('searchOverlay').classList.add('active');
+  document.getElementById('searchOverlay').setAttribute('aria-hidden','false');
+  document.body.style.overflow = ''; // 검색 오버레이에는 스크롤 허용 (검색 결과가 길 수 있음)
+  
+  // URL 업데이트
+  history.pushState({page:'search', query:q, scrollPos:state.currentScrollPos}, '', `#search?q=${encodeURIComponent(q)}`);
 
-/* 진행률 바 & 툴바 표시 */
-function updatePostProgress(){
-  const ov = document.getElementById('postOverlay');
-  const bar = document.getElementById('progressBar');
-  const toolbar = document.getElementById('postToolbar');
-  if(!ov.classList.contains('active')) return;
-  const max = ov.scrollHeight - ov.clientHeight;
-  const pct = max>0 ? (ov.scrollTop / max) * 100 : 0;
-  bar.style.width = Math.min(100, Math.max(0, pct)) + '%';
-
-  // 약간이라도 위로 스크롤하면 툴바 표시
-  const y = ov.scrollTop;
-  if(y < state.lastScrollY - 2){ // 위로 스크롤
-    toolbar.classList.add('show');
-  }else if(y > state.lastScrollY + 50){ // 아래로 충분히 스크롤하면 숨기기
-    toolbar.classList.remove('show');
+  const results = document.getElementById('searchResults');
+  results.innerHTML = '';
+  try {
+    const res = await fetch(api(`posts?search=${encodeURIComponent(q)}&per_page=20`), { headers: headers() });
+    if(!res.ok) throw new Error('search failed ' + res.status);
+    const posts = await res.json();
+    if(!Array.isArray(posts) || posts.length === 0) {
+      results.innerHTML = '<div style="padding:20px;color:#666">검색 결과가 없습니다.</div>';
+      return;
+    }
+    posts.forEach(p => {
+      state.postsCache[p.id] = p;
+      const card = createCardNode(p);
+      results.appendChild(card);
+    });
+  } catch(e) {
+    console.error(e);
+    results.innerHTML = '<div style="padding:20px;color:#d00">검색 중 오류가 발생했습니다.</div>';
   }
-  state.lastScrollY = y;
 }
 
-/* 검색 */
-async function doSearch(q){
-  if(!q||!q.trim()) return;
-  const overlay=document.getElementById('searchOverlay');
-  openOverlay(overlay);
-  history.pushState({page:'search',query:q}, '', `#search?q=${encodeURIComponent(q)}`);
-
-  const results=document.getElementById('searchResults'); results.innerHTML='';
-  try{
-    const res=await fetch(api(`posts?search=${encodeURIComponent(q)}&per_page=${HOME_PER_PAGE}&page=1`),{headers:headers()});
-    if(!res.ok) throw new Error('search failed '+res.status);
-    const posts=await res.json();
-    if(!Array.isArray(posts) || posts.length===0){ results.innerHTML='<div style="padding:20px;color:var(--muted)">검색 결과가 없습니다.</div>'; return; }
-    posts.forEach(p=>{ state.postsCache[p.id]=p; results.appendChild(createCardNode(p)); });
-  }catch(e){ console.error(e); results.innerHTML='<div style="padding:20px;color:#d33">검색 중 오류가 발생했습니다.</div>'; }
-}
-
-/* 공통 UI/라우터/오버레이 */
-const ui={
-  toggleNav(close){
-    const ov=document.getElementById('navOverlay');
-    if(close===true) ov.classList.remove('active');
-    else if(close===false) ov.classList.add('active');
-    else ov.classList.toggle('active');
-    const expanded=ov.classList.contains('active');
-    const ctrl=document.querySelector('[aria-controls="navOverlay"]');
-    if(ctrl) ctrl.setAttribute('aria-expanded', expanded);
-    ov.setAttribute('aria-hidden', !expanded);
-    document.body.style.overflow = expanded ? 'hidden' : '';
-  },
-  closeSearch(){ smoothHide(document.getElementById('searchOverlay')); }
-};
-
-const router={
-  goHome(){
-    closeAllOverlays();
-    loadHome(1);
-    window.scrollTo({top:0, behavior:'smooth'});
-    history.pushState({page:'home'}, '', location.pathname.split('#')[0]);
-  },
-  openCategory(slug){ closeAllOverlays(); loadCategory(slug,1); },
-  closeCategory(){ smoothHide(document.getElementById('categoryOverlay'), ()=>router.goHome()); },
-  closePost(){ smoothHide(document.getElementById('postOverlay'), ()=>router.goHome()); },
-  openAbout(){ closeAllOverlays(); openOverlay(document.getElementById('aboutPageSection')); history.pushState({page:'about'}, '', '#about'); },
-  closeAbout(){ smoothHide(document.getElementById('aboutPageSection'), ()=>router.goHome()); },
-  openEditors(){ closeAllOverlays(); openOverlay(document.getElementById('editorsOverlay')); loadEditors(); history.pushState({page:'editors'}, '', '#editors'); },
-  closeEditors(){ smoothHide(document.getElementById('editorsOverlay'), ()=>router.goHome()); }
-};
-
-function openOverlay(el){ el.classList.remove('closing'); el.classList.add('active'); el.setAttribute('aria-hidden','false'); }
-function smoothHide(el, after){ if(!el) return; el.classList.add('closing'); setTimeout(()=>{ el.classList.remove('active','closing'); el.setAttribute('aria-hidden','true'); if(typeof after==='function') after(); }, 180); }
-function closeAllOverlays(){ ['categoryOverlay','postOverlay','searchOverlay','aboutPageSection','editorsOverlay'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.classList.remove('active','closing'); el.setAttribute('aria-hidden','true'); } }); }
-
-function openNavlessSearch(){ closeAllOverlays(); openOverlay(document.getElementById('searchOverlay')); const input=document.getElementById('searchInputTop'); if(input) input.focus(); history.pushState({page:'search'}, '', '#search'); }
-
-/* URL 직접 진입 라우팅 */
-function routeFromURL(){
-  const h=location.hash;
-  if(!h || h==='#' || h.startsWith('#home')) return;
-  if(h.startsWith('#post-')){ const id=parseInt(h.replace('#post-','')); if(id) openPostOverlayById(id); }
-  else if(h.startsWith('#category-')){ const slug=h.replace('#category-','').split('?')[0]; const qs=new URLSearchParams(h.split('?')[1]||''); const p=parseInt(qs.get('p')||'1',10); loadCategory(slug, p); }
-  else if(h.startsWith('#search')){ const q=new URLSearchParams(h.split('?')[1]).get('q'); q ? doSearch(q) : openNavlessSearch(); }
-  else if(h==='#editors'){ router.openEditors(); }
-  else if(h==='#about'){ router.openAbout(); }
-}
-
-/* 스크롤 이벤트: 홈 to-top / 포스트 진행률 */
-window.addEventListener('scroll', ()=>{
-  const toTop=document.getElementById('toTopBtn');
-  if(window.scrollY>200) toTop.classList.add('show'); else toTop.classList.remove('show');
-});
-document.getElementById('toTopBtn').addEventListener('click', ()=> window.scrollTo({top:0, behavior:'smooth'}));
-
-/* 포스트 오버레이 내부 스크롤에 반응 */
-document.getElementById('postOverlay').addEventListener('scroll', updatePostProgress);
-
-/* 초기화 */
-document.addEventListener('DOMContentLoaded', ()=>{
-  // 테마 초기화
-  const savedTheme = localStorage.getItem('theme') || 'light';
-  document.documentElement.setAttribute('data-theme', savedTheme);
-  if(savedTheme === 'dark') {
-    document.getElementById('themeIcon').textContent = '☀️';
-    document.getElementById('themeText').textContent = '라이트모드';
-  }
-
-  renderNavList();
-  loadHome(1);
-  routeFromURL();
-
-  const topInput=document.getElementById('searchInputTop');
-  if(topInput){
-    topInput.addEventListener('keydown', e=>{
-      if(e.key==='Enter') doSearch(e.target.value);
-      else if(e.key==='Escape') ui.closeSearch();
+function adjustHeroContrast(imgEl, titleEl, overlayEl) {
+  if(!imgEl || !overlayEl) return;
+  if(imgEl.complete) {
+    overlayEl.style.background = 'linear-gradient(180deg, rgba(0,0,0,0.0), rgba(0,0,0,0.55))';
+    if(titleEl) titleEl.style.color = '#fff';
+  } else {
+    imgEl.addEventListener('load', () => {
+      overlayEl.style.background = 'linear-gradient(180deg, rgba(0,0,0,0.0), rgba(0,0,0,0.55))';
+      if(titleEl) titleEl.style.color = '#fff';
     });
   }
+}
 
-  const gns=document.getElementById('globalNavSearch');
-  if(gns){
-    gns.addEventListener('keydown', e=>{
-      if(e.key==='Enter'){
-        const q=e.target.value; ui.toggleNav(true); openNavlessSearch();
-        setTimeout(()=>{ const top=document.getElementById('searchInputTop'); if(top){ top.value=q; if(q) doSearch(q); } }, 120);
+const ui = {
+  toggleNav(close) {
+    const ov = document.getElementById('navOverlay');
+    if(close === true) {
+      ov.classList.remove('active');
+    } else if(close === false) {
+      ov.classList.add('active');
+    } else {
+      ov.classList.toggle('active');
+    }
+    const expanded = ov.classList.contains('active');
+    const ctrl = document.querySelector('[aria-controls="navOverlay"]');
+    if(ctrl) ctrl.setAttribute('aria-expanded', expanded);
+    ov.setAttribute('aria-hidden', !expanded);
+
+    // 네비게이션 오버레이 열림/닫힘에 따라 body 스크롤 제어
+    document.body.style.overflow = expanded ? 'hidden' : '';
+  },
+  closeSearch() {
+    document.getElementById('searchOverlay').classList.remove('active');
+    document.getElementById('searchOverlay').setAttribute('aria-hidden','true');
+    document.body.style.overflow = ''; // 오버레이 닫을 때 스크롤 활성화
+  }
+};
+
+const router = {
+  goHome() {
+    // 현재 스크롤 위치 저장
+    state.currentScrollPos = window.scrollY;
+    
+    closeAllOverlays();
+    document.body.style.overflow = ''; // 홈으로 갈 때 스크롤 활성화
+    
+    // URL 업데이트 (스크롤 위치 포함)
+    // NOTE: 해시를 제거하고, 스크롤 위치는 상태에만 저장하여 깔끔한 루트 URL을 유지
+    history.pushState({page:'home', scrollPos:state.currentScrollPos}, '', location.pathname.split('#')[0]);
+    
+    // 스크롤 위치 복원은 하지 않음 (현재 위치 유지)
+  },
+  openCategory(slug) {
+    state.currentScrollPos = window.scrollY;
+    closeAllOverlays();
+    loadCategory(slug);
+    document.body.style.overflow = ''; // 카테고리 오버레이는 스크롤 허용
+    history.pushState({page:'category', slug:slug, scrollPos:state.currentScrollPos}, '', `#category-${slug}`);
+  },
+  closeCategory() {
+    document.getElementById('categoryOverlay').classList.remove('active');
+    document.getElementById('categoryOverlay').setAttribute('aria-hidden','true');
+    // NOTE: goHome()으로 URL 복구
+    router.goHome();
+  },
+  // openPost 함수는 openPostOverlayById를 통해 간접적으로 처리됩니다.
+  closePost() {
+    document.getElementById('postOverlay').classList.remove('active');
+    document.getElementById('postOverlay').setAttribute('aria-hidden','true');
+    document.body.style.overflow = ''; // 포스트 닫을 때 스크롤 활성화
+    
+    // history의 state에서 이전 페이지 정보 가져오기
+    const currentState = history.state;
+    
+    // currentState.fromHash가 빈 문자열이면 (home에서 왔으면) goHome()을 호출하도록 조건 수정
+    if(currentState && currentState.fromHash) {
+      // 이전 페이지 URL (검색, 카테고리 등)로 돌아가기
+      history.pushState({
+        page: currentState.fromPage,
+        scrollPos: currentState.scrollPos
+      }, '', currentState.fromHash);
+      
+      // 이전 페이지 복원 (오버레이 열기)
+      if(currentState.fromPage === 'search') {
+        const urlParams = new URLSearchParams(currentState.fromHash.split('?')[1]);
+        const query = urlParams.get('q');
+        if(query) {
+          document.getElementById('searchInputTop').value = query;
+          document.getElementById('searchOverlay').classList.add('active');
+          document.getElementById('searchOverlay').setAttribute('aria-hidden','false');
+          document.body.style.overflow = '';
+        }
+      } else if(currentState.fromPage === 'category') {
+        const slug = currentState.fromHash.replace('#category-', '').split('?')[0];
+        if(slug) {
+          document.getElementById('categoryOverlay').classList.add('active');
+          document.getElementById('categoryOverlay').setAttribute('aria-hidden','false');
+          document.body.style.overflow = '';
+        }
+      } else if(currentState.fromPage === 'editors') {
+        document.getElementById('editorsOverlay').classList.add('active');
+        document.getElementById('editorsOverlay').setAttribute('aria-hidden','false');
+        document.body.style.overflow = '';
+      }
+      
+      // 스크롤 위치 복원
+      if(currentState.scrollPos !== undefined) {
+        setTimeout(() => window.scrollTo(0, currentState.scrollPos), 50);
+      }
+    } else {
+      // fromHash가 없거나 빈 문자열인 경우 (home에서 왔거나 직접 접근 후 새로고침한 경우)
+      // 메인 홈으로 돌아가고 URL 복원
+      router.goHome();
+    }
+  },
+  openAbout() {
+    state.currentScrollPos = window.scrollY;
+    closeAllOverlays();
+    document.getElementById('aboutPageSection').classList.add('active');
+    document.getElementById('aboutPageSection').setAttribute('aria-hidden','false');
+    document.body.style.overflow = ''; // ABOUT 오버레이는 스크롤 허용
+    history.pushState({page:'about', scrollPos:state.currentScrollPos}, '', '#about');
+  },
+  closeAbout() {
+    document.getElementById('aboutPageSection').classList.remove('active');
+    document.getElementById('aboutPageSection').setAttribute('aria-hidden','true');
+    router.goHome();
+  },
+  openEditors() {
+    state.currentScrollPos = window.scrollY;
+    closeAllOverlays();
+    document.getElementById('editorsOverlay').classList.add('active');
+    document.getElementById('editorsOverlay').setAttribute('aria-hidden','false');
+    document.body.style.overflow = ''; // EDITORS 오버레이는 스크롤 허용
+    loadEditors();
+    history.pushState({page:'editors', scrollPos:state.currentScrollPos}, '', '#editors');
+  },
+  closeEditors() {
+    document.getElementById('editorsOverlay').classList.remove('active');
+    document.getElementById('editorsOverlay').setAttribute('aria-hidden','true');
+    router.goHome();
+  }
+};
+
+function closeAllOverlays() {
+  ['categoryOverlay','postOverlay','searchOverlay','aboutPageSection','editorsOverlay'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) { el.classList.remove('active'); el.setAttribute('aria-hidden','true'); }
+  });
+  // 모든 오버레이 닫을 때 스크롤 활성화 (postOverlay는 closePost에서, navOverlay는 toggleNav에서 별도 처리)
+  if(!document.getElementById('navOverlay').classList.contains('active')) {
+    document.body.style.overflow = '';
+  }
+}
+
+// URL 라우팅: 페이지 로드 시 URL 확인
+function routeFromURL() {
+  const hash = window.location.hash;
+  
+  if(!hash || hash === '#' || hash.startsWith('#home')) { // #home 처리 수정
+    // 홈 - 스크롤 위치 복원
+    const urlParams = new URLSearchParams(hash.split('?')[1]);
+    const scrollPos = urlParams.get('scroll');
+    if(scrollPos && !isNaN(scrollPos)) {
+      setTimeout(() => window.scrollTo(0, parseInt(scrollPos)), 100);
+    }
+    return;
+  }
+  
+  // URL로 진입하는 경우 스크롤은 오버레이 내부 스크롤이므로 body 스크롤 활성화
+  document.body.style.overflow = '';
+  
+  if(hash.startsWith('#post-')) {
+    const postId = hash.replace('#post-', '').split('?')[0];
+    if(postId && !isNaN(postId)) {
+      openPostOverlayById(parseInt(postId));
+      document.body.style.overflow = 'hidden'; // 포스트만 스크롤 비활성화
+    }
+  } else if(hash.startsWith('#category-')) {
+    const slug = hash.replace('#category-', '').split('?')[0];
+    if(slug) {
+      loadCategory(slug);
+    }
+  } else if(hash.startsWith('#search')) {
+    const urlParams = new URLSearchParams(hash.split('?')[1]);
+    const query = urlParams.get('q');
+    if(query) {
+      document.getElementById('searchInputTop').value = query;
+      doSearch(query);
+    } else {
+      openNavlessSearch();
+    }
+  } else if(hash.startsWith('#editor-')) {
+    const editorId = hash.replace('#editor-', '').split('?')[0];
+    if(editorId && !isNaN(editorId)) {
+      router.openEditors();
+      // 에디터 목록 로드가 비동기이므로 setTimeout 사용
+      const checkAndOpen = () => {
+        if (state.editorsLoaded) {
+          openEditorProfile(state.editorsList.find(e => e.id === parseInt(editorId)));
+        } else {
+          setTimeout(checkAndOpen, 100);
+        }
+      };
+      setTimeout(checkAndOpen, 300);
+    }
+  } else if(hash === '#editors') {
+    router.openEditors();
+  } else if(hash === '#about') {
+    router.openAbout();
+  }
+}
+
+window.addEventListener('scroll', () => {
+  const toTop = document.getElementById('toTopBtn');
+  if(window.scrollY > 200) toTop.classList.add('show'); else toTop.classList.remove('show');
+
+  // 오버레이가 열려있으면 무한스크롤 비활성화
+  const anyOverlayActive = document.querySelector('.post-overlay.active, .search-overlay.active, .category-overlay.active, .editors-overlay.active, .about-page.active');
+  if(anyOverlayActive) return;
+
+  // 홈 페이지에서만 무한스크롤 작동
+  if((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 400)) {
+    loadHomeChunk();
+  }
+});
+
+document.getElementById('toTopBtn').addEventListener('click', ()=> window.scrollTo({top:0, behavior:'smooth'}));
+
+function openNavlessSearch() {
+  state.currentScrollPos = window.scrollY;
+  closeAllOverlays();
+  document.getElementById('searchOverlay').classList.add('active');
+  document.getElementById('searchOverlay').setAttribute('aria-hidden','false');
+  document.body.style.overflow = ''; // 검색 오버레이에는 스크롤 허용
+  const input = document.getElementById('searchInputTop');
+  if(input) input.focus();
+  history.pushState({page:'search', scrollPos:state.currentScrollPos}, '', '#search');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderNavList();
+  loadHomeChunk();
+  
+  // 초기 URL 라우팅
+  routeFromURL();
+
+  const topInput = document.getElementById('searchInputTop');
+  if(topInput) {
+    topInput.addEventListener('keydown', e => {
+      if(e.key === 'Enter') {
+        doSearch(e.target.value);
+      } else if(e.key === 'Escape') {
+        ui.closeSearch();
+        router.goHome();
       }
     });
   }
 
-  window.addEventListener('popstate', ()=>{ closeAllOverlays(); routeFromURL(); });
+  const globalNavSearch = document.getElementById('globalNavSearch');
+  if(globalNavSearch) {
+    globalNavSearch.addEventListener('keydown', e => {
+      if(e.key === 'Enter') {
+        const q = e.target.value;
+        ui.toggleNav(true);
+        openNavlessSearch();
+        setTimeout(()=> { 
+            const top = document.getElementById('searchInputTop'); 
+            if(top) { 
+                top.value = q; 
+                if(q) doSearch(q); 
+            } 
+        }, 120);
+      }
+    });
+  }
+
+  const navClose = document.querySelector('.nav-close');
+  if(navClose) {
+    navClose.addEventListener('click', ()=> ui.toggleNav(true));
+    navClose.addEventListener('keydown', e => { 
+      if(e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        ui.toggleNav(true);
+      }
+    });
+  }
+
+  document.querySelectorAll('.close-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      // 닫기 버튼이 searchOverlay에만 있어서 검색 오버레이 닫는 코드와 goHome을 분리하여 사용
+      // postOverlay의 닫기 버튼은 closePost를 호출하고 있으므로 여기서는 search/category/about 등의 닫기 버튼만 처리
+      ui.closeSearch();
+      router.goHome(); 
+    });
+  });
+
+  // Popstate 처리: 뒤로가기/앞으로가기
+  window.addEventListener('popstate', (ev) => {
+    const s = ev.state;
+    
+    // 모든 오버레이 닫기
+    closeAllOverlays();
+    
+    if(!s) {
+      // state 없으면 URL로 라우팅 (새로고침 직후 등)
+      routeFromURL();
+      return;
+    }
+    
+    // state 기반 라우팅
+    if(s.page === 'home') {
+      document.body.style.overflow = '';
+      if(s.scrollPos !== undefined) {
+        setTimeout(() => window.scrollTo(0, s.scrollPos), 50);
+      }
+    } else if(s.page === 'post' && s.id) {
+      openPostOverlayById(s.id);
+      document.body.style.overflow = 'hidden';
+    } else if(s.page === 'category' && s.slug) {
+      loadCategory(s.slug);
+      document.body.style.overflow = '';
+    } else if(s.page === 'search') {
+      if(s.query) {
+        document.getElementById('searchInputTop').value = s.query;
+        doSearch(s.query);
+      } else {
+        openNavlessSearch();
+      }
+      document.body.style.overflow = '';
+      if(s.scrollPos !== undefined) {
+        setTimeout(() => window.scrollTo(0, s.scrollPos), 50);
+      }
+    } else if(s.page === 'editor' && s.id) {
+      router.openEditors();
+      document.body.style.overflow = '';
+      const checkAndOpen = () => {
+        if (state.editorsLoaded) {
+          openEditorProfile(state.editorsList.find(e => e.id === s.id));
+        } else {
+          setTimeout(checkAndOpen, 100);
+        }
+      };
+      setTimeout(checkAndOpen, 300);
+    } else if(s.page === 'editors') {
+      router.openEditors();
+      document.body.style.overflow = '';
+    } else if(s.page === 'about') {
+      router.openAbout();
+      document.body.style.overflow = '';
+    }
+  });
 });
-  </script>
+
+window.__IMPACT = {
+  loadHomeChunk,
+  loadCategory,
+  loadEditors,
+  openPostOverlayById,
+  doSearch,
+  routeFromURL
+};
+
+</script>
 </body>
 </html>
