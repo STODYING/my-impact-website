@@ -672,7 +672,7 @@ async function loadHomeChunk() {
       const heroDate = leftDiv.querySelector('.hero-date');
 
       if(leftPost._embedded && leftPost._embedded.author && leftPost._embedded.author[0]) {
-        const a = leftPost._embedded.author[0];
+        const a = post._embedded.author[0];
         const av = a.avatar_urls ? (a.avatar_urls['48']||a.avatar_urls['24']||'') : '';
         heroAvatar.src = av || placeholderDataURI(48,48,'U');
         heroAuthor.textContent = a.name || '익명';
