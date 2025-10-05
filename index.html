@@ -1139,6 +1139,11 @@ window.addEventListener('scroll', () => {
   const toTop = document.getElementById('toTopBtn');
   if(window.scrollY > 200) toTop.classList.add('show'); else toTop.classList.remove('show');
 
+  // 오버레이가 열려있으면 무한스크롤 비활성화
+  const anyOverlayActive = document.querySelector('.post-overlay.active, .search-overlay.active, .category-overlay.active, .editors-overlay.active, .about-page.active');
+  if(anyOverlayActive) return;
+
+  // 홈 페이지에서만 무한스크롤 작동
   if((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 400)) {
     loadHomeChunk();
   }
