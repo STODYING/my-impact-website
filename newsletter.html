@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>뉴스레터 구독 신청 - IMPACT</title>
+  <meta name="description" content="IMPACT NEWS 구독 신청 페이지입니다.">
+
+  <link rel="icon" href="logo.png" type="image/png">
+  
+  <!-- Tailwind CSS CDN 로드 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <style>
+    /*
+      =============================================================
+      기본 스타일 및 폰트 설정
+      =============================================================
+    */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Segoe UI", Roboto, Arial, sans-serif;
+      background: #ffffff;
+      color: #000000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1rem;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    /* 다크 모드 */
+    body.dark-mode {
+      background: #000000;
+      color: #ffffff;
+    }
+    
+    body.dark-mode .container-card {
+      background: #1a1a1a;
+      border-color: #333;
+      box-shadow: 0 10px 30px rgba(255, 255, 255, 0.05);
+    }
+    
+    body.dark-mode h2 {
+      color: #ffffff;
+    }
+    
+    body.dark-mode p {
+      color: #aaaaaa !important;
+    }
+    
+    body.dark-mode input,
+    body.dark-mode select {
+      background: #2a2a2a !important;
+      color: #ffffff !important;
+      border-color: #444 !important;
+    }
+    
+    body.dark-mode input::placeholder {
+      color: #666 !important;
+    }
+    
+    body.dark-mode input:focus {
+      border-color: #555 !important;
+      ring-color: #555 !important;
+    }
+    
+    body.dark-mode label {
+      color: #cccccc !important;
+    }
+    
+    body.dark-mode .policy-content h4 {
+      color: #ffffff !important;
+    }
+    
+    body.dark-mode .policy-content p,
+    body.dark-mode .policy-content li {
+      color: #cccccc !important;
+    }
+    
+    body.dark-mode .modal-content {
+      background: #1a1a1a !important;
+    }
+    
+    body.dark-mode .tab-button {
+      color: #888 !important;
+    }
+    
+    body.dark-mode .tab-button.active {
+      color: #ffffff !important;
+      border-bottom-color: #fff !important;
+    }
+    
+    /* Inter 폰트 사용 (주로 제목 및 폼에 적용) */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    .inter-font {
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* 컨테이너 그림자 */
+    .container-card {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        background: #ffffff;
+        border: 1px solid #e5e5e5;
+        transition: all 0.3s ease;
+    }
+    
+    .form-check-group {
+        display: flex;
+        gap: 1.5rem;
+    }
+    
+    /* Modal Content Styling for readability */
+    .policy-content h4 {
+        font-weight: 700;
+        font-size: 1.125rem;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: #000000;
+    }
+    .policy-content ul {
+        list-style-type: decimal;
+        margin-left: 1.5rem;
+        margin-top: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    .policy-content p {
+        margin-bottom: 0.75rem;
+        color: #333333;
+    }
+    
+    .theme-toggle-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background: #000;
+      color: #fff;
+      border: 2px solid #000;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+    
+    body.dark-mode .theme-toggle-btn {
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+    }
+    
+    .theme-toggle-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .submit-btn {
+      background: #000 !important;
+      color: #fff !important;
+      border: none;
+      transition: all 0.3s ease;
+    }
+    
+    body.dark-mode .submit-btn {
+      background: #fff !important;
+      color: #000 !important;
+    }
+    
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+    
+    .terms-link {
+      color: #000;
+      text-decoration: underline;
+      font-weight: 600;
+    }
+    
+    body.dark-mode .terms-link {
+      color: #fff;
+    }
+    
+    .modal-overlay {
+      transition: opacity 0.3s ease;
+    }
+    
+    .tab-button {
+      transition: all 0.3s ease;
+    }
+    
+    .tab-button.active {
+      border-bottom: 2px solid #000;
+      color: #000;
+    }
+    
+    body.dark-mode .tab-button.active {
+      border-bottom-color: #fff;
+      color: #fff;
+    }
+  </style>
+</head>
+<body class="inter-font">
+
+  <!-- 테마 토글 버튼 -->
+  <button class="theme-toggle-btn" onclick="toggleTheme()">🌓 테마 변경</button>
+
+  <!-- ============================================================= -->
+  <!-- 📌 NEWSLETTER PAGE CONTENT (독립된 구독 폼) -->
+  <!-- ============================================================= -->
+  <div id="newsletterPage" class="w-full max-w-lg container-card p-8 rounded-xl">
+      <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">뉴스레터 구독하기</h2>
+      <p class="text-gray-600 mb-8 text-center">최신 소식과 정보를 이메일로 받아보세요!</p>
+
+      <!-- 구독 신청 폼 -->
+      <form id="newsletterForm" class="space-y-6">
+          
+          <div>
+              <label for="nickname" class="block text-sm font-medium text-gray-700 mb-1">닉네임</label>
+              <input type="text" id="nickname" name="nickname" required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150 ease-in-out"
+                    placeholder="사용하실 닉네임을 입력하세요">
+          </div>
+
+          <div>
+              <label for="email" class="block text-sm font-medium text-gray-700 mb-1">이메일 주소</label>
+              <input type="email" id="email" name="email" required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-150 ease-in-out"
+                    placeholder="example@email.com">
+          </div>
+
+          <!-- 개인정보 동의 (필수) -->
+          <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">* 개인정보 수집 및 이용 방침 동의</label>
+              <div class="form-check-group">
+                  <label class="inline-flex items-center">
+                      <input type="radio" name="privacy_consent" value="O" checked class="form-radio text-gray-600 focus:ring-gray-500 h-4 w-4">
+                      <span class="ml-2 text-gray-700">O (동의)</span>
+                  </label>
+                  <label class="inline-flex items-center">
+                      <input type="radio" name="privacy_consent" value="X" class="form-radio text-gray-600 focus:ring-gray-500 h-4 w-4">
+                      <span class="ml-2 text-gray-700">X (비동의)</span>
+                  </label>
+              </div>
+          </div>
+
+          <!-- 광고 수신 동의 (필수) -->
+          <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">* 광고 정보 수신 동의</label>
+              <div class="form-check-group">
+                  <label class="inline-flex items-center">
+                      <input type="radio" name="ad_consent" value="O" checked class="form-radio text-gray-600 focus:ring-gray-500 h-4 w-4">
+                      <span class="ml-2 text-gray-700">O (동의)</span>
+                  </label>
+                  <label class="inline-flex items-center">
+                      <input type="radio" name="ad_consent" value="X" class="form-radio text-gray-600 focus:ring-gray-500 h-4 w-4">
+                      <span class="ml-2 text-gray-700">X (비동의)</span>
+                  </label>
+              </div>
+          </div>
+          
+          <button type="submit" id="submitButton"
+                  class="submit-btn w-full py-3 px-4 border border-transparent rounded-lg shadow-sm text-lg font-semibold transition duration-300 ease-in-out">
+              구독 신청하기
+          </button>
+      </form>
+
+      <!-- '이용 약관 및 이용방침' 버튼 추가 -->
+      <div class="mt-4 text-center">
+          <button type="button" onclick="openModal()" class="terms-link text-sm transition duration-150 p-2 rounded-lg">
+              이용 약관 및 이용방침 보기
+          </button>
+      </div>
+
+      <!-- 결과 메시지 표시 영역 -->
+      <div id="statusMessage" class="mt-6 p-4 rounded-lg text-center hidden" role="alert"></div>
+
+  </div>
+
+  <!-- 이용 약관 및 개인정보처리방침 Modal -->
+  <div id="termsModal" class="modal-overlay fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-50 transition-opacity duration-300">
+      <!-- Modal Content Container -->
+      <div class="flex items-center justify-center min-h-screen p-4">
+          <div class="modal-content w-full max-w-3xl bg-white rounded-xl shadow-2xl transform transition-all duration-300">
+              <!-- Header and Close Button -->
+              <div class="flex justify-between items-center p-6 border-b border-gray-100">
+                  <h3 class="text-xl font-bold text-gray-900">이용 약관 및 개인정보처리방침</h3>
+                  <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition">
+                      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                  </button>
+              </div>
+              
+              <!-- Tab Navigation -->
+              <div class="flex border-b border-gray-200">
+                  <button id="tabTermsBtn" onclick="switchTab('terms')" class="tab-button px-6 py-3 text-sm font-semibold border-b-2 border-black text-black transition duration-150 ease-in-out active">이용 약관</button>
+                  <button id="tabPrivacyBtn" onclick="switchTab('privacy')" class="tab-button px-6 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:border-gray-300 hover:text-gray-700 transition duration-150 ease-in-out">개인정보처리방침</button>
+              </div>
+
+              <!-- Content Area -->
+              <div class="p-6 max-h-[70vh] md:max-h-[80vh] overflow-y-auto text-gray-700 text-sm leading-relaxed policy-content">
+                  <div id="termsContent"></div>
+                  <div id="privacyContent" class="hidden"></div>
+              </div>
+          </div>
+      </div>
+  </div>
+  
+
+  <!-- ============================================================= -->
+  <!-- 📌 Javascript Logic (스크립트 블록) -->
+  <!-- ============================================================= -->
+  <script>
+    // -----------------------------------------------------------
+    // ✅ 테마 토글
+    // -----------------------------------------------------------
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('newsletter-theme', isDark ? 'dark' : 'light');
+    }
+    
+    // 저장된 테마 불러오기
+    if(localStorage.getItem('newsletter-theme') === 'dark') {
+      document.body.classList.add('dark-mode');
+    }
+  
+    // -----------------------------------------------------------
+    // ✅ 뉴스레터 구독 폼 및 모달 로직
+    // -----------------------------------------------------------
+
+    // Google Form Entry IDs (실제 사용하는 폼 ID로 변경해 주세요!)
+    const GOOGLE_FORM_ID = "1FAIpQLScz3VXbU39hxBMtWeIDXc5OlJ-uN7SXnY_7I6xM0GGEETM49g"; 
+    const ENTRY_EMAIL = "entry.695780274"; 
+    const ENTRY_NICKNAME = "entry.245046402"; 
+    const ENTRY_CONSENT_PRIVACY = "entry.1844911262"; 
+    const ENTRY_CONSENT_AD = "entry.1324454209"; 
+
+    const form = document.getElementById('newsletterForm');
+    const statusMessage = document.getElementById('statusMessage');
+    const submitButton = document.getElementById('submitButton');
+    const termsModal = document.getElementById('termsModal');
+    const termsContent = document.getElementById('termsContent');
+    const privacyContent = document.getElementById('privacyContent');
+    const tabTermsBtn = document.getElementById('tabTermsBtn');
+    const tabPrivacyBtn = document.getElementById('tabPrivacyBtn');
+
+    // 약관 및 정책 내용 (HTML 포맷팅 적용)
+    const termsHtml = `
+        <h4>제1조 (목적)</h4>
+        <p>이 약관은 IMPACT NEWS(이하 "회사")가 제공하는 뉴스레터 서비스(이하 "서비스")의 이용 조건과 절차, 권리·의무 및 책임 사항을 규정합니다.</p>
+
+        <h4>제2조 (정의)</h4>
+        <ul>
+            <li>"이용자"란 본 약관에 동의하고 서비스를 이용하는 자를 말합니다.</li>
+            <li>"구독"이란 이메일 주소를 등록하여 뉴스레터를 수신하는 것을 말합니다.</li>
+        </ul>
+
+        <h4>제3조 (약관의 효력 및 변경)</h4>
+        <ul>
+            <li>약관은 서비스 화면 또는 링크로 게시함으로써 효력이 발생합니다.</li>
+            <li>회사는 관련 법령을 위반하지 않는 범위에서 약관을 변경할 수 있으며, 변경 시 시행 7일 전(중요 변경 30일 전) 고지합니다.</li>
+            <li>이용자가 변경 시행일까지 이의를 제기하거나 구독을 해지하지 않으면 변경 약관에 동의한 것으로 봅니다.</li>
+        </ul>
+
+        <h4>제4조 (서비스의 제공)</h4>
+        <ul>
+            <li>회사는 정기/비정기적으로 뉴스와 콘텐츠를 이메일로 제공합니다.</li>
+            <li>시스템 점검, 운영상 또는 기술상 이유로 서비스 제공이 일시 중단될 수 있습니다.</li>
+        </ul>
+
+        <h4>제5조 (구독 및 해지)</h4>
+        <ul>
+            <li>이용자는 이메일 주소 등 필수 정보를 제공해 구독할 수 있습니다.</li>
+            <li>수신 거부는 뉴스레터 하단의 '구독 취소' 버튼으로 즉시 처리됩니다.</li>
+            <li>만 14세 미만은 법정대리인 동의가 없는 한 구독할 수 없습니다.</li>
+        </ul>
+
+        <h4>제6조 (개인정보 보호)</h4>
+        <p>개인정보 처리에 관한 사항은 별도의 개인정보처리방침에 따릅니다.</p>
+
+        <h4>제7조 (이용자의 의무)</h4>
+        <ul>
+            <li>법령, 약관, 안내 공지를 준수합니다.</li>
+            <li>타인의 권리를 침해하는 행위를 하지 않습니다.</li>
+            <li>서비스의 정상 운영을 방해하지 않습니다.</li>
+        </ul>
+
+        <h4>제8조 (콘텐츠 및 지식재산권)</h4>
+        <ul>
+            <li>서비스에 포함된 콘텐츠의 저작권은 회사 또는 정당한 권리자에게 있습니다.</li>
+            <li>개인적·비영리 목적의 열람 외 무단 복제, 배포, 2차적 저작을 금지합니다. 별도 라이선스가 표시된 경우 해당 조건을 따릅니다.</li>
+        </ul>
+
+        <h4>제9조 (광고 및 알림)</h4>
+        <ul>
+            <li>회사는 서비스 운영을 위해 광고성 정보나 공지를 발송할 수 있습니다.</li>
+            <li>광고성 정보는 사전 수신 동의한 이용자에게만 발송합니다. 이용자는 언제든지 수신을 거부할 수 있습니다.</li>
+        </ul>
+
+        <h4>제10조 (면책)</h4>
+        <ul>
+            <li>천재지변, 통신 장애 등 불가항력으로 인한 서비스 중단에 대해 회사는 책임을 지지 않습니다.</li>
+            <li>서비스 콘텐츠의 일반적 정보 제공을 넘는 법률·세무·의료 등 전문 자문으로 해석되지 않으며, 이를 기반으로 한 의사결정 책임은 이용자에게 있습니다.</li>
+        </ul>
+
+        <h4>제11조 (손해배상)</h4>
+        <p>회사의 고의 또는 중대한 과실이 없는 한, 회사는 서비스 이용과 관련하여 이용자에게 발생한 간접·특별·결과적 손해에 대해 책임지지 않습니다.</p>
+
+        <h4>제12조 (준거법 및 분쟁 해결)</h4>
+        <p>본 약관은 대한민국 법령에 따르며, 분쟁은 민사소송법 등 관계 법령에 따른 관할 법원에 제기합니다.</p>
+
+        <h4>제13조 (고객센터)</h4>
+        <ul>
+            <li>담당자: 허인서</li>
+            <li>이메일: heoinseo@icloud.com</li>
+        </ul>
+    `;
+
+    const privacyHtml = `
+        <h4>제1조 (개인정보처리방침의 목적)</h4>
+        <p>IMPACT NEWS(이하 "회사")는 이용자의 개인정보 자기결정권을 존중하며, 관련 법령에 따라 안전하게 처리합니다. 본 방침은 이용자가 안심하고 서비스를 이용할 수 있도록 회사가 준수해야 할 기준을 정합니다.</p>
+
+        <h4>제2조 (수집하는 개인정보 항목 및 방법)</h4>
+        <ul>
+            <li>필수 수집 항목: 이름(또는 닉네임), 이메일 주소</li>
+            <li>자동 수집 정보: IP 주소, 쿠키, 방문 일시, 서비스 이용 기록, 오류 및 로그 정보</li>
+            <li>수집 방법: 구독 신청 페이지, 이벤트 응모, 고객 문의(이메일 등)</li>
+            <li>민감정보: 회사는 법령상 예외를 제외하고 민감정보를 수집하지 않습니다.</li>
+        </ul>
+
+        <h4>제3조 (개인정보의 이용 목적)</h4>
+        <ul>
+            <li>뉴스레터 발송, 구독 및 문의 응대, 공지 전달</li>
+            <li>서비스 개선, 고객 만족도 조사, 통계 분석(가능한 경우 익명·가명 처리)</li>
+            <li>이벤트/신규 서비스 안내 등 마케팅 알림(수신 동의한 경우에 한함)</li>
+        </ul>
+
+        <h4>제4조 (처리 및 보유 기간)</h4>
+        <ul>
+            <li>원칙적으로 목적 달성 시 지체 없이 파기합니다.</li>
+            <li>법령에서 별도 보관을 요구하는 경우 해당 기간 보관합니다(예: 분쟁 대응을 위한 최소한의 로그).</li>
+        </ul>
+
+        <h4>제5조 (제3자 제공 및 처리위탁)</h4>
+        <ul>
+            <li>회사는 이용자의 동의 또는 법령 근거 없이 제3자에게 개인정보를 제공하지 않습니다.</li>
+            <li>처리위탁: 현재 기준 별도 수탁업체 없음. 향후 수탁이 필요한 경우, 위탁 목적·범위·수탁자 정보를 본 방침에 추가 공지하고 사전 동의를 받겠습니다.</li>
+            <li>국외 이전: 현재 없음. 국외 서비스(예: 해외 이메일 발송/분석 도구) 이용 시 이전 국가, 시기, 방법 등을 고지하고 동의를 받겠습니다.</li>
+        </ul>
+
+        <h4>제6조 (파기 절차 및 방법)</h4>
+        <ul>
+            <li>전자적 파일: 복구 불가한 방식으로 즉시 삭제</li>
+            <li>출력물: 분쇄 또는 소각</li>
+            <li>파기 시점: 보유기간 만료, 처리 목적 달성, 동의 철회 시</li>
+        </ul>
+
+        <h4>제7조 (이용자 권리와 행사 방법)</h4>
+        <ul>
+            <li>이용자는 언제든지 열람, 정정·삭제, 처리정지, 동의철회를 요구할 수 있습니다.</li>
+            <li>구독 해지는 뉴스레터 하단의 '구독 취소' 버튼으로 즉시 처리됩니다.</li>
+            <li>만 14세 미만 아동은 법정대리인 동의 없이 가입할 수 없습니다.</li>
+        </ul>
+
+        <h4>제8조 (쿠키의 이용 및 거부)</h4>
+        <ul>
+            <li>회사는 맞춤형 서비스 제공을 위해 쿠키를 사용할 수 있습니다.</li>
+            <li>이용자는 브라우저 설정에서 쿠키 저장 거부/삭제가 가능합니다. (설정 경로 예: Chrome 환경설정 → 개인 정보 보호 및 보안 → 쿠키 및 기타 사이트 데이터)</li>
+        </ul>
+
+        <h4>제9조 (안전성 확보 조치)</h4>
+        <ul>
+            <li>접근권한 최소화, 비밀번호/접속 기록 관리, 정기 점검</li>
+            <li>악성코드 방지 및 보안 업데이트</li>
+            <li>내부 임직원 대상 개인정보보호 교육</li>
+        </ul>
+
+        <h4>제10조 (개인정보 보호책임자)</h4>
+        <ul>
+            <li>개인정보 보호책임자: 허인서</li>
+            <li>이메일: heoinseo@icloud.com</li>
+        </ul>
+        <p class="mt-4">개인정보 침해 관련 상담은 아래 기관에서도 가능합니다.</p>
+        <ul>
+            <li>개인정보침해신고센터(국번없이 118) / privacy.kisa.or.kr</li>
+            <li>대검찰청 사이버수사 / cyber.go.kr</li>
+            <li>경찰청 사이버범죄 신고 / ecrm.police.go.kr</li>
+        </ul>
+
+        <h4>제11조 (고지 의무)</h4>
+        <p>본 방침 내용 추가·삭제·수정이 있을 경우, 시행 최소 7일 전(중요 변경은 30일 전) 이메일 또는 서비스 내 공지로 알리겠습니다.</p>
+    `;
+
+    // 지연 시간 후 메시지 숨기기
+    const hideMessage = () => {
+        setTimeout(() => {
+            statusMessage.classList.add('hidden');
+            statusMessage.textContent = '';
+        }, 5000); // 5초 후 숨김
+    };
+
+    // Modal 열기
+    window.openModal = () => {
+        termsModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // 스크롤 방지
+        switchTab('terms');
+    }
+
+    // Modal 닫기
+    window.closeModal = () => {
+        termsModal.classList.add('hidden');
+        document.body.style.overflow = ''; // 스크롤 복구
+    }
+
+    // 탭 전환 로직
+    window.switchTab = (tabName) => {
+        if (tabName === 'terms') {
+            termsContent.classList.remove('hidden');
+            privacyContent.classList.add('hidden');
+
+            tabTermsBtn.classList.add('active');
+            tabPrivacyBtn.classList.remove('active');
+        } else if (tabName === 'privacy') {
+            privacyContent.classList.remove('hidden');
+            termsContent.classList.add('hidden');
+
+            tabPrivacyBtn.classList.add('active');
+            tabTermsBtn.classList.remove('active');
+        }
+    }
+
+    // 초기 로딩 시 약관 내용 삽입
+    window.onload = () => {
+      document.getElementById('termsContent').innerHTML = termsHtml;
+      document.getElementById('privacyContent').innerHTML = privacyHtml;
+    };
+
+
+    // 폼 제출 처리 함수
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault(); 
+
+            const email = document.getElementById('email').value.trim();
+            const nickname = document.getElementById('nickname').value.trim();
+            
+            const privacyConsent = document.querySelector('input[name="privacy_consent"]:checked').value;
+            const adConsent = document.querySelector('input[name="ad_consent"]:checked').value;
+
+            // 유효성 검사
+            if (!email || !nickname) {
+                statusMessage.textContent = '이메일과 닉네임을 모두 입력해주세요.';
+                statusMessage.className = 'mt-6 p-4 rounded-lg text-center bg-red-100 text-red-700';
+                statusMessage.classList.remove('hidden');
+                hideMessage();
+                return;
+            }
+
+            if (privacyConsent === 'X') {
+                statusMessage.textContent = '개인정보 수집 및 이용에 동의해야 구독 신청이 가능합니다.';
+                statusMessage.className = 'mt-6 p-4 rounded-lg text-center bg-red-100 text-red-700';
+                statusMessage.classList.remove('hidden');
+                hideMessage();
+                return;
+            }
+
+            submitButton.disabled = true;
+            submitButton.textContent = '신청 중...';
+            statusMessage.classList.add('hidden');
+
+            const formUrl = `https://docs.google.com/forms/d/e/${GOOGLE_FORM_ID}/formResponse`;
+            
+            const formData = new URLSearchParams();
+            formData.append(ENTRY_EMAIL, email);
+            formData.append(ENTRY_NICKNAME, nickname);
+            formData.append(ENTRY_CONSENT_PRIVACY, privacyConsent); 
+            formData.append(ENTRY_CONSENT_AD, adConsent);         
+
+            try {
+                // 'no-cors' 모드를 사용하여 브라우저의 Cross-Origin 제한을 우회합니다.
+                const response = await fetch(formUrl, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors' 
+                });
+                
+                statusMessage.className = 'mt-6 p-4 rounded-lg text-center bg-green-100 text-green-700';
+                statusMessage.textContent = '✅ 성공적으로 구독 신청이 완료되었습니다!';
+                
+                form.reset();
+
+            } catch (error) {
+                console.error("Google Form Submission Error:", error);
+                statusMessage.className = 'mt-6 p-4 rounded-lg text-center bg-red-100 text-red-700';
+                statusMessage.textContent = '❌ 구독 신청 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+            } finally {
+                statusMessage.classList.remove('hidden');
+                submitButton.disabled = false;
+                submitButton.textContent = '구독 신청하기';
+                hideMessage();
+            }
+        });
+    }
+
+  </script>
+</body>
+</html>
