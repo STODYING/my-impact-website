@@ -36,7 +36,7 @@
   
   body.dark-mode {
     background: #1a1a1a;
-    color: #e0e0e0;
+    color: #ffffff;
   }
   
   body.dark-mode .header {
@@ -48,7 +48,7 @@
   body.dark-mode .btn {
     background: #2a2a2a;
     border-color: rgba(255,255,255,0.1);
-    color: #e0e0e0;
+    color: #ffffff;
   }
   
   body.dark-mode .card h3,
@@ -61,7 +61,7 @@
   }
   
   body.dark-mode .nav-list li {
-    color: #e0e0e0;
+    color: #ffffff;
   }
   
   body.dark-mode .category-overlay,
@@ -73,7 +73,7 @@
   body.dark-mode .terms-overlay,
   body.dark-mode .privacy-overlay {
     background: #1a1a1a;
-    color: #e0e0e0;
+    color: #ffffff;
   }
   
   body.dark-mode .to-top {
@@ -82,7 +82,7 @@
   }
   
   body.dark-mode .post-content {
-    color: #d0d0d0;
+    color: #ffffff;
   }
   
   body.dark-mode .post-content p,
@@ -91,14 +91,14 @@
   body.dark-mode .post-content h3,
   body.dark-mode .post-content h4,
   body.dark-mode .post-content li {
-    color: #d0d0d0 !important;
+    color: #ffffff !important;
   }
   
   body.dark-mode .meta,
   body.dark-mode .category-sub,
   body.dark-mode .editor-bio,
   body.dark-mode .post-meta-info {
-    color: #aaa !important;
+    color: #ffffff !important;
   }
   
   body.dark-mode .post-info h1 {
@@ -155,7 +155,7 @@
     top: 0;
     left: 0;
     right: 0;
-    z-index: 1300;
+    z-index: 9999;
     background: rgba(255,255,255,0.95);
     border-bottom: 1px solid rgba(0,0,0,0.06);
     backdrop-filter: blur(10px);
@@ -169,6 +169,15 @@
   body.dark-mode .post-header-bar {
     background: rgba(42,42,42,0.95);
     border-bottom-color: rgba(255,255,255,0.1);
+  }
+  
+  body.dark-mode .post-header-bar .logo {
+    color: #fff !important;
+  }
+  
+  body.dark-mode .post-header-bar .btn {
+    color: #fff !important;
+    background: rgba(255,255,255,0.1);
   }
   
   .post-header-bar.show {
@@ -1020,8 +1029,8 @@
     }
     
     .magazine-small-grid {
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      grid-template-columns: 1fr;
+      gap: 16px;
     }
     
     .hero-title {
@@ -1213,7 +1222,7 @@
       <div class="footer-links">
         <a href="javascript:void(0)" onclick="router.openAbout()">ABOUT</a>
         <a href="javascript:void(0)" onclick="router.openEditors()">EDITORS</a>
-        <a href="javascript:void(0)" onclick="window.open('https://impactceo.art/newsletter', '_blank')">NEWSLETTER</a>
+        <a href="javascript:void(0)" onclick="window.open('newsletter.html', '_blank')">NEWSLETTER</a>
         <a href="https://www.instagram.com/ceo_impact_official" target="_blank" rel="noopener">INSTAGRAM</a>
       </div>
 
@@ -1373,8 +1382,8 @@ document.getElementById('postOverlay').addEventListener('scroll', () => {
       progressBar.style.width = scrolled + '%';
       progressBar.classList.add('active');
       
-      // 게시물 페이지에서 스크롤 시 상단바 표시
-      if(winScroll > 50) {
+      // 게시물 페이지에서 스크롤 시 상단바 표시 (위로 살짝 스크롤해도 표시)
+      if(winScroll > 20) {
         postHeaderBar.classList.add('show');
       } else {
         postHeaderBar.classList.remove('show');
@@ -1856,11 +1865,17 @@ async function loadRelatedPosts(categories, currentPostId) {
   }
 }
 
-async function openPostOverlayById(id) {
+async function openPostOverlayById(id, updateURL = true) {
   if(!id || state.isProcessing) return;
   state.isProcessing = true;
   
   state.currentPostId = id;
+  
+  // URL 업데이트 (새로고침 및 공유 기능을 위해)
+  if(updateURL) {
+    const newUrl = `${window.location.origin}${window.location.pathname}?post=${id}`;
+    history.pushState({postId: id}, '', newUrl);
+  }
   
   const cached = state.postsCache[id];
   if(cached && cached.content && cached.content.rendered) {
@@ -2038,7 +2053,9 @@ const router = {
     document.body.style.overflow = '';
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
-    history.pushState({page:'home'}, '', '#');
+    // URL에서 쿼리 매개변수 제거
+    const newUrl = `${window.location.origin}${window.location.pathname}`;
+    history.pushState({page:'home'}, '', newUrl);
   }
 };
 
@@ -2115,6 +2132,17 @@ async function performSearch(query, mode) {
 
 window.addEventListener('popstate', (e) => {
   const state = e.state;
+  
+  // URL 쿼리 매개변수 확인
+  const urlParams = new URLSearchParams(window.location.search);
+  const postParam = urlParams.get('post');
+  
+  if(postParam) {
+    // URL에 게시물 ID가 있으면 해당 게시물을 열기 (URL 업데이트 없이)
+    openPostOverlayById(parseInt(postParam), false);
+    return;
+  }
+  
   if(!state) {
     document.querySelectorAll('.category-overlay, .post-overlay, .search-overlay, .about-page, .editors-overlay').forEach(el => {
       el.classList.remove('active');
@@ -2146,6 +2174,16 @@ document.addEventListener('DOMContentLoaded', () => {
   renderNavList();
   loadHomeChunk(1);
   
+  // URL 쿼리 매개변수 확인
+  const urlParams = new URLSearchParams(window.location.search);
+  const postParam = urlParams.get('post');
+  
+  if(postParam) {
+    // URL에 게시물 ID가 있으면 해당 게시물을 열기
+    openPostOverlayById(parseInt(postParam), false);
+  }
+  
+  // 기존 해시 기반 라우팅도 유지
   const hash = window.location.hash;
   if(hash.startsWith('#post-')) {
     const postId = hash.replace('#post-', '');
