@@ -155,7 +155,7 @@
     top: 0;
     left: 0;
     right: 0;
-    z-index: 1199;
+    z-index: 1300;
     background: rgba(255,255,255,0.95);
     border-bottom: 1px solid rgba(0,0,0,0.06);
     backdrop-filter: blur(10px);
@@ -240,13 +240,24 @@
 
   .nav-overlay {
     position: fixed;
-    inset: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 400px;
     background: rgba(255,255,255,0.98);
     z-index: 2000;
     padding: 28px;
     transform: translateX(100%);
     transition: transform 0.3s ease;
     overflow-y: auto;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+  }
+  
+  @media (max-width: 680px) {
+    .nav-overlay {
+      width: 100vw;
+      left: 0;
+    }
   }
   .nav-overlay.active { transform: translateX(0); }
   .nav-close {
@@ -981,7 +992,8 @@
     }
     
     .magazine-small-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
     }
     
     .footer-inner {
@@ -1004,11 +1016,12 @@
     }
     
     .card .thumb {
-      height: 200px;
+      height: 180px;
     }
     
     .magazine-small-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
     
     .hero-title {
@@ -1016,7 +1029,11 @@
     }
     
     .card h3 {
-      font-size: 16px;
+      font-size: 14px;
+    }
+    
+    .card-body {
+      padding: 14px;
     }
   }
   
@@ -1085,7 +1102,7 @@
       <div class="nav-footer-links">
         <a href="javascript:void(0)" onclick="ui.toggleNav(true); router.openAbout()">ABOUT</a>
         <a href="javascript:void(0)" onclick="ui.toggleNav(true); router.openEditors()">EDITORS</a>
-        <a href="javascript:void(0)" onclick="ui.toggleNav(true); window.open('newsletter.html', '_blank')">NEWSLETTER</a>
+        <a href="javascript:void(0)" onclick="ui.toggleNav(true); window.open('https://impactceo.art/newsletter', '_blank')">NEWSLETTER</a>
         <a href="https://www.instagram.com/ceo_impact_official" target="_blank" rel="noopener">INSTAGRAM</a>
       </div>
     </div>
@@ -1196,7 +1213,7 @@
       <div class="footer-links">
         <a href="javascript:void(0)" onclick="router.openAbout()">ABOUT</a>
         <a href="javascript:void(0)" onclick="router.openEditors()">EDITORS</a>
-        <a href="javascript:void(0)" onclick="window.open('newsletter.html', '_blank')">NEWSLETTER</a>
+        <a href="javascript:void(0)" onclick="window.open('https://impactceo.art/newsletter', '_blank')">NEWSLETTER</a>
         <a href="https://www.instagram.com/ceo_impact_official" target="_blank" rel="noopener">INSTAGRAM</a>
       </div>
 
@@ -1688,6 +1705,9 @@ async function loadCategory(slug, page = 1) {
   const overlay = document.getElementById('categoryOverlay');
   overlay.classList.add('active');
   document.getElementById('categoryOverlayTitle').textContent = slug.toUpperCase();
+  
+  // URL 업데이트
+  history.pushState({page:'category', slug:slug}, '', `#category-${slug}`);
   
   const descriptions = {
     'tech': '기술과 혁신에 대한 심층 분석',
