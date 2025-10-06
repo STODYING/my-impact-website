@@ -5,7 +5,18 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>IMPACT – MAKE A IMPACT</title>
   <meta name="description" content="Innovation Management Passion Acceleration Creativity Technology">
+
   <link rel="icon" href="logo.png" type="image/png">
+  
+  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="logo.png">
+  
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="IMPACT">
+
   <style>
   *, *::before, *::after { box-sizing: border-box; }
   html, body { height: 100%; }
@@ -129,7 +140,7 @@
     background: #fff;
     border-bottom: 1px solid rgba(0,0,0,0.06);
     backdrop-filter: blur(6px);
-    transition: transform 0.15s ease, opacity 0.15s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease;
   }
   
   header.header.hide {
@@ -159,20 +170,10 @@
     cursor:pointer;
     transition: opacity 0.2s ease;
   }
-  
-  body.dark-mode .brand .logo {
-    color: #fff;
-  }
-  
   .brand .logo:hover {
     opacity: 0.7;
   }
   .brand .logo small { font-size:11px; color:#777; font-weight:800; display:block; line-height:1; }
-  
-  body.dark-mode .brand .logo small {
-    color: #aaa;
-  }
-  
   .header-actions { display:flex; gap:8px; align-items:center; }
 
   .btn {
@@ -183,7 +184,7 @@
     font-weight:700;
     font-size:14px;
     cursor:pointer;
-    transition: all 0.15s ease;
+    transition: all 0.3s ease;
   }
   .btn:hover {
     transform: translateY(-2px);
@@ -246,11 +247,6 @@
     transition: all 0.3s ease;
     border-radius: 50%;
   }
-  
-  body.dark-mode .nav-close {
-    color: #fff;
-  }
-  
   .nav-close:hover {
     background: rgba(0,0,0,0.05);
     transform: rotate(90deg);
@@ -260,22 +256,12 @@
     flex:1; border:none; border-bottom:2px solid #111; padding:10px 8px; outline:none; font-weight:700; font-size:16px;
     background:transparent;
   }
-  
-  body.dark-mode .nav-search input[type="search"] {
-    border-bottom-color: #fff;
-    color: #fff;
-  }
-  
   .nav-list { list-style:none; padding:0; margin:0 0 24px; display:flex; flex-direction:column; gap:18px; }
   .nav-list li { font-size:28px; font-weight:900; cursor:pointer; color:#111; transition: color .16s ease; }
   .nav-list li:hover { color:#2e8b57; }
 
   .nav-footer-links { margin-top:auto; display:flex; gap:12px; align-items:center; font-weight:800; }
   .nav-footer-links a { color:#111; font-size:13px; cursor:pointer; }
-  
-  body.dark-mode .nav-footer-links a {
-    color: #e0e0e0;
-  }
 
   @media (max-width: 680px) {
     .nav-overlay { 
@@ -320,7 +306,7 @@
     min-height: 500px;
     background: #eee;
     cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
   
   .magazine-large:hover {
@@ -355,7 +341,7 @@
   
   .magazine-small-grid {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 20px;
   }
   
@@ -364,7 +350,7 @@
     border-radius: 10px;
     overflow: hidden;
     border: 1px solid rgba(0,0,0,0.06);
-    transition: box-shadow 0.15s ease, transform 0.15s ease;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
     cursor: pointer;
     position: relative;
     z-index: 1;
@@ -442,7 +428,7 @@
     z-index:1800;
     overflow:auto;
     padding:28px;
-    animation: overlayIn .15s ease;
+    animation: overlayIn .3s ease;
   }
   .post-overlay {
     z-index:1900;
@@ -470,93 +456,67 @@
 
   .post-article { 
     margin:0 auto; 
-    max-width:100%;
-    width: 100%;
+    max-width:900px; 
   }
   
-  .post-header-fullscreen {
-    position: relative;
-    width: 100%;
-    min-height: 100vh;
-    display: flex;
-    background-size: cover;
-    background-position: center;
-    transition: all 0.3s ease;
+  .post-header {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 32px;
+    margin-bottom: 32px;
+    align-items: start;
   }
   
-  .post-header-fullscreen.scrolled {
-    min-height: 0;
-    height: 0;
+  .post-thumbnail {
+    width: 100%;
+    border-radius: 12px;
     overflow: hidden;
   }
   
-  .post-header-content {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 40px;
-    background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.8));
-    color: #fff;
+  .post-thumbnail img {
+    width: 100%;
+    height: auto;
+    display: block;
   }
   
-  .post-header-content h1 {
-    font-size: 48px;
+  .post-info h1 {
+    font-size: 32px;
     font-weight: 900;
-    margin: 0 0 20px;
-    line-height: 1.2;
+    margin: 0 0 16px;
+    color: #111;
+    line-height: 1.3;
   }
   
   .post-meta-info {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    color: #fff;
-    font-size: 16px;
+    gap: 8px;
+    color: #666;
+    font-size: 14px;
   }
   
   .post-meta-info .meta-row {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
   }
   
   .post-meta-info .author-avatar {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     object-fit: cover;
   }
   
-  .post-content-wrapper {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 40px 20px;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-  }
-  
-  .post-content-wrapper.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  
   @media (max-width: 768px) {
-    .post-header-fullscreen {
-      min-height: 100vh;
+    .post-header {
+      grid-template-columns: 1fr;
+      gap: 20px;
     }
     
-    .post-header-content {
-      padding: 20px;
-    }
-    
-    .post-header-content h1 {
-      font-size: 32px;
-    }
-    
-    .post-meta-info {
-      font-size: 14px;
+    .post-thumbnail {
+      max-width: 400px;
+      margin: 0 auto;
     }
   }
   
@@ -649,7 +609,7 @@
     border-radius: 8px;
     cursor: pointer;
     font-weight: 700;
-    transition: all 0.15s ease;
+    transition: all 0.3s ease;
   }
   
   .pagination button:hover {
@@ -685,7 +645,7 @@
     box-shadow:0 12px 30px rgba(0,0,0,0.08); 
     opacity:0; 
     transform:translateY(20px); 
-    transition:all .15s cubic-bezier(.2,.9,.2,1);
+    transition:all .3s cubic-bezier(.2,.9,.2,1);
     border:1px solid rgba(0,0,0,0.06);
     cursor: pointer;
   }
@@ -769,7 +729,7 @@
     text-align:center; 
     border:1px solid rgba(0,0,0,0.06); 
     cursor:pointer; 
-    transition: all 0.15s ease;
+    transition: all 0.3s ease;
   }
   .editor-card:hover {
     transform: translateY(-6px);
@@ -791,7 +751,7 @@
   }
   
   .newsletter-page {
-    max-width: 700px;
+    max-width: 800px;
     margin: 0 auto;
     padding: 40px 20px;
   }
@@ -800,11 +760,6 @@
     font-size: 36px;
     font-weight: 900;
     margin-bottom: 20px;
-    color: #111;
-  }
-  
-  body.dark-mode .newsletter-page h2 {
-    color: #fff;
   }
   
   .newsletter-page p {
@@ -815,16 +770,10 @@
   }
   
   .newsletter-form {
-    background: #fff;
+    background: #f9f9f9;
     padding: 32px;
     border-radius: 12px;
     margin-bottom: 40px;
-    border: 1px solid rgba(0,0,0,0.06);
-  }
-  
-  body.dark-mode .newsletter-form {
-    background: #2a2a2a;
-    border-color: rgba(255,255,255,0.1);
   }
   
   .form-group {
@@ -836,11 +785,6 @@
     font-weight: 700;
     margin-bottom: 8px;
     font-size: 14px;
-    color: #111;
-  }
-  
-  body.dark-mode .form-group label {
-    color: #e0e0e0;
   }
   
   .form-group input,
@@ -859,12 +803,6 @@
     border-color: #2e8b57;
   }
   
-  .form-check-group {
-    display: flex;
-    gap: 1.5rem;
-    margin-bottom: 12px;
-  }
-  
   .checkbox-group {
     display: flex;
     align-items: center;
@@ -872,7 +810,6 @@
     margin-bottom: 12px;
   }
   
-  .checkbox-group input[type="radio"],
   .checkbox-group input[type="checkbox"] {
     width: auto;
     cursor: pointer;
@@ -905,7 +842,7 @@
     font-size: 16px;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.3s ease;
   }
   
   .submit-btn:hover {
@@ -926,51 +863,15 @@
     color: #333;
   }
   
-  body.dark-mode .terms-content {
-    color: #e0e0e0;
-  }
-  
   .terms-content h3 {
     margin-top: 24px;
     margin-bottom: 12px;
     font-weight: 800;
-    color: #111;
-  }
-  
-  body.dark-mode .terms-content h3 {
-    color: #fff;
   }
   
   .terms-content ul {
     margin: 12px 0;
     padding-left: 24px;
-  }
-  
-  .status-message {
-    margin-top: 20px;
-    padding: 12px;
-    border-radius: 8px;
-    text-align: center;
-  }
-  
-  .status-message.success {
-    background: #d4edda;
-    color: #155724;
-  }
-  
-  body.dark-mode .status-message.success {
-    background: #1e4620;
-    color: #7dce82;
-  }
-  
-  .status-message.error {
-    background: #f8d7da;
-    color: #721c24;
-  }
-  
-  body.dark-mode .status-message.error {
-    background: #4a1a1d;
-    color: #f5a3a3;
   }
 
   @media (max-width: 1100px) {
@@ -980,12 +881,6 @@
     
     .magazine-small-grid {
       grid-template-columns: 1fr;
-    }
-  }
-  
-  @media (min-width: 769px) {
-    .magazine-small-grid {
-      grid-template-columns: 1fr 1fr;
     }
   }
   
@@ -1020,28 +915,6 @@
       gap: 24px;
     }
   }
-  
-  .post-header-bar {
-    position: fixed;
-    top: -100%;
-    left: 0;
-    right: 0;
-    z-index: 1250;
-    background: #fff;
-    border-bottom: 1px solid rgba(0,0,0,0.06);
-    backdrop-filter: blur(6px);
-    transition: top 0.15s ease;
-    height: 72px;
-  }
-  
-  body.dark-mode .post-header-bar {
-    background: #2a2a2a;
-    border-bottom-color: rgba(255,255,255,0.1);
-  }
-  
-  .post-header-bar.show {
-    top: 0;
-  }
   </style>
 </head>
 <body>
@@ -1052,6 +925,7 @@
     <div class="header-inner wrap">
       <div class="brand">
         <div class="logo" id="logoBtn" onclick="scrollToTop()">
+          <img src="logo.png" alt="IMPACT logo" style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
           <div>
             <div style="line-height:1">IMPACT</div>
             <small>MAKE A IMPACT</small>
@@ -1143,22 +1017,12 @@
   </section>
 
   <article class="post-overlay" id="postOverlay">
-    <div class="post-header-bar" id="postHeaderBar">
-      <div class="header-inner wrap">
-        <div class="brand">
-          <div class="logo" onclick="scrollToTopPost()">
-            <div>
-              <div style="line-height:1">IMPACT</div>
-              <small>MAKE A IMPACT</small>
-            </div>
-          </div>
-        </div>
-        <div class="header-actions">
-          <button class="btn" onclick="router.closePost()">✕</button>
-        </div>
+    <div style="width:100%;max-width:1200px;margin:0 auto;">
+      <div style="display:flex;justify-content:flex-end;gap:12px;margin-bottom:18px">
+        <button class="btn" onclick="router.closePost()">✕</button>
       </div>
+      <div class="post-article" id="postArticle"></div>
     </div>
-    <div class="post-article" id="postArticle"></div>
   </article>
 
   <section class="search-overlay" id="searchOverlay">
@@ -1182,7 +1046,7 @@
         <div>
           <h2 style="font-size:32px;margin-bottom:10px">ABOUT</h2>
           <div style="color:#333;font-size:15px;line-height:1.8">
-            <p><strong>IMPACT</strong>는 현 & 전 KAIST IP-CEO 학생들과 POSTECH CEO 학생들이 함께 작성하는 심인층 콘텐츠 플랫폼입니다.</p>
+            <p><strong>IMPACT</strong>는 현 & 전 KAIST IP-CEO 학생들과 POSTECH CEO 학생들이 함께 작성하는 심층 콘텐츠 플랫폼입니다.</p>
             <p>학생 저자들의 경험과 분석을 바탕으로 기술·경영·창의성을 결합한 글을 제공합니다. 현장의 사례, 데이터 인텔리전스, 깊이 있는 분석을 통해 독자에게 통찰을 전달합니다.</p>
           </div>
           <div style="margin-top:20px"><button class="btn" onclick="router.closeAbout()">✕</button></div>
@@ -1203,51 +1067,43 @@
         
         <form class="newsletter-form" id="newsletterForm" onsubmit="handleNewsletterSubmit(event)">
           <div class="form-group">
-            <label for="nickname">닉네임 *</label>
-            <input type="text" id="nickname" name="nickname" required placeholder="사용하실 닉네임을 입력하세요">
-          </div>
-          
-          <div class="form-group">
             <label for="email">이메일 주소 *</label>
             <input type="email" id="email" name="email" required placeholder="your@email.com">
           </div>
           
           <div class="form-group">
-            <label>* 개인정보 수집 및 이용 방침 동의</label>
-            <div class="form-check-group">
-              <label class="checkbox-group">
-                <input type="radio" name="privacy_consent" value="O" checked>
-                <span>O (동의)</span>
-              </label>
-              <label class="checkbox-group">
-                <input type="radio" name="privacy_consent" value="X">
-                <span>X (비동의)</span>
-              </label>
-            </div>
+            <label for="name">이름</label>
+            <input type="text" id="name" name="name" placeholder="홍길동">
           </div>
           
           <div class="form-group">
-            <label>* 광고 정보 수신 동의</label>
-            <div class="form-check-group">
-              <label class="checkbox-group">
-                <input type="radio" name="ad_consent" value="O" checked>
-                <span>O (동의)</span>
-              </label>
-              <label class="checkbox-group">
-                <input type="radio" name="ad_consent" value="X">
-                <span>X (비동의)</span>
-              </label>
-            </div>
+            <label for="interests">관심 카테고리</label>
+            <select id="interests" name="interests">
+              <option value="">선택해주세요</option>
+              <option value="tech">TECH</option>
+              <option value="eat">EAT</option>
+              <option value="style">STYLE</option>
+              <option value="culture">CULTURE</option>
+              <option value="life">LIFE</option>
+              <option value="all">전체</option>
+            </select>
           </div>
           
-          <div style="margin-top:20px;text-align:center">
-            <button type="button" onclick="showTermsModal()" class="terms-link">이용 약관 및 개인정보처리방침 보기</button>
+          <div class="checkbox-group">
+            <input type="checkbox" id="terms" name="terms" required>
+            <label for="terms">
+              <span class="terms-link" onclick="showTerms(event)">이용 약관</span> 및 
+              <span class="terms-link" onclick="showPrivacy(event)">개인정보 처리방침</span>에 동의합니다 *
+            </label>
           </div>
           
-          <button type="submit" class="submit-btn" id="submitButton">뉴스레터 구독하기</button>
+          <div class="checkbox-group">
+            <input type="checkbox" id="marketing" name="marketing">
+            <label for="marketing">마케팅 정보 수신에 동의합니다 (선택)</label>
+          </div>
+          
+          <button type="submit" class="submit-btn">뉴스레터 구독하기</button>
         </form>
-        
-        <div id="statusMessage" class="status-message" style="display:none"></div>
       </div>
     </div>
   </section>
@@ -1255,18 +1111,94 @@
   <section class="terms-overlay" id="termsOverlay">
     <div class="wrap" style="max-width:900px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-        <h2 style="font-size:28px;margin:0">약관 및 방침</h2>
-        <button class="btn" onclick="closeTermsModal()">✕</button>
-      </div>
-      
-      <div style="display:flex;gap:12px;margin-bottom:20px;border-bottom:2px solid rgba(0,0,0,0.1);padding-bottom:10px">
-        <button class="btn" id="tabTermsBtn" onclick="switchTermsTab('terms')">이용 약관</button>
-        <button class="btn" id="tabPrivacyBtn" onclick="switchTermsTab('privacy')">개인정보처리방침</button>
+        <h2 style="font-size:28px;margin:0">이용 약관</h2>
+        <button class="btn" onclick="closeTerms()">✕</button>
       </div>
       
       <div class="terms-content">
-        <div id="termsTabContent"></div>
-        <div id="privacyTabContent" style="display:none"></div>
+        <h3>제1조 (목적)</h3>
+        <p>본 약관은 IMPACT(이하 "사이트")가 제공하는 뉴스레터 서비스의 이용과 관련하여 사이트와 이용자 간의 권리, 의무 및 책임사항을 규정함을 목적으로 합니다.</p>
+        
+        <h3>제2조 (서비스의 내용)</h3>
+        <p>사이트는 이용자에게 기술, 경영, 문화 등 다양한 분야의 콘텐츠를 이메일을 통해 제공합니다.</p>
+        
+        <h3>제3조 (이용자의 의무)</h3>
+        <p>이용자는 정확한 정보를 제공해야 하며, 타인의 이메일 주소를 무단으로 사용해서는 안 됩니다.</p>
+        
+        <h3>제4조 (서비스의 중단)</h3>
+        <p>사이트는 시스템 점검, 기술적 문제 등으로 인해 서비스를 일시적으로 중단할 수 있습니다.</p>
+        
+        <h3>제5조 (구독 해지)</h3>
+        <p>이용자는 언제든지 뉴스레터 구독을 해지할 수 있으며, 이메일 하단의 구독 취소 링크를 통해 간편하게 해지할 수 있습니다.</p>
+        
+        <h3>제6조 (개인정보 보호)</h3>
+        <p>사이트는 이용자의 개인정보를 관계 법령에 따라 안전하게 보호하며, 개인정보 처리방침에 명시된 목적 외의 용도로 사용하지 않습니다.</p>
+        
+        <h3>제7조 (저작권)</h3>
+        <p>사이트가 제공하는 모든 콘텐츠의 저작권은 IMPACT에 있으며, 무단 복제 및 배포를 금지합니다.</p>
+        
+        <h3>제8조 (면책사항)</h3>
+        <p>사이트는 천재지변, 불가항력적 사유로 인한 서비스 중단에 대해 책임을 지지 않습니다.</p>
+        
+        <h3>제9조 (약관의 변경)</h3>
+        <p>사이트는 필요한 경우 본 약관을 변경할 수 있으며, 변경된 약관은 공지 후 7일 이후부터 효력이 발생합니다.</p>
+        
+        <h3>제10조 (분쟁 해결)</h3>
+        <p>본 약관과 관련된 분쟁은 대한민국 법률에 따라 해결하며, 관할 법원은 사이트 소재지 법원으로 합니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="privacy-overlay" id="privacyOverlay">
+    <div class="wrap" style="max-width:900px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <h2 style="font-size:28px;margin:0">개인정보 처리방침</h2>
+        <button class="btn" onclick="closePrivacy()">✕</button>
+      </div>
+      
+      <div class="terms-content">
+        <h3>1. 수집하는 개인정보 항목</h3>
+        <p>IMPACT는 뉴스레터 서비스 제공을 위해 다음의 개인정보를 수집합니다:</p>
+        <ul>
+          <li>필수항목: 이메일 주소</li>
+          <li>선택항목: 이름, 관심 카테고리</li>
+        </ul>
+        
+        <h3>2. 개인정보의 수집 및 이용 목적</h3>
+        <p>수집된 개인정보는 다음의 목적으로만 이용됩니다:</p>
+        <ul>
+          <li>뉴스레터 발송</li>
+          <li>서비스 개선 및 맞춤형 콘텐츠 제공</li>
+          <li>이용자 문의 응대</li>
+        </ul>
+        
+        <h3>3. 개인정보의 보유 및 이용 기간</h3>
+        <p>이용자의 개인정보는 구독 해지 시까지 보유되며, 해지 즉시 파기됩니다.</p>
+        
+        <h3>4. 개인정보의 제3자 제공</h3>
+        <p>IMPACT는 이용자의 동의 없이 개인정보를 제3자에게 제공하지 않습니다. 다만, 다음의 경우는 예외로 합니다:</p>
+        <ul>
+          <li>법령에 의해 요구되는 경우</li>
+          <li>수사 목적으로 법령에 정해진 절차와 방법에 따라 요청이 있는 경우</li>
+        </ul>
+        
+        <h3>5. 개인정보의 파기 절차 및 방법</h3>
+        <p>이용자가 구독을 해지하면 개인정보는 즉시 파기됩니다. 전자적 파일 형태는 복구 불가능한 방법으로 삭제하며, 종이 문서는 분쇄 또는 소각합니다.</p>
+        
+        <h3>6. 이용자의 권리</h3>
+        <p>이용자는 언제든지 자신의 개인정보를 조회하거나 수정할 수 있으며, 구독 해지를 요청할 수 있습니다. 개인정보 조회 및 수정은 이메일(ceo.impact.official@gmail.com)로 요청 가능합니다.</p>
+        
+        <h3>7. 개인정보 보호책임자</h3>
+        <p>개인정보 보호책임자: IMPACT 운영팀<br>
+        이메일: ceo.impact.official@gmail.com</p>
+        
+        <h3>8. 개인정보 처리방침 변경</h3>
+        <p>본 방침은 법령 및 서비스 변경사항을 반영하기 위해 수정될 수 있으며, 변경 시 웹사이트를 통해 공지합니다.</p>
+        
+        <h3>9. 쿠키의 운용</h3>
+        <p>IMPACT는 사용자 경험 개선을 위해 쿠키를 사용할 수 있습니다. 이용자는 브라우저 설정을 통해 쿠키 사용을 거부할 수 있습니다.</p>
+        
+        <p style="margin-top:24px;"><strong>시행일자: 2025년 1월 1일</strong></p>
       </div>
     </div>
   </section>
@@ -1335,12 +1267,6 @@ const CATEGORIES = {
 };
 const NAV_ORDER = ["TECH","EAT","STYLE","CULTURE","LIFE","EDITORS' PICK"];
 
-const GOOGLE_FORM_ID = "1FAIpQLScz3VXbU39hxBMtWeIDXc5OlJ-uN7SXnY_7I6xM0GGEETM49g";
-const ENTRY_EMAIL = "entry.695780274";
-const ENTRY_NICKNAME = "entry.245046402";
-const ENTRY_CONSENT_PRIVACY = "entry.1844911262";
-const ENTRY_CONSENT_AD = "entry.1324454209";
-
 const state = {
   homePage: 1,
   homeTotal: 0,
@@ -1352,14 +1278,12 @@ const state = {
   editorsLoaded: false,
   lastScrollY: 0,
   scrollingDown: false,
-  currentPostId: null,
-  isProcessing: false,
-  renderedPostIds: new Set()
+  currentPostId: null
 };
 
 function api(path) {
   const p = path.includes('_embed') ? path : (path + (path.includes('?') ? '&' : '?') + '_embed');
-  return `https://public-api.wordpress.com/wp/v2/sites/${WP_SITE}/${p}`;
+  return `/.netlify/functions/wpProxy?path=${encodeURIComponent(p)}`;
 }
 
 function formatDate(dstr) {
@@ -1394,11 +1318,6 @@ function scrollToTop() {
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
-function scrollToTopPost() {
-  const postOverlay = document.getElementById('postOverlay');
-  postOverlay.scrollTo({top: 0, behavior: 'smooth'});
-}
-
 function toggleTheme() {
   document.body.classList.toggle('dark-mode');
   const isDark = document.body.classList.contains('dark-mode');
@@ -1427,6 +1346,19 @@ window.addEventListener('scroll', () => {
       }
       
       state.lastScrollY = currentScrollY;
+      
+      const progressBar = document.getElementById('progressBar');
+      if(document.getElementById('postOverlay').classList.contains('active')) {
+        const postOverlay = document.getElementById('postOverlay');
+        const winScroll = postOverlay.scrollTop;
+        const height = postOverlay.scrollHeight - postOverlay.clientHeight;
+        const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
+        progressBar.style.width = scrolled + '%';
+        progressBar.classList.add('active');
+      } else {
+        progressBar.classList.remove('active');
+      }
+      
       ticking = false;
     });
     ticking = true;
@@ -1442,25 +1374,6 @@ document.getElementById('postOverlay').addEventListener('scroll', () => {
       const height = postOverlay.scrollHeight - postOverlay.clientHeight;
       const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
       progressBar.style.width = scrolled + '%';
-      
-      const postHeaderBar = document.getElementById('postHeaderBar');
-      if(winScroll > 50) {
-        postHeaderBar.classList.add('show');
-      } else {
-        postHeaderBar.classList.remove('show');
-      }
-      
-      const postHeader = document.querySelector('.post-header-fullscreen');
-      if(postHeader && winScroll > 100) {
-        postHeader.classList.add('scrolled');
-        const postContent = document.querySelector('.post-content-wrapper');
-        if(postContent) postContent.classList.add('visible');
-      } else if(postHeader) {
-        postHeader.classList.remove('scrolled');
-        const postContent = document.querySelector('.post-content-wrapper');
-        if(postContent) postContent.classList.remove('visible');
-      }
-      
       ticking = false;
     });
     ticking = true;
@@ -1485,12 +1398,6 @@ function renderNavList() {
 }
 
 function createCardNode(post) {
-  if(state.renderedPostIds.has(post.id)) {
-    return null;
-  }
-  
-  state.renderedPostIds.add(post.id);
-  
   const tpl = document.getElementById('cardTpl');
   const node = tpl.content.firstElementChild.cloneNode(true);
 
@@ -1544,8 +1451,6 @@ function createCardNode(post) {
 async function loadHomeChunk(page = 1) {
   const loadingEl = document.getElementById('homeLoading');
   loadingEl.textContent = '로딩 중...';
-  
-  state.renderedPostIds.clear();
 
   try {
     const res = await fetch(api(`posts?per_page=${HOME_PER_PAGE}&page=${page}`));
@@ -1615,7 +1520,7 @@ async function loadHomeChunk(page = 1) {
       group.slice(1, 5).forEach(post => {
         if(post) {
           const card = createCardNode(post);
-          if(card) smallGrid.appendChild(card);
+          smallGrid.appendChild(card);
         }
       });
       
@@ -1634,11 +1539,11 @@ async function loadHomeChunk(page = 1) {
             <div class="hero-overlay">
               <h2 class="hero-title">${largePost.title?.rendered || '제목 없음'}</h2>
               <div style="display:flex;align-items:center;gap:10px">
-              <div class="hero-author" style="font-weight:800;color:#fff">${largePost._embedded?.author?.[0]?.name || '익명'}</div>
-              <div class="hero-date" style="color:#eee;opacity:.9">${formatDate(largePost.date)}</div>
+                <div class="hero-author" style="font-weight:800;color:#fff">${largePost._embedded?.author?.[0]?.name || '익명'}</div>
+                <div class="hero-date" style="color:#eee;opacity:.9">${formatDate(largePost.date)}</div>
+              </div>
             </div>
-          </div>
-        `;
+          `;
           
           const catWrap = document.createElement('div');
           catWrap.className = 'hero-cats';
@@ -1735,14 +1640,13 @@ function renderPagination(containerId, currentPage, totalPages, onPageClick) {
 async function loadCategory(slug, page = 1) {
   state.currentCategory = slug;
   state.categoryPage = page;
-  state.renderedPostIds.clear();
   
   const overlay = document.getElementById('categoryOverlay');
   overlay.classList.add('active');
   document.getElementById('categoryOverlayTitle').textContent = slug.toUpperCase();
   
   const descriptions = {
-    'tech': '기술과 혁신에 대한 심인층 분석',
+    'tech': '기술과 혁신에 대한 심층 분석',
     'eat': '음식과 외식 문화 탐구',
     'style': '패션과 라이프스타일 트렌드',
     'culture': '문화와 예술에 대한 인사이트',
@@ -1773,7 +1677,7 @@ async function loadCategory(slug, page = 1) {
       posts.forEach(p => {
         state.postsCache[p.id] = p;
         const card = createCardNode(p);
-        if(card) grid.appendChild(card);
+        grid.appendChild(card);
       });
     }
     
@@ -1824,7 +1728,6 @@ function renderEditorsGrid() {
 
 async function openEditorProfile(user) {
   if(!user || !user.id) return;
-  state.renderedPostIds.clear();
   document.getElementById('editorsGridWrapper').style.display = 'none';
   const section = document.getElementById('editorProfileSection');
   section.style.display = 'block';
@@ -1841,7 +1744,7 @@ async function openEditorProfile(user) {
       posts.forEach(p => {
         state.postsCache[p.id] = p;
         const card = createCardNode(p);
-        if(card) grid.appendChild(card);
+        grid.appendChild(card);
       });
     }
     document.getElementById('editorPostsLoading').textContent = '';
@@ -1874,9 +1777,8 @@ async function loadRelatedPosts(categories, currentPostId) {
 }
 
 async function openPostOverlayById(id) {
-  if(!id || state.isProcessing) return;
+  if(!id) return;
   
-  state.isProcessing = true;
   state.currentPostId = id;
   
   const currentHash = window.location.hash;
@@ -1891,8 +1793,7 @@ async function openPostOverlayById(id) {
 
   const cached = state.postsCache[id];
   if(cached && cached.content && cached.content.rendered) {
-    await renderPostOverlay(cached, fromPage, fromHash);
-    state.isProcessing = false;
+    renderPostOverlay(cached, fromPage, fromHash);
     return;
   }
   try {
@@ -1904,18 +1805,15 @@ async function openPostOverlayById(id) {
       if(res2.ok) {
         const post2 = await res2.json();
         state.postsCache[id] = post2;
-        await renderPostOverlay(post2, fromPage, fromHash);
-        state.isProcessing = false;
+        renderPostOverlay(post2, fromPage, fromHash);
         return;
       }
     }
     state.postsCache[id] = post;
-    await renderPostOverlay(post, fromPage, fromHash);
-    state.isProcessing = false;
+    renderPostOverlay(post, fromPage, fromHash);
   } catch(e) {
     console.error(e);
     alert('포스트 로드 실패');
-    state.isProcessing = false;
   }
 }
 
@@ -1933,11 +1831,13 @@ async function renderPostOverlay(post, fromPage, fromHash) {
   const featuredUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
 
   article.innerHTML = `
-    <div class="post-header-fullscreen" style="background-image: url('${featuredUrl || placeholderDataURI(1920,1080,'No Image')}')">
-      <div class="post-header-content">
-        <div style="margin-bottom:16px">
-          <span class="cat-badge ${pickCategoryClass(categories)}">${categories}</span>
+    <div class="post-header">
+      ${featuredUrl ? `
+        <div class="post-thumbnail">
+          <img src="${featuredUrl}" alt="featured image">
         </div>
+      ` : ''}
+      <div class="post-info">
         <h1>${title}</h1>
         <div class="post-meta-info">
           <div class="meta-row">
@@ -1947,13 +1847,14 @@ async function renderPostOverlay(post, fromPage, fromHash) {
           <div class="meta-row">
             <span>📅 ${dateStr}</span>
           </div>
+          <div class="meta-row">
+            <span>🏷️ ${categories}</span>
+          </div>
         </div>
       </div>
     </div>
-    <div class="post-content-wrapper">
-      <div class="post-content">${contentHTML}</div>
-      <div id="relatedPostsContainer"></div>
-    </div>
+    <div class="post-content">${contentHTML}</div>
+    <div id="relatedPostsContainer"></div>
   `;
 
   article.querySelectorAll('.post-content img').forEach(img=>{
@@ -1978,7 +1879,6 @@ async function renderPostOverlay(post, fromPage, fromHash) {
 
   const postCategories = post._embedded?.['wp:term']?.[0] || [];
   if(postCategories.length > 0) {
-    state.renderedPostIds.clear();
     const relatedPosts = await loadRelatedPosts(postCategories, post.id);
     if(relatedPosts.length > 0) {
       const relatedContainer = document.getElementById('relatedPostsContainer');
@@ -1991,7 +1891,7 @@ async function renderPostOverlay(post, fromPage, fromHash) {
       relatedPosts.forEach(p => {
         state.postsCache[p.id] = p;
         const card = createCardNode(p);
-        if(card) relatedGrid.appendChild(card);
+        relatedGrid.appendChild(card);
       });
     }
   }
@@ -2015,7 +1915,6 @@ async function renderPostOverlay(post, fromPage, fromHash) {
 async function doSearch(q) {
   if(!q || !q.trim()) return;
   
-  state.renderedPostIds.clear();
   closeAllOverlays();
   document.getElementById('searchOverlay').classList.add('active');
   document.body.style.overflow = '';
@@ -2035,7 +1934,7 @@ async function doSearch(q) {
     posts.forEach(p => {
       state.postsCache[p.id] = p;
       const card = createCardNode(p);
-      if(card) results.appendChild(card);
+      results.appendChild(card);
     });
   } catch(e) {
     console.error(e);
@@ -2148,7 +2047,7 @@ const router = {
 };
 
 function closeAllOverlays() {
-  ['categoryOverlay','postOverlay','searchOverlay','aboutPageSection','editorsOverlay','newsletterOverlay','termsOverlay'].forEach(id=>{
+  ['categoryOverlay','postOverlay','searchOverlay','aboutPageSection','editorsOverlay','newsletterOverlay','termsOverlay','privacyOverlay'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) { el.classList.remove('active'); }
   });
@@ -2220,129 +2119,49 @@ function openNavlessSearch() {
   history.pushState({page:'search'}, '', '#search');
 }
 
-async function handleNewsletterSubmit(e) {
+function handleNewsletterSubmit(e) {
   e.preventDefault();
   
-  const email = document.getElementById('email').value.trim();
-  const nickname = document.getElementById('nickname').value.trim();
-  const privacyConsent = document.querySelector('input[name="privacy_consent"]:checked').value;
-  const adConsent = document.querySelector('input[name="ad_consent"]:checked').value;
+  const formData = new FormData(e.target);
+  const data = {
+    email: formData.get('email'),
+    name: formData.get('name'),
+    interests: formData.get('interests'),
+    terms: formData.get('terms') === 'on',
+    marketing: formData.get('marketing') === 'on'
+  };
   
-  const statusMessage = document.getElementById('statusMessage');
-  const submitButton = document.getElementById('submitButton');
-  
-  if (!email || !nickname) {
-    statusMessage.textContent = '이메일과 닉네임을 모두 입력해주세요.';
-    statusMessage.className = 'status-message error';
-    statusMessage.style.display = 'block';
-    setTimeout(() => { statusMessage.style.display = 'none'; }, 5000);
+  if(!data.terms) {
+    alert('이용 약관에 동의해주세요.');
     return;
   }
-
-  if (privacyConsent === 'X') {
-    statusMessage.textContent = '개인정보 수집 및 이용에 동의해야 구독 신청이 가능합니다.';
-    statusMessage.className = 'status-message error';
-    statusMessage.style.display = 'block';
-    setTimeout(() => { statusMessage.style.display = 'none'; }, 5000);
-    return;
-  }
-
-  submitButton.disabled = true;
-  submitButton.textContent = '신청 중...';
-  statusMessage.style.display = 'none';
-
-  const formUrl = `https://docs.google.com/forms/d/e/${GOOGLE_FORM_ID}/formResponse`;
   
-  const formData = new URLSearchParams();
-  formData.append(ENTRY_EMAIL, email);
-  formData.append(ENTRY_NICKNAME, nickname);
-  formData.append(ENTRY_CONSENT_PRIVACY, privacyConsent);
-  formData.append(ENTRY_CONSENT_AD, adConsent);
-
-  try {
-    await fetch(formUrl, {
-      method: 'POST',
-      body: formData,
-      mode: 'no-cors'
-    });
-    
-    statusMessage.className = 'status-message success';
-    statusMessage.textContent = '성공적으로 구독 신청이 완료되었습니다!';
-    
-    document.getElementById('newsletterForm').reset();
-
-  } catch (error) {
-    console.error("Google Form Submission Error:", error);
-    statusMessage.className = 'status-message error';
-    statusMessage.textContent = '구독 신청 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
-  } finally {
-    statusMessage.style.display = 'block';
-    submitButton.disabled = false;
-    submitButton.textContent = '뉴스레터 구독하기';
-    setTimeout(() => { statusMessage.style.display = 'none'; }, 5000);
-  }
+  console.log('Newsletter subscription:', data);
+  alert('뉴스레터 구독이 완료되었습니다! 감사합니다.');
+  e.target.reset();
 }
 
-function showTermsModal() {
+function showTerms(e) {
+  e.preventDefault();
+  e.stopPropagation();
   document.getElementById('termsOverlay').classList.add('active');
-  switchTermsTab('terms');
 }
 
-function closeTermsModal() {
+function closeTerms() {
   document.getElementById('termsOverlay').classList.remove('active');
 }
 
-function switchTermsTab(tab) {
-  const termsBtn = document.getElementById('tabTermsBtn');
-  const privacyBtn = document.getElementById('tabPrivacyBtn');
-  const termsContent = document.getElementById('termsTabContent');
-  const privacyContent = document.getElementById('privacyTabContent');
-  
-  if(tab === 'terms') {
-    termsContent.style.display = 'block';
-    privacyContent.style.display = 'none';
-    termsBtn.classList.add('primary');
-    privacyBtn.classList.remove('primary');
-  } else {
-    termsContent.style.display = 'none';
-    privacyContent.style.display = 'block';
-    termsBtn.classList.remove('primary');
-    privacyBtn.classList.add('primary');
-  }
+function showPrivacy(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById('privacyOverlay').classList.add('active');
 }
 
-const termsHTML = `
-  <h3>제1조 (목적)</h3>
-  <p>이 약관은 IMPACT NEWS(이하 "회사")가 제공하는 뉴스레터 서비스(이하 "서비스")의 이용 조건과 절차, 권리·의무 및 책임 사항을 규정합니다.</p>
-  
-  <h3>제2조 (정의)</h3>
-  <ul>
-    <li>"이용자"란 본 약관에 동의하고 서비스를 이용하는 자를 말합니다.</li>
-    <li>"구독"이란 이메일 주소를 등록하여 뉴스레터를 수신하는 것을 말합니다.</li>
-  </ul>
-  
-  <h3>제3조 (약관의 효력 및 변경)</h3>
-  <p>약관 내용은 서비스 화면에 게시되며, 변경 시 최소 7일 전 공지합니다.</p>
-`;
-
-const privacyHTML = `
-  <h3>제1조 (개인정보처리방침의 목적)</h3>
-  <p>IMPACT NEWS는 이용자의 개인정보를 관련 법령에 따라 안전하게 처리합니다.</p>
-  
-  <h3>제2조 (수집하는 개인정보 항목)</h3>
-  <ul>
-    <li>필수 항목: 닉네임, 이메일 주소</li>
-    <li>선택 항목: 관심 카테고리</li>
-  </ul>
-  
-  <h3>제3조 (개인정보의 이용 목적)</h3>
-  <p>수집된 개인정보는 뉴스레터 발송, 서비스 개선 등의 목적으로만 이용됩니다.</p>
-`;
+function closePrivacy() {
+  document.getElementById('privacyOverlay').classList.remove('active');
+}
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('termsTabContent').innerHTML = termsHTML;
-  document.getElementById('privacyTabContent').innerHTML = privacyHTML;
-  
   renderNavList();
   loadHomeChunk(1);
   
