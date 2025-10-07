@@ -1968,17 +1968,21 @@ async function openPostOverlayById(id, updateURL = true) {
   
   state.currentPostId = id;
   
+  // URL 업데이트 (새로고침 및 공유 기능을 위해)
   if(updateURL) {
     const newUrl = `${window.location.origin}${window.location.pathname}?post=${id}`;
-    history.pushState({page: 'post', id: id}, '', newUrl);
+    history.pushState({page: 'post', id: id, previousUrl: window.location.href}, '', newUrl);
   }
   
+  // 오버레이를 즉시 표시하고 로딩 상태를 보여줌
   const overlay = document.getElementById('postOverlay');
   const article = document.getElementById('postArticle');
   
+  // 오버레이 활성화
   overlay.classList.add('active');
   document.body.style.overflow = 'hidden';
   
+  // 캐시에서 확인
   const cached = state.postsCache[id];
   if(cached && cached.content && cached.content.rendered) {
     await renderPostOverlay(cached);
@@ -1986,6 +1990,7 @@ async function openPostOverlayById(id, updateURL = true) {
     return;
   }
   
+  // 로딩 상태 표시
   article.innerHTML = `
     <div class="post-loading-container" style="
       display: flex; 
@@ -2008,12 +2013,15 @@ async function openPostOverlayById(id, updateURL = true) {
   `;
   
   try {
+    // 더 효율적인 단일 요청으로 모든 데이터 가져오기
     const res = await fetch(api(`posts/${id}?_embed`));
     if(!res.ok) throw new Error('post fetch failed ' + res.status);
     const post = await res.json();
     
+    // 캐시에 저장
     state.postsCache[id] = post;
     
+    // 게시물 렌더링
     await renderPostOverlay(post);
   } catch(e) {
     console.error(e);
@@ -2034,6 +2042,7 @@ async function openPostOverlayById(id, updateURL = true) {
   
   state.isProcessing = false;
 }
+
 async function renderPostOverlay(post) {
   const overlay = document.getElementById('postOverlay');
   const article = document.getElementById('postArticle');
@@ -2129,9 +2138,13 @@ async function renderPostOverlay(post) {
   overlay.scrollTop = 0;
   document.body.style.overflow = 'hidden';
   
+  // 프로그레스 바 활성화
   const progressBar = document.getElementById('progressBar');
   progressBar.classList.add('active');
   progressBar.style.width = '0%';
+  
+  const newUrl = `${window.location.origin}${window.location.pathname}?post=${post.id}`;
+  history.pushState({page:'post', id:post.id}, '', newUrl);
 }
 
 const ui = {
@@ -2417,82 +2430,6 @@ window.addEventListener('popstate', (e) => {
     document.querySelectorAll('.post-overlay, .search-overlay, .about-page, .editors-overlay').forEach(el => {
       el.classList.remove('active');
     });
-    document.body.style.overflow = '';
-    document.getElementById('progressBar').classList.remove('active');
-    document.getElementById('postHeaderBar').classList.remove('show');
-    
-    router.openCategory(categoryParam, false);
-    return;
-  }
-  
-  if(editorParam) {
-    const editorId = parseInt(editorParam);
-    if(!isNaN(editorId)) {
-      document.querySelectorAll('.post-overlay, .search-overlay, .about-page, .category-overlay').forEach(el => {
-        el.classList.remove('active');
-      });
-      document.body.style.overflow = '';
-      document.getElementById('progressBar').classList.remove('active');
-      document.getElementById('postHeaderBar').classList.remove('show');
-      
-      if(!document.getElementById('editorsOverlay').classList.contains('active')) {
-        router.openEditors(false);
-      }
-      
-      setTimeout(async () => {
-        if(state.editorsList.length === 0) {
-          await loadEditors();
-        }
-        const editor = state.editorsList.find(e => e.id === editorId);
-        if(editor) {
-          router.openEditorProfile(editor, false);
-        }
-      }, 100);
-      return;
-    }
-  }
-  
-  if(pageParam === 'editors') {
-    document.querySelectorAll('.post-overlay, .search-overlay, .about-page, .category-overlay').forEach(el => {
-      el.classList.remove('active');
-    });
-    document.body.style.overflow = '';
-    document.getElementById('progressBar').classList.remove('active');
-    document.getElementById('postHeaderBar').classList.remove('show');
-    
-    router.openEditors(false);
-    return;
-  } else if(pageParam === 'about') {
-    document.querySelectorAll('.post-overlay, .search-overlay, .editors-overlay, .category-overlay').forEach(el => {
-      el.classList.remove('active');
-    });
-    document.body.style.overflow = '';
-    document.getElementById('progressBar').classList.remove('active');
-    document.getElementById('postHeaderBar').classList.remove('show');
-    
-    router.openAbout(false);
-    return;
-  } else if(pageParam === 'search') {
-    document.querySelectorAll('.post-overlay, .about-page, .editors-overlay, .category-overlay').forEach(el => {
-      el.classList.remove('active');
-    });
-    document.body.style.overflow = '';
-    document.getElementById('progressBar').classList.remove('active');
-    document.getElementById('postHeaderBar').classList.remove('show');
-    
-    openNavlessSearch(false);
-    return;
-  }
-  
-  if(!postParam && !categoryParam && !editorParam && !pageParam) {
-    document.querySelectorAll('.category-overlay, .post-overlay, .search-overlay, .about-page, .editors-overlay').forEach(el => {
-      el.classList.remove('active');
-    });
-    document.body.style.overflow = '';
-    document.getElementById('progressBar').classList.remove('active');
-    document.getElementById('postHeaderBar').classList.remove('show');
-  }
-});
     document.body.style.overflow = '';
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
