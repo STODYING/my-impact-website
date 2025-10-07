@@ -1839,7 +1839,8 @@ async function loadCategory(slug, page = 1) {
   document.getElementById('categoryOverlayTitle').textContent = slug.toUpperCase();
   
   // URL 업데이트
-  history.pushState({page:'category', slug:slug}, '', `#category-${slug}`);
+  const newUrl = `${window.location.origin}${window.location.pathname}?category=${slug}`;
+history.pushState({page:'category', slug:slug}, '', newUrl);
   
   const descriptions = {
     'tech': '기술과 혁신에 대한 심층 분석',
@@ -1925,39 +1926,12 @@ function renderEditorsGrid() {
     img.alt = u.name || u.slug || 'editor';
     node.querySelector('.editor-name').textContent = u.name || u.slug || 'unknown';
     node.querySelector('.editor-bio').textContent = u.description || '';
-    node.addEventListener('click', () => openEditorProfile(u));
+    node.addEventListener('click', () => router.openEditorProfile(u));
     wrap.appendChild(node);
   });
 }
 
-async function openEditorProfile(user) {
-  if(!user || !user.id) return;
-  document.getElementById('editorsGridWrapper').style.display = 'none';
-  const section = document.getElementById('editorProfileSection');
-  section.style.display = 'block';
-  document.getElementById('editorProfileName').textContent = user.name || user.slug || '';
-  document.getElementById('editorProfileBio').textContent = user.description || '';
-  const grid = document.getElementById('editorPostsGrid');
-  grid.innerHTML = '';
-  document.getElementById('editorPostsLoading').textContent = '로딩 중...';
-
-  try {
-    const res = await fetch(api(`posts?author=${user.id}&per_page=50`));
-    const posts = await res.json();
-    if(Array.isArray(posts)) {
-      posts.forEach(p => {
-        state.postsCache[p.id] = p;
-        const card = createCardNode(p);
-        grid.appendChild(card);
-      });
-    }
-    document.getElementById('editorPostsLoading').textContent = '';
-    history.pushState({page:'editor', id:user.id}, '', `#editor-${user.id}`);
-  } catch(e) {
-    console.error(e);
-    document.getElementById('editorPostsLoading').textContent = '불러오기 실패';
-  }
-}
+// 이 함수는 router.openEditorProfile로 대체됨
 
 function showEditorsList() {
   document.getElementById('editorProfileSection').style.display = 'none';
@@ -1996,8 +1970,8 @@ async function openPostOverlayById(id, updateURL = true) {
   
   // URL 업데이트 (새로고침 및 공유 기능을 위해)
   if(updateURL) {
-    const newUrl = `${window.location.origin}${window.location.pathname}#post-${id}`;
-    history.pushState({page: 'post', id: id}, '', newUrl);
+    const newUrl = `${window.location.origin}${window.location.pathname}?post=${id}`;
+    history.pushState({page: 'post', id: id, previousUrl: window.location.href}, '', newUrl);
   }
   
   // 오버레이를 즉시 표시하고 로딩 상태를 보여줌
@@ -2169,7 +2143,8 @@ async function renderPostOverlay(post) {
   progressBar.classList.add('active');
   progressBar.style.width = '0%';
   
-  history.pushState({page:'post', id:post.id}, '', `#post-${post.id}`);
+  const newUrl = `${window.location.origin}${window.location.pathname}?post=${post.id}`;
+  history.pushState({page:'post', id:post.id}, '', newUrl);
 }
 
 const ui = {
@@ -2184,29 +2159,42 @@ const ui = {
 };
 
 const router = {
-  openCategory: (slug) => {
+  openCategory: (slug, updateURL = true) => {
     loadCategory(slug, 1);
+    if(updateURL) {
+      const newUrl = `${window.location.origin}${window.location.pathname}?category=${slug}`;
+      history.pushState({page:'category', slug:slug}, '', newUrl);
+    }
   },
   closeCategory: () => {
     document.getElementById('categoryOverlay').classList.remove('active');
-    history.pushState({page:'home'}, '', '#');
+    const newUrl = `${window.location.origin}${window.location.pathname}`;
+    history.pushState({page:'home'}, '', newUrl);
   },
-  openEditors: () => {
+  openEditors: (updateURL = true) => {
     document.getElementById('editorsOverlay').classList.add('active');
     loadEditors();
-    history.pushState({page:'editors'}, '', '#editors');
+    if(updateURL) {
+      const newUrl = `${window.location.origin}${window.location.pathname}?page=editors`;
+      history.pushState({page:'editors'}, '', newUrl);
+    }
   },
   closeEditors: () => {
     document.getElementById('editorsOverlay').classList.remove('active');
-    history.pushState({page:'home'}, '', '#');
+    const newUrl = `${window.location.origin}${window.location.pathname}`;
+    history.pushState({page:'home'}, '', newUrl);
   },
-  openAbout: () => {
+  openAbout: (updateURL = true) => {
     document.getElementById('aboutPage').classList.add('active');
-    history.pushState({page:'about'}, '', '#about');
+    if(updateURL) {
+      const newUrl = `${window.location.origin}${window.location.pathname}?page=about`;
+      history.pushState({page:'about'}, '', newUrl);
+    }
   },
   closeAbout: () => {
     document.getElementById('aboutPage').classList.remove('active');
-    history.pushState({page:'home'}, '', '#');
+    const newUrl = `${window.location.origin}${window.location.pathname}`;
+    history.pushState({page:'home'}, '', newUrl);
   },
   closePost: () => {
     const overlay = document.getElementById('postOverlay');
@@ -2214,23 +2202,60 @@ const router = {
     document.body.style.overflow = '';
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
-    // URL에서 쿼리 매개변수 제거
+    
+    // 홈으로 이동
     const newUrl = `${window.location.origin}${window.location.pathname}`;
     history.pushState({page:'home'}, '', newUrl);
+  },
+  openEditorProfile: async (user, updateURL = true) => {
+    if(!user || !user.id) return;
+    document.getElementById('editorsGridWrapper').style.display = 'none';
+    const section = document.getElementById('editorProfileSection');
+    section.style.display = 'block';
+    document.getElementById('editorProfileName').textContent = user.name || user.slug || '';
+    document.getElementById('editorProfileBio').textContent = user.description || '';
+    const grid = document.getElementById('editorPostsGrid');
+    grid.innerHTML = '';
+    document.getElementById('editorPostsLoading').textContent = '로딩 중...';
+
+    try {
+      const res = await fetch(api(`posts?author=${user.id}&per_page=50`));
+      const posts = await res.json();
+      if(Array.isArray(posts)) {
+        posts.forEach(p => {
+          state.postsCache[p.id] = p;
+          const card = createCardNode(p);
+          grid.appendChild(card);
+        });
+      }
+      document.getElementById('editorPostsLoading').textContent = '';
+      
+      if(updateURL) {
+        const newUrl = `${window.location.origin}${window.location.pathname}?editor=${user.id}`;
+        history.pushState({page:'editor', id:user.id}, '', newUrl);
+      }
+    } catch(e) {
+      console.error(e);
+      document.getElementById('editorPostsLoading').textContent = '불러오기 실패';
+    }
   }
 };
 
-function openNavlessSearch() {
+function openNavlessSearch(updateURL = true) {
   document.getElementById('searchOverlay').classList.add('active');
   document.getElementById('searchInput').focus();
-  history.pushState({page:'search'}, '', '#search');
+  if(updateURL) {
+    const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
+    history.pushState({page:'search'}, '', newUrl);
+  }
 }
 
 function closeSearch() {
   document.getElementById('searchOverlay').classList.remove('active');
   document.getElementById('searchResults').innerHTML = '';
   document.getElementById('searchInput').value = '';
-  history.pushState({page:'home'}, '', '#');
+  const newUrl = `${window.location.origin}${window.location.pathname}`;
+  history.pushState({page:'home'}, '', newUrl);
 }
 
 document.getElementById('globalNavSearch').addEventListener('input', (e) => {
@@ -2296,46 +2321,92 @@ function checkURLAndLoadPost() {
   // URL 쿼리 매개변수 확인
   const urlParams = new URLSearchParams(window.location.search);
   const postParam = urlParams.get('post');
+  const categoryParam = urlParams.get('category');
+  const editorParam = urlParams.get('editor');
   
   if(postParam) {
     // URL에 게시물 ID가 있으면 해당 게시물을 열기 (URL 업데이트 없이)
-    openPostOverlayById(parseInt(postParam), false);
+    const postId = parseInt(postParam);
+    if(!isNaN(postId)) {
+      openPostOverlayById(postId, false);
+      return true;
+    }
+  }
+  
+  if(categoryParam) {
+    // 카테고리 페이지
+    router.openCategory(categoryParam, false);
     return true;
   }
   
-  // URL 해시 확인
+  if(editorParam) {
+    // 에디터 프로필 페이지
+    const editorId = parseInt(editorParam);
+    if(!isNaN(editorId)) {
+      router.openEditorProfile(editorId, false);
+      return true;
+    }
+  }
+  
+  // URL 해시 확인 (하위 호환성)
   const hash = window.location.hash;
   
   if(hash.startsWith('#post-')) {
-    // #post-123 형식의 URL 처리
+    // #post-123 형식의 URL 처리 (하위 호환성)
     const postId = hash.replace('#post-', '');
     if(postId && !isNaN(parseInt(postId))) {
+      // 새로운 URL 형식으로 리다이렉트
+      const newUrl = `${window.location.origin}${window.location.pathname}?post=${postId}`;
+      history.replaceState({page: 'post', id: parseInt(postId)}, '', newUrl);
       openPostOverlayById(parseInt(postId), false);
       return true;
     }
   } else if(hash.startsWith('#editor-')) {
-    // #editor-123 형식의 URL 처리
+    // #editor-123 형식의 URL 처리 (하위 호환성)
     const editorId = hash.replace('#editor-', '');
     if(editorId && !isNaN(parseInt(editorId))) {
-      router.openEditorProfile(parseInt(editorId));
+      const newUrl = `${window.location.origin}${window.location.pathname}?editor=${editorId}`;
+      history.replaceState({page: 'editor', id: parseInt(editorId)}, '', newUrl);
+      router.openEditorProfile(parseInt(editorId), false);
       return true;
     }
   } else if(hash === '#editors') {
     // 에디터 목록 페이지
-    router.openEditors();
+    const newUrl = `${window.location.origin}${window.location.pathname}?page=editors`;
+    history.replaceState({page: 'editors'}, '', newUrl);
+    router.openEditors(false);
     return true;
   } else if(hash.startsWith('#category-')) {
-    // 카테고리 페이지
+    // 카테고리 페이지 (하위 호환성)
     const slug = hash.replace('#category-', '');
-    router.openCategory(slug);
+    const newUrl = `${window.location.origin}${window.location.pathname}?category=${slug}`;
+    history.replaceState({page: 'category', slug: slug}, '', newUrl);
+    router.openCategory(slug, false);
     return true;
   } else if(hash === '#about') {
     // About 페이지
-    router.openAbout();
+    const newUrl = `${window.location.origin}${window.location.pathname}?page=about`;
+    history.replaceState({page: 'about'}, '', newUrl);
+    router.openAbout(false);
     return true;
   } else if(hash === '#search') {
     // 검색 페이지
-    openNavlessSearch();
+    const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
+    history.replaceState({page: 'search'}, '', newUrl);
+    openNavlessSearch(false);
+    return true;
+  }
+  
+  // URL에 page 파라미터 확인
+  const pageParam = urlParams.get('page');
+  if(pageParam === 'editors') {
+    router.openEditors(false);
+    return true;
+  } else if(pageParam === 'about') {
+    router.openAbout(false);
+    return true;
+  } else if(pageParam === 'search') {
+    openNavlessSearch(false);
     return true;
   }
   
@@ -2343,36 +2414,21 @@ function checkURLAndLoadPost() {
 }
 
 window.addEventListener('popstate', (e) => {
-  const state = e.state;
-  
   // 먼저 URL을 확인하여 적절한 페이지를 로드
   if(checkURLAndLoadPost()) {
     return;
   }
   
-  if(!state) {
+  // URL에 파라미터가 없으면 홈으로 이동
+  const urlParams = new URLSearchParams(window.location.search);
+  if(!urlParams.has('post') && !urlParams.has('category') && !urlParams.has('editor') && !urlParams.has('page')) {
+    // 모든 오버레이 닫기
     document.querySelectorAll('.category-overlay, .post-overlay, .search-overlay, .about-page, .editors-overlay').forEach(el => {
       el.classList.remove('active');
     });
     document.body.style.overflow = '';
-    return;
-  }
-  
-  if(state.page === 'home') {
-    document.querySelectorAll('.category-overlay, .post-overlay, .search-overlay, .about-page, .editors-overlay').forEach(el => {
-      el.classList.remove('active');
-    });
-    document.body.style.overflow = '';
-  } else if(state.page === 'post') {
-    openPostOverlayById(state.id);
-  } else if(state.page === 'category') {
-    router.openCategory(state.slug);
-  } else if(state.page === 'editors') {
-    router.openEditors();
-  } else if(state.page === 'about') {
-    router.openAbout();
-  } else if(state.page === 'search') {
-    openNavlessSearch();
+    document.getElementById('progressBar').classList.remove('active');
+    document.getElementById('postHeaderBar').classList.remove('show');
   }
 });
 
