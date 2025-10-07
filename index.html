@@ -2203,9 +2203,7 @@ const router = {
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
     
-    // 홈으로 이동
-    const newUrl = `${window.location.origin}${window.location.pathname}`;
-    history.pushState({page:'home'}, '', newUrl);
+    history.back();
   },
   openEditorProfile: async (user, updateURL = true) => {
     if(!user || !user.id) return;
@@ -2318,87 +2316,44 @@ async function performSearch(query, mode) {
 
 // URL 해시 및 쿼리 파라미터를 확인하여 적절한 페이지를 로드하는 함수
 function checkURLAndLoadPost() {
-  // URL 쿼리 매개변수 확인
   const urlParams = new URLSearchParams(window.location.search);
   const postParam = urlParams.get('post');
   const categoryParam = urlParams.get('category');
   const editorParam = urlParams.get('editor');
+  const pageParam = urlParams.get('page');
   
   if(postParam) {
-    // URL에 게시물 ID가 있으면 해당 게시물을 열기 (URL 업데이트 없이)
     const postId = parseInt(postParam);
     if(!isNaN(postId)) {
-      openPostOverlayById(postId, false);
+      setTimeout(() => {
+        openPostOverlayById(postId, false);
+      }, 100);
       return true;
     }
   }
   
   if(categoryParam) {
-    // 카테고리 페이지
     router.openCategory(categoryParam, false);
     return true;
   }
   
   if(editorParam) {
-    // 에디터 프로필 페이지
     const editorId = parseInt(editorParam);
     if(!isNaN(editorId)) {
-      router.openEditorProfile(editorId, false);
+      router.openEditors(false);
+      setTimeout(async () => {
+        if(state.editorsList.length === 0) {
+          await loadEditors();
+        }
+        const editor = state.editorsList.find(e => e.id === editorId);
+        if(editor) {
+          router.openEditorProfile(editor, false);
+        }
+      }, 300);
       return true;
     }
   }
   
-  // URL 해시 확인 (하위 호환성)
-  const hash = window.location.hash;
-  
-  if(hash.startsWith('#post-')) {
-    // #post-123 형식의 URL 처리 (하위 호환성)
-    const postId = hash.replace('#post-', '');
-    if(postId && !isNaN(parseInt(postId))) {
-      // 새로운 URL 형식으로 리다이렉트
-      const newUrl = `${window.location.origin}${window.location.pathname}?post=${postId}`;
-      history.replaceState({page: 'post', id: parseInt(postId)}, '', newUrl);
-      openPostOverlayById(parseInt(postId), false);
-      return true;
-    }
-  } else if(hash.startsWith('#editor-')) {
-    // #editor-123 형식의 URL 처리 (하위 호환성)
-    const editorId = hash.replace('#editor-', '');
-    if(editorId && !isNaN(parseInt(editorId))) {
-      const newUrl = `${window.location.origin}${window.location.pathname}?editor=${editorId}`;
-      history.replaceState({page: 'editor', id: parseInt(editorId)}, '', newUrl);
-      router.openEditorProfile(parseInt(editorId), false);
-      return true;
-    }
-  } else if(hash === '#editors') {
-    // 에디터 목록 페이지
-    const newUrl = `${window.location.origin}${window.location.pathname}?page=editors`;
-    history.replaceState({page: 'editors'}, '', newUrl);
-    router.openEditors(false);
-    return true;
-  } else if(hash.startsWith('#category-')) {
-    // 카테고리 페이지 (하위 호환성)
-    const slug = hash.replace('#category-', '');
-    const newUrl = `${window.location.origin}${window.location.pathname}?category=${slug}`;
-    history.replaceState({page: 'category', slug: slug}, '', newUrl);
-    router.openCategory(slug, false);
-    return true;
-  } else if(hash === '#about') {
-    // About 페이지
-    const newUrl = `${window.location.origin}${window.location.pathname}?page=about`;
-    history.replaceState({page: 'about'}, '', newUrl);
-    router.openAbout(false);
-    return true;
-  } else if(hash === '#search') {
-    // 검색 페이지
-    const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
-    history.replaceState({page: 'search'}, '', newUrl);
-    openNavlessSearch(false);
-    return true;
-  }
-  
-  // URL에 page 파라미터 확인
-  const pageParam = urlParams.get('page');
   if(pageParam === 'editors') {
     router.openEditors(false);
     return true;
@@ -2410,19 +2365,139 @@ function checkURLAndLoadPost() {
     return true;
   }
   
+  const hash = window.location.hash;
+  
+  if(hash.startsWith('#post-')) {
+    const postId = hash.replace('#post-', '');
+    if(postId && !isNaN(parseInt(postId))) {
+      const newUrl = `${window.location.origin}${window.location.pathname}?post=${postId}`;
+      history.replaceState({page: 'post', id: parseInt(postId)}, '', newUrl);
+      setTimeout(() => {
+        openPostOverlayById(parseInt(postId), false);
+      }, 100);
+      return true;
+    }
+  } else if(hash.startsWith('#editor-')) {
+    const editorId = hash.replace('#editor-', '');
+    if(editorId && !isNaN(parseInt(editorId))) {
+      const newUrl = `${window.location.origin}${window.location.pathname}?editor=${editorId}`;
+      history.replaceState({page: 'editor', id: parseInt(editorId)}, '', newUrl);
+      router.openEditorProfile(parseInt(editorId), false);
+      return true;
+    }
+  } else if(hash === '#editors') {
+    const newUrl = `${window.location.origin}${window.location.pathname}?page=editors`;
+    history.replaceState({page: 'editors'}, '', newUrl);
+    router.openEditors(false);
+    return true;
+  } else if(hash.startsWith('#category-')) {
+    const slug = hash.replace('#category-', '');
+    const newUrl = `${window.location.origin}${window.location.pathname}?category=${slug}`;
+    history.replaceState({page: 'category', slug: slug}, '', newUrl);
+    router.openCategory(slug, false);
+    return true;
+  } else if(hash === '#about') {
+    const newUrl = `${window.location.origin}${window.location.pathname}?page=about`;
+    history.replaceState({page: 'about'}, '', newUrl);
+    router.openAbout(false);
+    return true;
+  } else if(hash === '#search') {
+    const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
+    history.replaceState({page: 'search'}, '', newUrl);
+    openNavlessSearch(false);
+    return true;
+  }
+  
   return false;
 }
 
 window.addEventListener('popstate', (e) => {
-  // 먼저 URL을 확인하여 적절한 페이지를 로드
-  if(checkURLAndLoadPost()) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const postParam = urlParams.get('post');
+  const categoryParam = urlParams.get('category');
+  const editorParam = urlParams.get('editor');
+  const pageParam = urlParams.get('page');
+  
+  if(postParam) {
+    const postId = parseInt(postParam);
+    if(!isNaN(postId)) {
+      openPostOverlayById(postId, false);
+      return;
+    }
+  }
+  
+  if(categoryParam) {
+    document.querySelectorAll('.post-overlay, .search-overlay, .about-page, .editors-overlay').forEach(el => {
+      el.classList.remove('active');
+    });
+    document.body.style.overflow = '';
+    document.getElementById('progressBar').classList.remove('active');
+    document.getElementById('postHeaderBar').classList.remove('show');
+    
+    router.openCategory(categoryParam, false);
     return;
   }
   
-  // URL에 파라미터가 없으면 홈으로 이동
-  const urlParams = new URLSearchParams(window.location.search);
-  if(!urlParams.has('post') && !urlParams.has('category') && !urlParams.has('editor') && !urlParams.has('page')) {
-    // 모든 오버레이 닫기
+  if(editorParam) {
+    const editorId = parseInt(editorParam);
+    if(!isNaN(editorId)) {
+      document.querySelectorAll('.post-overlay, .search-overlay, .about-page, .category-overlay').forEach(el => {
+        el.classList.remove('active');
+      });
+      document.body.style.overflow = '';
+      document.getElementById('progressBar').classList.remove('active');
+      document.getElementById('postHeaderBar').classList.remove('show');
+      
+      if(!document.getElementById('editorsOverlay').classList.contains('active')) {
+        router.openEditors(false);
+      }
+      
+      setTimeout(async () => {
+        if(state.editorsList.length === 0) {
+          await loadEditors();
+        }
+        const editor = state.editorsList.find(e => e.id === editorId);
+        if(editor) {
+          router.openEditorProfile(editor, false);
+        }
+      }, 100);
+      return;
+    }
+  }
+  
+  if(pageParam === 'editors') {
+    document.querySelectorAll('.post-overlay, .search-overlay, .about-page, .category-overlay').forEach(el => {
+      el.classList.remove('active');
+    });
+    document.body.style.overflow = '';
+    document.getElementById('progressBar').classList.remove('active');
+    document.getElementById('postHeaderBar').classList.remove('show');
+    
+    router.openEditors(false);
+    return;
+  } else if(pageParam === 'about') {
+    document.querySelectorAll('.post-overlay, .search-overlay, .editors-overlay, .category-overlay').forEach(el => {
+      el.classList.remove('active');
+    });
+    document.body.style.overflow = '';
+    document.getElementById('progressBar').classList.remove('active');
+    document.getElementById('postHeaderBar').classList.remove('show');
+    
+    router.openAbout(false);
+    return;
+  } else if(pageParam === 'search') {
+    document.querySelectorAll('.post-overlay, .about-page, .editors-overlay, .category-overlay').forEach(el => {
+      el.classList.remove('active');
+    });
+    document.body.style.overflow = '';
+    document.getElementById('progressBar').classList.remove('active');
+    document.getElementById('postHeaderBar').classList.remove('show');
+    
+    openNavlessSearch(false);
+    return;
+  }
+  
+  if(!postParam && !categoryParam && !editorParam && !pageParam) {
     document.querySelectorAll('.category-overlay, .post-overlay, .search-overlay, .about-page, .editors-overlay').forEach(el => {
       el.classList.remove('active');
     });
