@@ -1970,8 +1970,34 @@ async function openPostOverlayById(id, updateURL = true) {
   
   // URL 업데이트 (새로고침 및 공유 기능을 위해)
   if(updateURL) {
+    const currentUrl = window.location.href;
+    const currentParams = new URLSearchParams(window.location.search);
+    const currentPage = currentParams.get('page');
+    const currentCategory = currentParams.get('category');
+    const currentEditor = currentParams.get('editor');
+    
+    // 이전 페이지 정보를 더 정확하게 저장
+    let previousState = {
+      url: currentUrl,
+      page: 'home'
+    };
+    
+    if(currentCategory) {
+      previousState.page = 'category';
+      previousState.category = currentCategory;
+    } else if(currentEditor) {
+      previousState.page = 'editor';
+      previousState.editor = currentEditor;
+    } else if(currentPage === 'search') {
+      previousState.page = 'search';
+    } else if(currentPage === 'about') {
+      previousState.page = 'about';
+    } else if(currentPage === 'editors') {
+      previousState.page = 'editors';
+    }
+    
     const newUrl = `${window.location.origin}${window.location.pathname}?post=${id}`;
-    history.pushState({page: 'post', id: id, previousUrl: window.location.href}, '', newUrl);
+    history.pushState({page: 'post', id: id, previous: previousState}, '', newUrl);
   }
   
   // 오버레이를 즉시 표시하고 로딩 상태를 보여줌
@@ -2203,7 +2229,49 @@ const router = {
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
     
-    history.back();
+    // 히스토리 상태에서 이전 페이지 정보 가져오기
+    const currentState = history.state;
+    if(currentState && currentState.previous) {
+      const prev = currentState.previous;
+      
+      if(prev.page === 'category' && prev.category) {
+        const newUrl = `${window.location.origin}${window.location.pathname}?category=${prev.category}`;
+        history.pushState({page: 'category', slug: prev.category}, '', newUrl);
+        router.openCategory(prev.category, false);
+      } else if(prev.page === 'editor' && prev.editor) {
+        const newUrl = `${window.location.origin}${window.location.pathname}?editor=${prev.editor}`;
+        history.pushState({page: 'editor', id: prev.editor}, '', newUrl);
+        router.openEditors(false);
+        setTimeout(async () => {
+          if(state.editorsList.length === 0) {
+            await loadEditors();
+          }
+          const editor = state.editorsList.find(e => e.id === parseInt(prev.editor));
+          if(editor) {
+            router.openEditorProfile(editor, false);
+          }
+        }, 100);
+      } else if(prev.page === 'search') {
+        const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
+        history.pushState({page: 'search'}, '', newUrl);
+        openNavlessSearch(false);
+      } else if(prev.page === 'about') {
+        const newUrl = `${window.location.origin}${window.location.pathname}?page=about`;
+        history.pushState({page: 'about'}, '', newUrl);
+        router.openAbout(false);
+      } else if(prev.page === 'editors') {
+        const newUrl = `${window.location.origin}${window.location.pathname}?page=editors`;
+        history.pushState({page: 'editors'}, '', newUrl);
+        router.openEditors(false);
+      } else {
+        // 홈으로 돌아가기
+        const newUrl = `${window.location.origin}${window.location.pathname}`;
+        history.pushState({page: 'home'}, '', newUrl);
+      }
+    } else {
+      // 이전 상태 정보가 없으면 기본적으로 history.back() 사용
+      history.back();
+    }
   },
   openEditorProfile: async (user, updateURL = true) => {
     if(!user || !user.id) return;
@@ -2325,9 +2393,8 @@ function checkURLAndLoadPost() {
   if(postParam) {
     const postId = parseInt(postParam);
     if(!isNaN(postId)) {
-      setTimeout(() => {
-        openPostOverlayById(postId, false);
-      }, 100);
+      // 게시물 직접 로드 시에도 즉시 로드하도록 수정
+      openPostOverlayById(postId, false);
       return true;
     }
   }
@@ -2421,7 +2488,10 @@ window.addEventListener('popstate', (e) => {
   if(postParam) {
     const postId = parseInt(postParam);
     if(!isNaN(postId)) {
-      openPostOverlayById(postId, false);
+      // popstate에서도 즉시 게시물 로드
+      setTimeout(() => {
+        openPostOverlayById(postId, false);
+      }, 50);
       return;
     }
   }
@@ -2510,10 +2580,14 @@ window.addEventListener('popstate', (e) => {
 // 초기화
 document.addEventListener('DOMContentLoaded', () => {
   renderNavList();
-  loadHomeChunk(1);
   
-  // URL 확인 및 해당 페이지 로드
-  checkURLAndLoadPost();
+  // URL 확인 및 해당 페이지 로드를 먼저 실행
+  const hasSpecificPage = checkURLAndLoadPost();
+  
+  // 특정 페이지가 로드되지 않은 경우에만 홈 청크 로드
+  if(!hasSpecificPage) {
+    loadHomeChunk(1);
+  }
 });
 
 // 화면 크기 변경 시 레이아웃 다시 렌더링
