@@ -2413,14 +2413,20 @@ function closeSearch() {
   history.pushState({page:'home'}, '', newUrl);
 }
 
-document.getElementById('globalNavSearch').addEventListener('input', (e) => {
-  clearTimeout(state.searchDebounce);
-  const query = e.target.value.trim();
-  if(query.length < 2) return;
-  
-  state.searchDebounce = setTimeout(() => {
-    performSearch(query, 'navSearch');
-  }, 500);
+// 네비게이션 검색창의 input 이벤트는 제거 (엔터키로만 검색하도록 변경)
+
+// 네비게이션 검색창에서 엔터키 누를 때 검색 페이지로 이동
+document.getElementById('globalNavSearch').addEventListener('keypress', (e) => {
+  if(e.key === 'Enter') {
+    e.preventDefault();
+    const query = e.target.value.trim();
+    if(query.length >= 1) {
+      // 네비게이션 닫기
+      ui.toggleNav(true);
+      // 검색 페이지 열기 및 검색어 설정
+      openSearchWithQuery(query);
+    }
+  }
 });
 
 document.getElementById('searchInput').addEventListener('input', (e) => {
@@ -2469,6 +2475,21 @@ async function performSearch(query, mode) {
       loadingEl.textContent = '검색 실패';
     }
   }
+}
+
+// 검색어와 함께 검색 페이지 열기
+function openSearchWithQuery(query) {
+  // 검색 오버레이 열기
+  const overlay = document.getElementById('searchOverlay');
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  
+  // 검색창에 검색어 설정
+  const searchInput = document.getElementById('searchInput');
+  searchInput.value = query;
+  
+  // 검색 실행
+  performSearch(query, 'fullSearch');
 }
 
 // URL 해시 및 쿼리 파라미터를 확인하여 적절한 페이지를 로드하는 함수
