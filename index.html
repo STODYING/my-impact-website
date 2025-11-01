@@ -6,21 +6,17 @@
   <title>IMPACT – MAKE A IMPACT</title>
   <meta name="description" content="Innovation Management Passion Acceleration Creativity Technology">
 
-<!--NAVER-->
-<meta name="naver-site-verification" content="75a4e73cbf2b7f3acb2c71fac1ea821a9c13ae85" />
+  <meta name="naver-site-verification" content="75a4e73cbf2b7f3acb2c71fac1ea821a9c13ae85" />
   
-  <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-D0DVTWYNGN"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'G-D0DVTWYNGN');
   </script>
 
   <link rel="icon" href="logo.png" type="image/png">
-  
   <link rel="apple-touch-icon" href="logo.png">
   <link rel="apple-touch-icon" sizes="152x152" href="logo.png">
   <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
@@ -30,12 +26,16 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="IMPACT">
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+
   <style>
   *, *::before, *::after { box-sizing: border-box; }
   html, body { height: 100%; }
   body {
     margin: 0;
-    font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Segoe UI", Roboto, Arial, sans-serif;
+    font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
     background: #f6f7f9;
     color: #111;
     line-height: 1.6;
@@ -44,54 +44,57 @@
     scroll-behavior: smooth;
     overscroll-behavior-y: contain;
     -webkit-tap-highlight-color: transparent;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   body.dark-mode {
-    background: #1a1a1a;
+    background: #0d0d0d;
     color: #e8e8e8;
   }
   
   body.dark-mode .header {
-    background: rgba(42,42,42,0.95);
-    border-bottom-color: rgba(255,255,255,0.1);
+    background: rgba(20,20,20,0.95);
+    border-bottom-color: rgba(255,255,255,0.08);
   }
   
   body.dark-mode .card,
   body.dark-mode .btn {
-    background: #2a2a2a;
-    border-color: rgba(255,255,255,0.1);
+    background: #1a1a1a;
+    border-color: rgba(255,255,255,0.12);
     color: #e8e8e8;
+  }
+  
+  body.dark-mode .btn:hover {
+    background: #252525;
   }
   
   body.dark-mode .card h3,
   body.dark-mode .category-title {
-    color: #fff;
+    color: #f5f5f5;
   }
   
   body.dark-mode .nav-overlay {
-    background: rgba(42,42,42,0.98);
+    background: rgba(20,20,20,0.98);
   }
   
   body.dark-mode .nav-list li {
     color: #e8e8e8;
+    border-bottom-color: rgba(255,255,255,0.08);
   }
   
   body.dark-mode .category-overlay,
   body.dark-mode .post-overlay,
   body.dark-mode .search-overlay,
   body.dark-mode .about-page,
-  body.dark-mode .editors-overlay,
-  body.dark-mode .newsletter-overlay,
-  body.dark-mode .terms-overlay,
-  body.dark-mode .privacy-overlay {
-    background: #1a1a1a;
+  body.dark-mode .editors-overlay {
+    background: #0d0d0d;
     color: #e8e8e8;
   }
   
   body.dark-mode .to-top {
-    background: #2a2a2a;
-    color: #fff;
+    background: #1a1a1a;
+    color: #e8e8e8;
+    border-color: rgba(255,255,255,0.12);
   }
   
   body.dark-mode .post-content {
@@ -103,7 +106,9 @@
   body.dark-mode .post-content h2,
   body.dark-mode .post-content h3,
   body.dark-mode .post-content h4,
-  body.dark-mode .post-content li {
+  body.dark-mode .post-content li,
+  body.dark-mode .post-content span,
+  body.dark-mode .post-content div {
     color: #e8e8e8 !important;
   }
   
@@ -111,15 +116,74 @@
   body.dark-mode .category-sub,
   body.dark-mode .editor-bio,
   body.dark-mode .post-meta-info {
-    color: #d0d0d0 !important;
+    color: #e8e8e8 !important;
   }
   
   body.dark-mode .post-info h1 {
-    color: #fff !important;
+    color: #f5f5f5 !important;
   }
   
   body.dark-mode .hero-overlay {
     background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+  }
+  
+  body.dark-mode .nav-search {
+    background: #1a1a1a;
+  }
+  
+  body.dark-mode .nav-search input {
+    color: #e8e8e8;
+  }
+  
+  body.dark-mode .nav-footer-links a {
+    color: #e8e8e8;
+  }
+  
+  body.dark-mode .search-bar {
+    background: #1a1a1a;
+  }
+  
+  body.dark-mode .search-bar input[type="search"] {
+    color: #e8e8e8;
+  }
+  
+  body.dark-mode .pagination button {
+    background: #1a1a1a;
+    color: #e8e8e8;
+    border-color: rgba(255,255,255,0.12);
+  }
+  
+  body.dark-mode .editor-card {
+    background: #1a1a1a;
+    border-color: rgba(255,255,255,0.12);
+  }
+  
+  body.dark-mode .page-header {
+    border-bottom-color: rgba(255,255,255,0.08);
+  }
+  
+  body.dark-mode .post-header-bar {
+    background: rgba(20,20,20,0.95);
+    border-bottom-color: rgba(255,255,255,0.08);
+  }
+  
+  body.dark-mode .post-header-bar .logo {
+    color: #e8e8e8 !important;
+  }
+  
+  body.dark-mode .post-header-bar .btn {
+    color: #e8e8e8 !important;
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.12);
+  }
+  
+  body.dark-mode .hero-author,
+  body.dark-mode .hero-date {
+    color: #e8e8e8 !important;
+  }
+  
+  body.dark-mode .date {
+    color: #e8e8e8 !important;
   }
 
   a { color: inherit; text-decoration: none; }
@@ -136,8 +200,8 @@
     left: 0;
     width: 0%;
     height: 3px;
-    background: linear-gradient(90deg, #2e8b57, #1f7a6f);
-    z-index: 9999;
+    background: linear-gradient(90deg, #ff6b35, #ff8c5a);
+    z-index: 10000;
     transition: width 0.1s ease;
     display: none;
   }
@@ -155,7 +219,7 @@
     background: rgba(255,255,255,0.95);
     border-bottom: 1px solid rgba(0,0,0,0.06);
     backdrop-filter: blur(10px);
-    transition: transform 0.3s ease, opacity 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
   }
   
   header.header.hide {
@@ -173,24 +237,10 @@
     border-bottom: 1px solid rgba(0,0,0,0.06);
     backdrop-filter: blur(10px);
     transform: translateY(-100%);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     height: 72px;
     display: flex;
     align-items: center;
-  }
-  
-  body.dark-mode .post-header-bar {
-    background: rgba(42,42,42,0.95);
-    border-bottom-color: rgba(255,255,255,0.1);
-  }
-  
-  body.dark-mode .post-header-bar .logo {
-    color: #fff !important;
-  }
-  
-  body.dark-mode .post-header-bar .btn {
-    color: #fff !important;
-    background: rgba(255,255,255,0.1);
   }
   
   .post-header-bar.show {
@@ -220,13 +270,29 @@
     transition: opacity 0.2s ease;
   }
   body.dark-mode .brand .logo {
-    color: #fff;
+    color: #e8e8e8;
   }
   .brand .logo:hover {
     opacity: 0.7;
   }
-  .brand .logo small { font-size:11px; color:#777; font-weight:800; display:block; line-height:1; }
-  body.dark-mode .brand .logo small { color: #aaa; }
+  .brand .logo .logo-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .brand .logo .logo-text .main-text {
+    line-height: 1;
+    letter-spacing: 1px;
+  }
+  .brand .logo small { 
+    font-size:11px; 
+    color:#777; 
+    font-weight:800; 
+    display:block; 
+    line-height:1;
+    letter-spacing: 1px;
+  }
+  body.dark-mode .brand .logo small { color: #e8e8e8; }
   .header-actions { display:flex; gap:8px; align-items:center; }
 
   .btn {
@@ -237,7 +303,8 @@
     font-weight:700;
     font-size:14px;
     cursor:pointer;
-    transition: all 0.15s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #111;
   }
   .btn:hover {
     transform: translateY(-2px);
@@ -245,7 +312,7 @@
   }
   .btn:active { transform: translateY(1px); }
   .btn.primary {
-    background: linear-gradient(135deg,#2e8b57,#1f7a6f);
+    background: linear-gradient(135deg,#ff6b35,#ff8c5a);
     color:#fff;
     border:none;
   }
@@ -270,7 +337,7 @@
     z-index: 2000;
     padding: 28px;
     transform: translateX(100%);
-    transition: transform 0.3s ease;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     overflow-y: auto;
     box-shadow: -4px 0 20px rgba(0,0,0,0.1);
   }
@@ -300,11 +367,14 @@
     transition: all 0.3s ease;
   }
   body.dark-mode .nav-close {
-    color: #fff;
+    color: #e8e8e8;
   }
   .nav-close:hover {
     background: rgba(0,0,0,0.05);
     transform: rotate(90deg);
+  }
+  body.dark-mode .nav-close:hover {
+    background: rgba(255,255,255,0.1);
   }
   .nav-search {
     display: flex;
@@ -315,9 +385,6 @@
     padding: 8px 16px;
     margin-bottom: 20px;
   }
-  body.dark-mode .nav-search {
-    background: #2a2a2a;
-  }
   .nav-search input {
     flex: 1;
     border: none;
@@ -325,9 +392,6 @@
     background: transparent;
     font-size: 16px;
     color: #111;
-  }
-  body.dark-mode .nav-search input {
-    color: #e8e8e8;
   }
   .nav-list {
     list-style: none;
@@ -342,12 +406,9 @@
     transition: all 0.3s ease;
     border-bottom: 1px solid rgba(0,0,0,0.06);
   }
-  body.dark-mode .nav-list li {
-    border-bottom-color: rgba(255,255,255,0.1);
-  }
   .nav-list li:hover {
     transform: translateX(10px);
-    color: #2e8b57;
+    color: #ff6b35;
   }
   .nav-footer-links {
     display: flex;
@@ -362,10 +423,10 @@
     transition: all 0.3s ease;
   }
   body.dark-mode .nav-footer-links a {
-    color: #aaa;
+    color: #e8e8e8;
   }
   .nav-footer-links a:hover {
-    color: #2e8b57;
+    color: #ff6b35;
     transform: translateX(5px);
   }
 
@@ -395,7 +456,7 @@
     overflow: hidden;
     cursor: pointer;
     min-height: 500px;
-    transition: all 0.15s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .magazine-large:hover {
@@ -441,7 +502,7 @@
     overflow: hidden;
     border: 1px solid rgba(0,0,0,0.06);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
   }
@@ -498,6 +559,9 @@
     color: #666;
     margin-top: auto;
   }
+  body.dark-mode .meta {
+    color: #e8e8e8;
+  }
   .author-name {
     font-weight: 700;
   }
@@ -526,7 +590,7 @@
   .cat-life{ background:#ffa500; color:#000; }
   .cat-editors-pick{ background:#ff1493; }
 
-  .category-overlay, .post-overlay, .search-overlay, .about-page, .editors-overlay, .newsletter-overlay, .terms-overlay, .privacy-overlay {
+  .category-overlay, .post-overlay, .search-overlay, .about-page, .editors-overlay {
     display:none;
     position:fixed;
     inset:0;
@@ -534,15 +598,15 @@
     z-index:1800;
     overflow:auto;
     padding:28px;
-    animation: overlayIn 0.15s ease;
+    animation: overlayIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .post-overlay {
     z-index:1900;
     padding: 0;
     touch-action: pan-y;
   }
-  .category-overlay.active, .post-overlay.active, .search-overlay.active, .about-page.active, .editors-overlay.active, .newsletter-overlay.active, .terms-overlay.active, .privacy-overlay.active { display:block; }
-  @keyframes overlayIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+  .category-overlay.active, .post-overlay.active, .search-overlay.active, .about-page.active, .editors-overlay.active { display:block; }
+  @keyframes overlayIn { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
   @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   @keyframes slideIn {
     from {
@@ -568,13 +632,9 @@
     border-bottom:1px solid rgba(0,0,0,0.06); 
     padding-bottom:12px; 
   }
-  body.dark-mode .category-top {
-    border-bottom-color: rgba(255,255,255,0.1);
-  }
   .category-title { font-size:24px; font-weight:900; color:#111; }
-  body.dark-mode .category-title { color: #fff; }
   .category-sub { font-size:13px; color:#666; margin-top:4px; }
-  body.dark-mode .category-sub { color: #d0d0d0; }
+  body.dark-mode .category-sub { color: #e8e8e8; }
   .category-grid { 
     margin-top:18px; 
     display:grid; 
@@ -654,6 +714,9 @@
     font-size: 16px;
     margin-bottom: 32px;
   }
+  body.dark-mode .post-meta-info {
+    color: #e8e8e8;
+  }
   
   .post-meta-info .meta-row {
     display: flex;
@@ -724,6 +787,10 @@
     color: #333;
   }
   
+  body.dark-mode .post-content p {
+    color: #e8e8e8;
+  }
+  
   .post-content h2 {
     margin: 2.5em 0 1em;
     font-size: 28px;
@@ -779,9 +846,6 @@
     padding:6px 10px; 
     gap:8px; 
   }
-  body.dark-mode .search-bar {
-    background: #2a2a2a;
-  }
   .search-bar input[type="search"] { 
     flex:1; 
     border:none; 
@@ -791,9 +855,6 @@
     border-radius:50px;
     background: transparent;
     color: #111;
-  }
-  body.dark-mode .search-bar input[type="search"] {
-    color: #e8e8e8;
   }
   .search-bar .close-btn { 
     background:none; 
@@ -810,11 +871,14 @@
     transition: all 0.3s ease;
   }
   body.dark-mode .search-bar .close-btn {
-    color: #aaa;
+    color: #e8e8e8;
   }
   .search-bar .close-btn:hover {
     background: rgba(0,0,0,0.05);
     transform: rotate(90deg);
+  }
+  body.dark-mode .search-bar .close-btn:hover {
+    background: rgba(255,255,255,0.1);
   }
 
   .pagination {
@@ -832,21 +896,16 @@
     border-radius: 8px;
     cursor: pointer;
     font-weight: 700;
-    transition: all 0.3s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid rgba(0,0,0,0.08);
   }
-  body.dark-mode .pagination button {
-    background: #2a2a2a;
-    color: #e8e8e8;
-    border-color: rgba(255,255,255,0.1);
-  }
   .pagination button:hover:not(:disabled) {
-    background: #2e8b57;
+    background: #ff6b35;
     color: #fff;
     transform: translateY(-2px);
   }
   .pagination button.active {
-    background: #2e8b57;
+    background: #ff6b35;
     color: #fff;
   }
   .pagination button:disabled {
@@ -875,11 +934,6 @@
     border: 1px solid rgba(0,0,0,0.06);
   }
   
-  body.dark-mode .editor-card {
-    background: #2a2a2a;
-    border-color: rgba(255,255,255,0.1);
-  }
-  
   .editor-card:hover {
     transform: translateY(-6px);
     box-shadow: 0 10px 24px rgba(0,0,0,0.12);
@@ -891,7 +945,7 @@
     border-radius: 50%;
     object-fit: cover;
     margin: 0 auto 16px;
-    border: 3px solid #2e8b57;
+    border: 3px solid #ff6b35;
   }
   
   .editor-name {
@@ -905,9 +959,8 @@
     color: #666;
     line-height: 1.5;
   }
-  
   body.dark-mode .editor-bio {
-    color: #d0d0d0;
+    color: #e8e8e8;
   }
 
   .to-top {
@@ -974,27 +1027,101 @@
   }
   
   .footer-links a:hover {
-    color: #2e8b57;
+    color: #ff6b35;
   }
   
-  .theme-toggle button {
-    padding: 8px 10px;
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 10px;
-    color: #fff;
-    font-weight: 700;
+  .theme-toggle {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .theme-toggle-label {
+    font-size: 13px;
+    color: #aaa;
+    font-weight: 600;
+  }
+  
+  .theme-switch {
+    position: relative;
+    width: 140px;
+    height: 48px;
+    background: linear-gradient(145deg, #e0e0e0, #f5f5f5);
+    border-radius: 24px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 18px;
+    box-shadow: 
+      inset 2px 2px 5px rgba(0,0,0,0.2),
+      inset -2px -2px 5px rgba(255,255,255,0.7);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
   }
   
-  .theme-toggle button:hover {
-    background: rgba(255,255,255,0.2);
-    transform: translateY(-2px);
+  body.dark-mode .theme-switch {
+    background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+    box-shadow: 
+      inset 2px 2px 5px rgba(0,0,0,0.5),
+      inset -2px -2px 5px rgba(255,255,255,0.05);
+  }
+  
+  .theme-switch-text {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    pointer-events: none;
+  }
+  
+  .theme-switch-text .light-text {
+    color: #666;
+    text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+    transition: all 0.4s ease;
+  }
+  
+  .theme-switch-text .dark-text {
+    color: #333;
+    text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+    transition: all 0.4s ease;
+  }
+  
+  body.dark-mode .theme-switch-text .light-text {
+    color: #555;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  }
+  
+  body.dark-mode .theme-switch-text .dark-text {
+    color: #aaa;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  }
+  
+  .theme-switch-slider {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 62px;
+    height: 40px;
+    background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    border-radius: 20px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+      2px 2px 5px rgba(0,0,0,0.2),
+      -1px -1px 3px rgba(255,255,255,0.7);
+  }
+  
+  body.dark-mode .theme-switch-slider {
+    left: 74px;
+    background: linear-gradient(145deg, #333, #2a2a2a);
+    box-shadow: 
+      2px 2px 5px rgba(0,0,0,0.5),
+      -1px -1px 3px rgba(255,255,255,0.05);
   }
 
-  .about-page, .editors-overlay, .newsletter-overlay, .terms-overlay, .privacy-overlay {
+  .about-page, .editors-overlay {
     padding: 40px 20px;
   }
   
@@ -1009,10 +1136,6 @@
     margin-bottom: 32px;
     border-bottom: 1px solid rgba(0,0,0,0.06);
     padding-bottom: 16px;
-  }
-  
-  body.dark-mode .page-header {
-    border-bottom-color: rgba(255,255,255,0.1);
   }
   
   .page-header h2 {
@@ -1072,7 +1195,7 @@
     }
     
     .mobile-small-grid .magazine-small-grid {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 12px;
     }
     
@@ -1081,21 +1204,21 @@
     }
     
     .mobile-grid .card .thumb {
-      height: 140px;
+      height: 180px;
     }
     
     .mobile-grid .card h3 {
-      font-size: 13px;
-      line-height: 1.3;
+      font-size: 15px;
+      line-height: 1.4;
       margin-bottom: 8px;
     }
     
     .mobile-grid .card-body {
-      padding: 12px;
+      padding: 14px;
     }
     
     .mobile-grid .card .meta {
-      font-size: 11px;
+      font-size: 12px;
     }
     
     .hero-title {
@@ -1108,6 +1231,20 @@
     
     .card-body {
       padding: 14px;
+    }
+    
+    .theme-switch {
+      width: 120px;
+      height: 42px;
+    }
+    
+    .theme-switch-slider {
+      width: 54px;
+      height: 34px;
+    }
+    
+    body.dark-mode .theme-switch-slider {
+      left: 62px;
     }
   }
   
@@ -1131,8 +1268,8 @@
       <div class="brand">
         <div class="logo" id="logoBtn" onclick="goToHome()">
           <img src="logo.png" alt="IMPACT logo" style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
-          <div>
-            <div style="line-height:1">IMPACT</div>
+          <div class="logo-text">
+            <div class="main-text">IMPACT</div>
             <small>MAKE A IMPACT</small>
           </div>
         </div>
@@ -1150,8 +1287,8 @@
       <div class="brand">
         <div class="logo" onclick="goToHome()">
           <img src="logo.png" alt="IMPACT logo" style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
-          <div>
-            <div style="line-height:1">IMPACT</div>
+          <div class="logo-text">
+            <div class="main-text">IMPACT</div>
             <small>MAKE A IMPACT</small>
           </div>
         </div>
@@ -1248,7 +1385,7 @@
     </div>
   </section>
 
-<section class="about-page" id="aboutPage">
+  <section class="about-page" id="aboutPage">
     <div class="wrap">
       <div class="page-header">
         <h2>ABOUT</h2>
@@ -1261,15 +1398,12 @@
         
         <p style="margin-top:24px"><strong>made by KAIST IP-CEO</strong></p>
         
-        <!-- Roadmap Section -->
         <div style="margin-top:80px;margin-bottom:80px;border-top:1px solid #e0e0e0;padding-top:60px">
           <h3 style="font-size:20px;margin-bottom:8px;color:#333;font-weight:600">Our Journey</h3>
           <p style="font-size:14px;margin-bottom:48px;color:#999">2025-2029 성장 로드맵</p>
           
           <div style="position:relative">
-            <!-- Timeline Container -->
             <div class="roadmap-timeline">
-              <!-- 2025 -->
               <div class="roadmap-item" style="opacity:0;transform:translateX(-30px);animation:slideIn 0.6s ease forwards;animation-delay:0.2s">
                 <div style="display:flex;align-items:center;margin-bottom:32px">
                   <div style="min-width:80px">
@@ -1282,7 +1416,6 @@
                 </div>
               </div>
               
-              <!-- 2026 -->
               <div class="roadmap-item" style="opacity:0;transform:translateX(-30px);animation:slideIn 0.6s ease forwards;animation-delay:0.4s">
                 <div style="display:flex;align-items:center;margin-bottom:32px">
                   <div style="min-width:80px">
@@ -1295,7 +1428,6 @@
                 </div>
               </div>
               
-              <!-- 2027 -->
               <div class="roadmap-item" style="opacity:0;transform:translateX(-30px);animation:slideIn 0.6s ease forwards;animation-delay:0.6s">
                 <div style="display:flex;align-items:center;margin-bottom:32px">
                   <div style="min-width:80px">
@@ -1308,7 +1440,6 @@
                 </div>
               </div>
               
-              <!-- 2028 -->
               <div class="roadmap-item" style="opacity:0;transform:translateX(-30px);animation:slideIn 0.6s ease forwards;animation-delay:0.8s">
                 <div style="display:flex;align-items:center;margin-bottom:32px">
                   <div style="min-width:80px">
@@ -1321,7 +1452,6 @@
                 </div>
               </div>
               
-              <!-- 2029 -->
               <div class="roadmap-item" style="opacity:0;transform:translateX(-30px);animation:slideIn 0.6s ease forwards;animation-delay:1s">
                 <div style="display:flex;align-items:center;margin-bottom:32px">
                   <div style="min-width:80px">
@@ -1369,14 +1499,21 @@
       <div class="footer-links">
         <a href="javascript:void(0)" onclick="router.openAbout()">ABOUT</a>
         <a href="javascript:void(0)" onclick="router.openEditors()">EDITORS</a>
-        <a href="javascript:void(0)" onclick="window.open('newsletter.html', '_blank')">NEWSLETTER</a>
+        <a href="javascript:void(0)" onclick="window.open('https://impactceo.art/newsletter', '_blank')">NEWSLETTER</a>
         <a href="https://www.instagram.com/ceo_impact_official" target="_blank" rel="noopener">INSTAGRAM</a>
       </div>
 
       <div class="footer-right">
         <div style="font-weight:800;color:#fff;margin-bottom:16px">IMPACT CEO. ALL RIGHTS RESERVED.</div>
         <div class="theme-toggle">
-          <button onclick="toggleTheme()" title="테마 전환">🌓</button>
+          <div class="theme-toggle-label">THEME</div>
+          <div class="theme-switch" onclick="toggleTheme()">
+            <div class="theme-switch-text">
+              <span class="light-text">LIGHT</span>
+              <span class="dark-text">DARK</span>
+            </div>
+            <div class="theme-switch-slider"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1384,12 +1521,12 @@
 
   <template id="cardTpl">
     <article class="card">
-      <div class="thumb"><img src="/placeholder.svg" alt=""></div>
+      <div class="thumb"><img src="" alt=""></div>
       <div class="card-body">
         <div class="cat-row"></div>
         <h3 class="title"></h3>
         <div class="meta">
-          <img class="author-avatar" src="/placeholder.svg" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+          <img class="author-avatar" src="" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
           <div>
             <div class="author-name"></div>
             <div class="date" style="font-size:12px;color:#777"></div>
@@ -1401,7 +1538,7 @@
 
   <template id="editorTpl">
     <div class="editor-card">
-      <img class="editor-avatar" src="/placeholder.svg" alt="">
+      <img class="editor-avatar" src="" alt="">
       <div class="editor-name"></div>
       <div class="editor-bio"></div>
     </div>
@@ -1865,8 +2002,6 @@ async function loadHomeChunk(page = 1) {
 
   state.homeLoadPromise = new Promise(async (resolve, reject) => {
     try {
-      const cacheKey = `home_page_${page}`;
-      
       const res = await fetch(api(`posts?per_page=${HOME_PER_PAGE}&page=${page}`));
       if(!res.ok) throw new Error('Failed to load');
       
@@ -1992,6 +2127,11 @@ async function loadCategory(slug, page = 1) {
   
   const overlay = document.getElementById('categoryOverlay');
   overlay.classList.add('active');
+  
+  if(window.innerWidth <= 680) {
+    document.body.style.overflow = 'hidden';
+  }
+  
   document.getElementById('categoryOverlayTitle').textContent = slug.toUpperCase();
   
   const newUrl = `${window.location.origin}${window.location.pathname}?category=${slug}`;
@@ -2177,7 +2317,7 @@ async function openPostOverlayById(id, updateURL = true) {
         width: 40px; 
         height: 40px; 
         border: 3px solid #f3f3f3; 
-        border-top: 3px solid #007bff; 
+        border-top: 3px solid #ff6b35; 
         border-radius: 50%; 
         animation: spin 1s linear infinite;
       "></div>
@@ -2318,8 +2458,18 @@ const ui = {
     const nav = document.getElementById('navOverlay');
     if(forceClose) {
       nav.classList.remove('active');
+      if(window.innerWidth <= 680) {
+        document.body.style.overflow = '';
+      }
     } else {
       nav.classList.toggle('active');
+      if(window.innerWidth <= 680) {
+        if(nav.classList.contains('active')) {
+          document.body.style.overflow = 'hidden';
+        } else {
+          document.body.style.overflow = '';
+        }
+      }
     }
   }
 };
@@ -2333,10 +2483,16 @@ const router = {
     }
   },
   closeCategory: () => {
-    window.location.href = `${window.location.origin}${window.location.pathname}`;
+    document.getElementById('categoryOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+    const newUrl = `${window.location.origin}${window.location.pathname}`;
+    history.pushState({page:'home'}, '', newUrl);
   },
   openEditors: (updateURL = true) => {
     document.getElementById('editorsOverlay').classList.add('active');
+    if(window.innerWidth <= 680) {
+      document.body.style.overflow = 'hidden';
+    }
     loadEditors();
     if(updateURL) {
       const newUrl = `${window.location.origin}${window.location.pathname}?page=editors`;
@@ -2344,18 +2500,26 @@ const router = {
     }
   },
   closeEditors: () => {
-    window.location.href = `${window.location.origin}${window.location.pathname}`;
+    document.getElementById('editorsOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+    const newUrl = `${window.location.origin}${window.location.pathname}`;
+    history.pushState({page:'home'}, '', newUrl);
   },
   openAbout: (updateURL = true) => {
     document.getElementById('aboutPage').classList.add('active');
-    document.body.style.overflow = 'hidden';
+    if(window.innerWidth <= 680) {
+      document.body.style.overflow = 'hidden';
+    }
     if(updateURL) {
       const newUrl = `${window.location.origin}${window.location.pathname}?page=about`;
       history.pushState({page:'about'}, '', newUrl);
     }
   },
   closeAbout: () => {
-    window.location.href = `${window.location.origin}${window.location.pathname}`;
+    document.getElementById('aboutPage').classList.remove('active');
+    document.body.style.overflow = '';
+    const newUrl = `${window.location.origin}${window.location.pathname}`;
+    history.pushState({page:'home'}, '', newUrl);
   },
   closePost: () => {
     const overlay = document.getElementById('postOverlay');
@@ -2369,20 +2533,54 @@ const router = {
       const prev = currentState.previous;
       
       if(prev.page === 'category' && prev.category) {
-        window.location.href = `${window.location.origin}${window.location.pathname}?category=${prev.category}`;
+        const newUrl = `${window.location.origin}${window.location.pathname}?category=${prev.category}`;
+        history.pushState({page: 'category', slug: prev.category}, '', newUrl);
+        router.openCategory(prev.category, false);
       } else if(prev.page === 'editor' && prev.editor) {
-        window.location.href = `${window.location.origin}${window.location.pathname}?editor=${prev.editor}`;
+        const newUrl = `${window.location.origin}${window.location.pathname}?editor=${prev.editor}`;
+        history.pushState({page: 'editor', id: prev.editor}, '', newUrl);
+        router.openEditors(false);
+        setTimeout(async () => {
+          if(state.editorsList.length === 0) {
+            await loadEditors();
+          }
+          const editor = state.editorsList.find(e => e.id === parseInt(prev.editor));
+          if(editor) {
+            router.openEditorProfile(editor, false);
+          }
+        }, 100);
       } else if(prev.page === 'search') {
-        window.location.href = `${window.location.origin}${window.location.pathname}?page=search`;
+        const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
+        history.pushState({page: 'search'}, '', newUrl);
+        openNavlessSearch(false);
+        if(prev.searchTerm) {
+          setTimeout(() => {
+            const searchInput = document.getElementById('searchInput');
+            if(searchInput) {
+              searchInput.value = prev.searchTerm;
+              performSearch(prev.searchTerm, 'fullSearch');
+            }
+          }, 100);
+        }
       } else if(prev.page === 'about') {
-        window.location.href = `${window.location.origin}${window.location.pathname}?page=about`;
+        const newUrl = `${window.location.origin}${window.location.pathname}?page=about`;
+        history.pushState({page: 'about'}, '', newUrl);
+        router.openAbout(false);
       } else if(prev.page === 'editors') {
-        window.location.href = `${window.location.origin}${window.location.pathname}?page=editors`;
+        const newUrl = `${window.location.origin}${window.location.pathname}?page=editors`;
+        history.pushState({page: 'editors'}, '', newUrl);
+        router.openEditors(false);
       } else {
-        window.location.href = `${window.location.origin}${window.location.pathname}`;
+        const newUrl = `${window.location.origin}${window.location.pathname}`;
+        history.pushState({page: 'home'}, '', newUrl);
+        if(prev.scrollPosition) {
+          setTimeout(() => {
+            window.scrollTo(0, prev.scrollPosition);
+          }, 100);
+        }
       }
     } else {
-      window.location.href = `${window.location.origin}${window.location.pathname}`;
+      history.back();
     }
   },
   openEditorProfile: async (user, updateURL = true) => {
@@ -2421,6 +2619,9 @@ const router = {
 
 function openNavlessSearch(updateURL = true) {
   document.getElementById('searchOverlay').classList.add('active');
+  if(window.innerWidth <= 680) {
+    document.body.style.overflow = 'hidden';
+  }
   document.getElementById('searchInput').focus();
   if(updateURL) {
     const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
@@ -2429,7 +2630,12 @@ function openNavlessSearch(updateURL = true) {
 }
 
 function closeSearch() {
-  window.location.href = `${window.location.origin}${window.location.pathname}`;
+  document.getElementById('searchOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+  document.getElementById('searchResults').innerHTML = '';
+  document.getElementById('searchInput').value = '';
+  const newUrl = `${window.location.origin}${window.location.pathname}`;
+  history.pushState({page:'home'}, '', newUrl);
 }
 
 document.getElementById('globalNavSearch').addEventListener('keypress', (e) => {
@@ -2493,7 +2699,9 @@ async function performSearch(query, mode) {
 function openSearchWithQuery(query) {
   const overlay = document.getElementById('searchOverlay');
   overlay.classList.add('active');
-  document.body.style.overflow = 'hidden';
+  if(window.innerWidth <= 680) {
+    document.body.style.overflow = 'hidden';
+  }
   
   const searchInput = document.getElementById('searchInput');
   searchInput.value = query;
