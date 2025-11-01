@@ -45,10 +45,6 @@
     overscroll-behavior-y: contain;
     -webkit-tap-highlight-color: transparent;
     transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
   }
   
   body.dark-mode {
@@ -97,7 +93,7 @@
   
   body.dark-mode .to-top {
     background: #1a1a1a;
-    color: #000;
+    color: #e8e8e8;
     border-color: rgba(255,255,255,0.12);
   }
   
@@ -187,37 +183,11 @@
   }
   
   body.dark-mode .date {
-    color: #b8b8b8 !important;
-  }
-  
-  body.dark-mode .about-content p {
     color: #e8e8e8 !important;
-  }
-  
-  body.dark-mode .related-posts-section h3 {
-    color: #f5f5f5 !important;
-  }
-  
-  body.dark-mode .related-post-item h4 {
-    color: #e8e8e8 !important;
-  }
-  
-  body.dark-mode .related-post-item .date {
-    color: #999 !important;
   }
 
   a { color: inherit; text-decoration: none; }
-  img { 
-    display: block; 
-    max-width: 100%; 
-    height: auto;
-    pointer-events: none;
-    -webkit-user-drag: none;
-    -khtml-user-drag: none;
-    -moz-user-drag: none;
-    -o-user-drag: none;
-    user-drag: none;
-  }
+  img { display: block; max-width: 100%; height: auto; }
 
   input[type="search"]::-webkit-search-cancel-button { cursor: pointer; }
 
@@ -2951,23 +2921,6 @@ document.addEventListener('DOMContentLoaded', () => {
   } else {
     loadingEl.textContent = '';
   }
-  
-  const savedDarkMode = localStorage.getItem('darkMode');
-  if(savedDarkMode === 'true') {
-    state.isDarkMode = true;
-    document.body.classList.add('dark-mode');
-    document.getElementById('themeText').textContent = '라이트 모드';
-  }
-  
-  setupScrollToTopButtons();
-  preventCopyPaste();
-  
-  document.querySelectorAll('a[href^="mailto:"]').forEach(link => {
-    link.addEventListener('click', function(e) {
-      e.preventDefault();
-      window.location.href = this.href;
-    });
-  });
 });
 
 let resizeTimeout;
@@ -2985,94 +2938,9 @@ window.addEventListener('resize', () => {
   }, 300);
 });
 
-
-function openImageModal(src) {
-  const modal = document.getElementById('imageModal');
-  const modalImg = document.getElementById('modalImage');
-  modal.classList.add('active');
-  modalImg.src = src;
-  document.body.style.overflow = 'hidden';
-}
-
-function closeImageModal() {
-  const modal = document.getElementById('imageModal');
-  modal.classList.remove('active');
-  document.body.style.overflow = '';
-}
-
-function scrollToTop(containerId) {
-  const container = document.getElementById(containerId);
-  if(container) {
-    container.scrollTo({top: 0, behavior: 'smooth'});
-  }
-}
-
-function setupScrollToTopButtons() {
-  const containers = [
-    { id: 'mainContent', button: 'homeToTop' },
-    { id: 'categoryOverlay', button: 'categoryScrollTop' },
-    { id: 'postOverlay', button: 'postScrollTop' },
-    { id: 'searchOverlay', button: 'searchScrollTop' },
-    { id: 'aboutPage', button: 'aboutScrollTop' },
-    { id: 'editorsOverlay', button: 'editorsScrollTop' }
-  ];
-  
-  containers.forEach(({ id, button }) => {
-    const container = document.getElementById(id);
-    const btn = document.getElementById(button);
-    
-    if(container && btn) {
-      container.addEventListener('scroll', () => {
-        if(container.scrollTop > 300) {
-          btn.classList.add('show');
-        } else {
-          btn.classList.remove('show');
-        }
-      });
-    }
-  });
-  
-  window.addEventListener('scroll', () => {
-    const btn = document.getElementById('homeToTop');
-    if(window.scrollY > 300) {
-      btn.classList.add('show');
-    } else {
-      btn.classList.remove('show');
-    }
-  });
-}
-
-function preventCopyPaste() {
-  document.addEventListener('copy', function(e) {
-    e.preventDefault();
-    return false;
-  });
-  
-  document.addEventListener('cut', function(e) {
-    e.preventDefault();
-    return false;
-  });
-  
-  document.addEventListener('contextmenu', function(e) {
-    if(e.target.tagName === 'IMG') {
-      e.preventDefault();
-      return false;
-    }
-  });
-  
-  document.addEventListener('selectstart', function(e) {
-    if(e.target.closest('.post-content')) {
-      e.preventDefault();
-      return false;
-    }
-  });
-}
-
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape') {
-    if(document.getElementById('imageModal').classList.contains('active')) {
-      closeImageModal();
-    } else if(document.getElementById('postOverlay').classList.contains('active')) {
+    if(document.getElementById('postOverlay').classList.contains('active')) {
       router.closePost();
     } else if(document.getElementById('searchOverlay').classList.contains('active')) {
       closeSearch();
