@@ -49,7 +49,7 @@
   
   body.dark-mode {
     background: #1a1a1a;
-    color: #ffffff;
+    color: #e8e8e8;
   }
   
   body.dark-mode .header {
@@ -61,7 +61,7 @@
   body.dark-mode .btn {
     background: #2a2a2a;
     border-color: rgba(255,255,255,0.1);
-    color: #ffffff;
+    color: #e8e8e8;
   }
   
   body.dark-mode .card h3,
@@ -74,7 +74,7 @@
   }
   
   body.dark-mode .nav-list li {
-    color: #ffffff;
+    color: #e8e8e8;
   }
   
   body.dark-mode .category-overlay,
@@ -86,7 +86,7 @@
   body.dark-mode .terms-overlay,
   body.dark-mode .privacy-overlay {
     background: #1a1a1a;
-    color: #ffffff;
+    color: #e8e8e8;
   }
   
   body.dark-mode .to-top {
@@ -95,7 +95,7 @@
   }
   
   body.dark-mode .post-content {
-    color: #ffffff;
+    color: #e8e8e8;
   }
   
   body.dark-mode .post-content p,
@@ -104,14 +104,14 @@
   body.dark-mode .post-content h3,
   body.dark-mode .post-content h4,
   body.dark-mode .post-content li {
-    color: #ffffff !important;
+    color: #e8e8e8 !important;
   }
   
   body.dark-mode .meta,
   body.dark-mode .category-sub,
   body.dark-mode .editor-bio,
   body.dark-mode .post-meta-info {
-    color: #ffffff !important;
+    color: #d0d0d0 !important;
   }
   
   body.dark-mode .post-info h1 {
@@ -327,7 +327,7 @@
     color: #111;
   }
   body.dark-mode .nav-search input {
-    color: #e0e0e0;
+    color: #e8e8e8;
   }
   .nav-list {
     list-style: none;
@@ -574,7 +574,7 @@
   .category-title { font-size:24px; font-weight:900; color:#111; }
   body.dark-mode .category-title { color: #fff; }
   .category-sub { font-size:13px; color:#666; margin-top:4px; }
-  body.dark-mode .category-sub { color: #aaa; }
+  body.dark-mode .category-sub { color: #d0d0d0; }
   .category-grid { 
     margin-top:18px; 
     display:grid; 
@@ -793,7 +793,7 @@
     color: #111;
   }
   body.dark-mode .search-bar input[type="search"] {
-    color: #e0e0e0;
+    color: #e8e8e8;
   }
   .search-bar .close-btn { 
     background:none; 
@@ -837,7 +837,7 @@
   }
   body.dark-mode .pagination button {
     background: #2a2a2a;
-    color: #e0e0e0;
+    color: #e8e8e8;
     border-color: rgba(255,255,255,0.1);
   }
   .pagination button:hover:not(:disabled) {
@@ -907,7 +907,7 @@
   }
   
   body.dark-mode .editor-bio {
-    color: #aaa;
+    color: #d0d0d0;
   }
 
   .to-top {
@@ -978,7 +978,7 @@
   }
   
   .theme-toggle button {
-    padding: 10px 20px;
+    padding: 8px 10px;
     background: rgba(255,255,255,0.1);
     border: 1px solid rgba(255,255,255,0.2);
     border-radius: 10px;
@@ -986,6 +986,7 @@
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
+    font-size: 18px;
   }
   
   .theme-toggle button:hover {
@@ -1375,7 +1376,7 @@
       <div class="footer-right">
         <div style="font-weight:800;color:#fff;margin-bottom:16px">IMPACT CEO. ALL RIGHTS RESERVED.</div>
         <div class="theme-toggle">
-          <button onclick="toggleTheme()">🌓 테마 변경</button>
+          <button onclick="toggleTheme()" title="테마 전환">🌓</button>
         </div>
       </div>
     </div>
@@ -1383,12 +1384,12 @@
 
   <template id="cardTpl">
     <article class="card">
-      <div class="thumb"><img src="" alt=""></div>
+      <div class="thumb"><img src="/placeholder.svg" alt=""></div>
       <div class="card-body">
         <div class="cat-row"></div>
         <h3 class="title"></h3>
         <div class="meta">
-          <img class="author-avatar" src="" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+          <img class="author-avatar" src="/placeholder.svg" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
           <div>
             <div class="author-name"></div>
             <div class="date" style="font-size:12px;color:#777"></div>
@@ -1400,7 +1401,7 @@
 
   <template id="editorTpl">
     <div class="editor-card">
-      <img class="editor-avatar" src="" alt="">
+      <img class="editor-avatar" src="/placeholder.svg" alt="">
       <div class="editor-name"></div>
       <div class="editor-bio"></div>
     </div>
@@ -2332,9 +2333,7 @@ const router = {
     }
   },
   closeCategory: () => {
-    document.getElementById('categoryOverlay').classList.remove('active');
-    const newUrl = `${window.location.origin}${window.location.pathname}`;
-    history.pushState({page:'home'}, '', newUrl);
+    window.location.href = `${window.location.origin}${window.location.pathname}`;
   },
   openEditors: (updateURL = true) => {
     document.getElementById('editorsOverlay').classList.add('active');
@@ -2345,10 +2344,7 @@ const router = {
     }
   },
   closeEditors: () => {
-    document.getElementById('editorsOverlay').classList.remove('active');
-    document.body.style.overflow = '';
-    const newUrl = `${window.location.origin}${window.location.pathname}`;
-    history.pushState({page:'home'}, '', newUrl);
+    window.location.href = `${window.location.origin}${window.location.pathname}`;
   },
   openAbout: (updateURL = true) => {
     document.getElementById('aboutPage').classList.add('active');
@@ -2359,10 +2355,7 @@ const router = {
     }
   },
   closeAbout: () => {
-    document.getElementById('aboutPage').classList.remove('active');
-    document.body.style.overflow = '';
-    const newUrl = `${window.location.origin}${window.location.pathname}`;
-    history.pushState({page:'home'}, '', newUrl);
+    window.location.href = `${window.location.origin}${window.location.pathname}`;
   },
   closePost: () => {
     const overlay = document.getElementById('postOverlay');
@@ -2376,54 +2369,20 @@ const router = {
       const prev = currentState.previous;
       
       if(prev.page === 'category' && prev.category) {
-        const newUrl = `${window.location.origin}${window.location.pathname}?category=${prev.category}`;
-        history.pushState({page: 'category', slug: prev.category}, '', newUrl);
-        router.openCategory(prev.category, false);
+        window.location.href = `${window.location.origin}${window.location.pathname}?category=${prev.category}`;
       } else if(prev.page === 'editor' && prev.editor) {
-        const newUrl = `${window.location.origin}${window.location.pathname}?editor=${prev.editor}`;
-        history.pushState({page: 'editor', id: prev.editor}, '', newUrl);
-        router.openEditors(false);
-        setTimeout(async () => {
-          if(state.editorsList.length === 0) {
-            await loadEditors();
-          }
-          const editor = state.editorsList.find(e => e.id === parseInt(prev.editor));
-          if(editor) {
-            router.openEditorProfile(editor, false);
-          }
-        }, 100);
+        window.location.href = `${window.location.origin}${window.location.pathname}?editor=${prev.editor}`;
       } else if(prev.page === 'search') {
-        const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
-        history.pushState({page: 'search'}, '', newUrl);
-        openNavlessSearch(false);
-        if(prev.searchTerm) {
-          setTimeout(() => {
-            const searchInput = document.getElementById('searchInput');
-            if(searchInput) {
-              searchInput.value = prev.searchTerm;
-              performSearch(prev.searchTerm, 'fullSearch');
-            }
-          }, 100);
-        }
+        window.location.href = `${window.location.origin}${window.location.pathname}?page=search`;
       } else if(prev.page === 'about') {
-        const newUrl = `${window.location.origin}${window.location.pathname}?page=about`;
-        history.pushState({page: 'about'}, '', newUrl);
-        router.openAbout(false);
+        window.location.href = `${window.location.origin}${window.location.pathname}?page=about`;
       } else if(prev.page === 'editors') {
-        const newUrl = `${window.location.origin}${window.location.pathname}?page=editors`;
-        history.pushState({page: 'editors'}, '', newUrl);
-        router.openEditors(false);
+        window.location.href = `${window.location.origin}${window.location.pathname}?page=editors`;
       } else {
-        const newUrl = `${window.location.origin}${window.location.pathname}`;
-        history.pushState({page: 'home'}, '', newUrl);
-        if(prev.scrollPosition) {
-          setTimeout(() => {
-            window.scrollTo(0, prev.scrollPosition);
-          }, 100);
-        }
+        window.location.href = `${window.location.origin}${window.location.pathname}`;
       }
     } else {
-      history.back();
+      window.location.href = `${window.location.origin}${window.location.pathname}`;
     }
   },
   openEditorProfile: async (user, updateURL = true) => {
@@ -2470,11 +2429,7 @@ function openNavlessSearch(updateURL = true) {
 }
 
 function closeSearch() {
-  document.getElementById('searchOverlay').classList.remove('active');
-  document.getElementById('searchResults').innerHTML = '';
-  document.getElementById('searchInput').value = '';
-  const newUrl = `${window.location.origin}${window.location.pathname}`;
-  history.pushState({page:'home'}, '', newUrl);
+  window.location.href = `${window.location.origin}${window.location.pathname}`;
 }
 
 document.getElementById('globalNavSearch').addEventListener('keypress', (e) => {
