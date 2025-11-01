@@ -544,6 +544,21 @@
   .category-overlay.active, .post-overlay.active, .search-overlay.active, .about-page.active, .editors-overlay.active, .newsletter-overlay.active, .terms-overlay.active, .privacy-overlay.active { display:block; }
   @keyframes overlayIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
   @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  .roadmap-item:hover {
+    transform: translateX(5px);
+    transition: transform 0.3s ease;
+  }
 
   .category-top { 
     display:flex; 
@@ -1042,7 +1057,6 @@
       height: 160px;
     }
     
-    /* 모바일 전용 레이아웃 스타일 */
     .mobile-large-post {
       margin-bottom: 24px;
     }
@@ -1326,24 +1340,6 @@
           </div>
         </div>
         
-        <style>
-          @keyframes slideIn {
-            from {
-              opacity: 0;
-              transform: translateX(-30px);
-            }
-            to {
-              opacity: 1;
-              transform: translateX(0);
-            }
-          }
-          
-          .roadmap-item:hover {
-            transform: translateX(5px);
-            transition: transform 0.3s ease;
-          }
-        </style>
-        
         <h3 style="margin-top:48px;font-size:24px">IMPACT 공식 계정</h3>
         <p>광고 문의: <a href="mailto:welcome@impactceo.art" style="color:#ff6b35;font-weight:700">welcome@impactceo.art</a></p>
         <p>뉴스레터: <a href="mailto:press@impactceo.art" style="color:#ff6b35;font-weight:700">press@impactceo.art</a></p>
@@ -1355,7 +1351,6 @@
   
   <section class="post-overlay" id="postOverlay">
     <div class="post-article" id="postArticle">
-      <!-- 게시물 내용이 여기에 동적으로 삽입됩니다 -->
     </div>
   </section>
 
@@ -1438,7 +1433,7 @@ const state = {
   currentPostId: null,
   isProcessing: false,
   searchDebounce: null,
-  homeLoadPromise: null // 홈 로딩 상태 추적
+  homeLoadPromise: null
 };
 
 function api(path) {
@@ -1493,37 +1488,30 @@ function toggleTheme() {
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
 }
 
-// 홈으로 이동하는 함수 - 로고 클릭 문제 해결
 function goToHome() {
-  // 게시물 오버레이가 활성화되어 있으면 닫기
   if(document.getElementById('postOverlay').classList.contains('active')) {
     router.closePost();
     return;
   }
   
-  // 다른 오버레이들 모두 닫기
   document.querySelectorAll('.category-overlay, .search-overlay, .about-page, .editors-overlay').forEach(el => {
     el.classList.remove('active');
   });
+  document.body.style.overflow = '';
   
-  // URL을 홈으로 변경
   const newUrl = `${window.location.origin}${window.location.pathname}`;
   history.pushState({page:'home'}, '', newUrl);
   
-  // 홈 스크롤
   scrollToTop();
 }
 
-// 네비게이션 토글 핸들러 - 게시물 페이지에서 네비게이션 열 때 오버레이 문제 해결
 function handleNavToggle() {
   ui.toggleNav();
 }
 
-// 네비게이션 액션 핸들러 - 네비게이션에서 다른 페이지 이동 시 게시물 오버레이 닫기
 function handleNavAction(actionCallback) {
-  ui.toggleNav(true); // 네비게이션 닫기
+  ui.toggleNav(true);
   
-  // 게시물 오버레이가 활성화되어 있으면 먼저 닫기
   if(document.getElementById('postOverlay').classList.contains('active')) {
     const overlay = document.getElementById('postOverlay');
     overlay.classList.remove('active');
@@ -1576,14 +1564,12 @@ document.getElementById('postOverlay').addEventListener('scroll', () => {
       progressBar.style.width = scrolled + '%';
       progressBar.classList.add('active');
       
-      // 게시물 페이지에서 스크롤 시 상단바 표시 (위로 살짝 스크롤해도 표시)
       if(winScroll > 20) {
         postHeaderBar.classList.add('show');
       } else {
         postHeaderBar.classList.remove('show');
       }
       
-      // 썸네일 스크롤 효과
       const thumbnail = document.querySelector('.post-thumbnail');
       if(thumbnail && winScroll > 100) {
         thumbnail.classList.add('scrolled');
@@ -1660,7 +1646,6 @@ function createCardNode(post) {
     });
   }
 
-  // 한 번의 클릭으로만 작동
   let clickTimeout;
   node.addEventListener('click', (e) => {
     e.preventDefault();
@@ -1677,12 +1662,10 @@ function createCardNode(post) {
   return node;
 }
 
-// 모바일에서 게시물 레이아웃을 렌더링하는 함수
 function renderMobileLayout(posts, container) {
   for(let i = 0; i < posts.length; i += 5) {
     const group = posts.slice(i, i + 5);
     
-    // 큰 게시물 1개 (첫 번째)
     if(group[0]) {
       const largePost = group[0];
       const largeDiv = document.createElement('div');
@@ -1731,7 +1714,6 @@ function renderMobileLayout(posts, container) {
       container.appendChild(largeDiv);
     }
     
-    // 작은 게시물 4개 (2x2 그리드)
     const smallPosts = group.slice(1, 5);
     if(smallPosts.length > 0) {
       const smallDiv = document.createElement('div');
@@ -1753,7 +1735,6 @@ function renderMobileLayout(posts, container) {
   }
 }
 
-// 데스크톱에서 게시물 레이아웃을 렌더링하는 함수
 function renderDesktopLayout(posts, container) {
   for(let i = 0; i < posts.length; i += 5) {
     const group = posts.slice(i, i + 5);
@@ -1873,7 +1854,6 @@ function renderDesktopLayout(posts, container) {
   }
 }
 
-// 홈 로딩 최적화 - 중복 로딩 방지 및 성능 개선
 async function loadHomeChunk(page = 1) {
   if(state.isProcessing || state.homeLoadPromise) return state.homeLoadPromise;
   
@@ -1884,7 +1864,6 @@ async function loadHomeChunk(page = 1) {
 
   state.homeLoadPromise = new Promise(async (resolve, reject) => {
     try {
-      // 캐시 키 생성
       const cacheKey = `home_page_${page}`;
       
       const res = await fetch(api(`posts?per_page=${HOME_PER_PAGE}&page=${page}`));
@@ -1902,7 +1881,6 @@ async function loadHomeChunk(page = 1) {
         return;
       }
 
-      // 캐시에 저장 및 중복 제거
       const uniquePosts = posts.filter((post, index, self) => 
         index === self.findIndex(p => p.id === post.id)
       );
@@ -1911,12 +1889,10 @@ async function loadHomeChunk(page = 1) {
 
       const container = document.getElementById('rowsContainer');
       
-      // 새 페이지인 경우에만 컨테이너 초기화
       if(page === 1) {
         container.innerHTML = '';
       }
 
-      // 화면 크기에 따라 다른 레이아웃 적용
       const isMobile = window.innerWidth <= 680;
       if(isMobile) {
         renderMobileLayout(uniquePosts, container);
@@ -1926,7 +1902,7 @@ async function loadHomeChunk(page = 1) {
 
       renderPagination('homePagination', page, totalPages, (p) => {
         state.homePage = p;
-        state.homeLoadPromise = null; // Promise 리셋
+        state.homeLoadPromise = null;
         loadHomeChunk(p);
         scrollToTop();
       });
@@ -2017,9 +1993,8 @@ async function loadCategory(slug, page = 1) {
   overlay.classList.add('active');
   document.getElementById('categoryOverlayTitle').textContent = slug.toUpperCase();
   
-  // URL 업데이트
   const newUrl = `${window.location.origin}${window.location.pathname}?category=${slug}`;
-history.pushState({page:'category', slug:slug}, '', newUrl);
+  history.pushState({page:'category', slug:slug}, '', newUrl);
   
   const descriptions = {
     'tech': '기술과 혁신에 대한 심층 분석',
@@ -2051,7 +2026,6 @@ history.pushState({page:'category', slug:slug}, '', newUrl);
     
     const posts = await res.json();
     if(Array.isArray(posts)) {
-      // 중복 제거
       const uniquePosts = posts.filter((post, index, self) => 
         index === self.findIndex(p => p.id === post.id)
       );
@@ -2125,7 +2099,6 @@ async function loadRelatedPosts(categories, currentPostId) {
     if(!res.ok) return [];
     const posts = await res.json();
     
-    // 중복 제거 및 현재 글 제외
     const uniquePosts = Array.isArray(posts) 
       ? posts.filter((p, index, self) => 
           p.id !== currentPostId && index === self.findIndex(post => post.id === p.id)
@@ -2145,7 +2118,6 @@ async function openPostOverlayById(id, updateURL = true) {
   
   state.currentPostId = id;
   
-  // URL 업데이트 (새로고침 및 공유 기능을 위해) - 뒤로가기 개선
   if(updateURL) {
     const currentUrl = window.location.href;
     const currentParams = new URLSearchParams(window.location.search);
@@ -2153,11 +2125,10 @@ async function openPostOverlayById(id, updateURL = true) {
     const currentEditor = currentParams.get('editor');
     const currentPage = currentParams.get('page');
     
-    // 이전 페이지 정보를 더 정확하게 저장
     let previousState = {
       url: currentUrl,
       page: 'home',
-      scrollPosition: window.scrollY // 스크롤 위치 저장
+      scrollPosition: window.scrollY
     };
     
     if(currentCategory) {
@@ -2179,15 +2150,12 @@ async function openPostOverlayById(id, updateURL = true) {
     history.pushState({page: 'post', id: id, previous: previousState}, '', newUrl);
   }
   
-  // 오버레이를 즉시 표시하고 로딩 상태를 보여줌
   const overlay = document.getElementById('postOverlay');
   const article = document.getElementById('postArticle');
   
-  // 오버레이 활성화
   overlay.classList.add('active');
   document.body.style.overflow = 'hidden';
   
-  // 캐시에서 확인
   const cached = state.postsCache[id];
   if(cached && cached.content && cached.content.rendered) {
     await renderPostOverlay(cached);
@@ -2195,7 +2163,6 @@ async function openPostOverlayById(id, updateURL = true) {
     return;
   }
   
-  // 로딩 상태 표시
   article.innerHTML = `
     <div class="post-loading-container" style="
       display: flex; 
@@ -2218,15 +2185,12 @@ async function openPostOverlayById(id, updateURL = true) {
   `;
   
   try {
-    // 더 효율적인 단일 요청으로 모든 데이터 가져오기
     const res = await fetch(api(`posts/${id}?_embed`));
     if(!res.ok) throw new Error('post fetch failed ' + res.status);
     const post = await res.json();
     
-    // 캐시에 저장
     state.postsCache[id] = post;
     
-    // 게시물 렌더링
     await renderPostOverlay(post);
   } catch(e) {
     console.error(e);
@@ -2343,7 +2307,6 @@ async function renderPostOverlay(post) {
   overlay.scrollTop = 0;
   document.body.style.overflow = 'hidden';
   
-  // 프로그레스 바 활성화
   const progressBar = document.getElementById('progressBar');
   progressBar.classList.add('active');
   progressBar.style.width = '0%';
@@ -2383,11 +2346,13 @@ const router = {
   },
   closeEditors: () => {
     document.getElementById('editorsOverlay').classList.remove('active');
+    document.body.style.overflow = '';
     const newUrl = `${window.location.origin}${window.location.pathname}`;
     history.pushState({page:'home'}, '', newUrl);
   },
   openAbout: (updateURL = true) => {
     document.getElementById('aboutPage').classList.add('active');
+    document.body.style.overflow = 'hidden';
     if(updateURL) {
       const newUrl = `${window.location.origin}${window.location.pathname}?page=about`;
       history.pushState({page:'about'}, '', newUrl);
@@ -2395,6 +2360,7 @@ const router = {
   },
   closeAbout: () => {
     document.getElementById('aboutPage').classList.remove('active');
+    document.body.style.overflow = '';
     const newUrl = `${window.location.origin}${window.location.pathname}`;
     history.pushState({page:'home'}, '', newUrl);
   },
@@ -2405,7 +2371,6 @@ const router = {
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
     
-    // 히스토리 상태에서 이전 페이지 정보 가져오기 - 뒤로가기 개선
     const currentState = history.state;
     if(currentState && currentState.previous) {
       const prev = currentState.previous;
@@ -2431,7 +2396,6 @@ const router = {
         const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
         history.pushState({page: 'search'}, '', newUrl);
         openNavlessSearch(false);
-        // 검색어 복원
         if(prev.searchTerm) {
           setTimeout(() => {
             const searchInput = document.getElementById('searchInput');
@@ -2450,10 +2414,8 @@ const router = {
         history.pushState({page: 'editors'}, '', newUrl);
         router.openEditors(false);
       } else {
-        // 홈으로 돌아가기 - 스크롤 위치 복원
         const newUrl = `${window.location.origin}${window.location.pathname}`;
         history.pushState({page: 'home'}, '', newUrl);
-        // 스크롤 위치 복원
         if(prev.scrollPosition) {
           setTimeout(() => {
             window.scrollTo(0, prev.scrollPosition);
@@ -2461,7 +2423,6 @@ const router = {
         }
       }
     } else {
-      // 이전 상태 정보가 없으면 기본적으로 history.back() 사용
       history.back();
     }
   },
@@ -2516,17 +2477,12 @@ function closeSearch() {
   history.pushState({page:'home'}, '', newUrl);
 }
 
-// 네비게이션 검색창의 input 이벤트는 제거 (엔터키로만 검색하도록 변경)
-
-// 네비게이션 검색창에서 엔터키 누를 때 검색 페이지로 이동
 document.getElementById('globalNavSearch').addEventListener('keypress', (e) => {
   if(e.key === 'Enter') {
     e.preventDefault();
     const query = e.target.value.trim();
     if(query.length >= 1) {
-      // 네비게이션 닫기
       ui.toggleNav(true);
-      // 검색 페이지 열기 및 검색어 설정
       openSearchWithQuery(query);
     }
   }
@@ -2560,7 +2516,6 @@ async function performSearch(query, mode) {
       loadingEl.textContent = '';
       
       if(Array.isArray(posts) && posts.length > 0) {
-        // 중복 제거
         const uniquePosts = posts.filter((post, index, self) => 
           index === self.findIndex(p => p.id === post.id)
         );
@@ -2580,22 +2535,17 @@ async function performSearch(query, mode) {
   }
 }
 
-// 검색어와 함께 검색 페이지 열기
 function openSearchWithQuery(query) {
-  // 검색 오버레이 열기
   const overlay = document.getElementById('searchOverlay');
   overlay.classList.add('active');
   document.body.style.overflow = 'hidden';
   
-  // 검색창에 검색어 설정
   const searchInput = document.getElementById('searchInput');
   searchInput.value = query;
   
-  // 검색 실행
   performSearch(query, 'fullSearch');
 }
 
-// URL 해시 및 쿼리 파라미터를 확인하여 적절한 페이지를 로드하는 함수
 function checkURLAndLoadPost() {
   const urlParams = new URLSearchParams(window.location.search);
   const postParam = urlParams.get('post');
@@ -2606,7 +2556,6 @@ function checkURLAndLoadPost() {
   if(postParam) {
     const postId = parseInt(postParam);
     if(!isNaN(postId)) {
-      // 게시물 직접 로드 시에도 즉시 로드하도록 수정
       openPostOverlayById(postId, false);
       return true;
     }
@@ -2701,7 +2650,6 @@ window.addEventListener('popstate', (e) => {
   if(postParam) {
     const postId = parseInt(postParam);
     if(!isNaN(postId)) {
-      // popstate에서도 즉시 게시물 로드
       setTimeout(() => {
         openPostOverlayById(postId, false);
       }, 50);
@@ -2790,20 +2738,15 @@ window.addEventListener('popstate', (e) => {
   }
 });
 
-// 초기화 - 홈 로딩 개선
 document.addEventListener('DOMContentLoaded', () => {
   renderNavList();
   
-  // 초기화 시 로딩 상태 표시
   const loadingEl = document.getElementById('homeLoading');
   loadingEl.textContent = '페이지를 불러오는 중...';
   
-  // URL 확인 및 해당 페이지 로드를 먼저 실행
   const hasSpecificPage = checkURLAndLoadPost();
   
-  // 특정 페이지가 로드되지 않은 경우에만 홈 청크 로드
   if(!hasSpecificPage) {
-    // Promise 기반으로 홈 로딩
     loadHomeChunk(1)
       .then(() => {
         console.log('Home loaded successfully');
@@ -2813,30 +2756,25 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingEl.textContent = '페이지를 불러오지 못했습니다. 새로고침을 시도해주세요.';
       });
   } else {
-    // 특정 페이지가 로드된 경우 로딩 메시지 숨김
     loadingEl.textContent = '';
   }
 });
 
-// 화면 크기 변경 시 레이아웃 다시 렌더링
 let resizeTimeout;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(() => {
-    // 홈 페이지에서만 레이아웃 다시 렌더링
     if(!document.getElementById('categoryOverlay').classList.contains('active') && 
        !document.getElementById('postOverlay').classList.contains('active') &&
        !document.getElementById('searchOverlay').classList.contains('active') &&
        !document.getElementById('aboutPage').classList.contains('active') &&
        !document.getElementById('editorsOverlay').classList.contains('active')) {
-      // Promise 초기화 후 재로딩
       state.homeLoadPromise = null;
       loadHomeChunk(state.homePage || 1);
     }
   }, 300);
 });
 
-// ESC 키로 오버레이 닫기
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape') {
     if(document.getElementById('postOverlay').classList.contains('active')) {
