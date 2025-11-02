@@ -1841,16 +1841,73 @@ const state = {
   homeLoadPromise: null
 };
 
-function showPageTransition() {
-  const transition = document.getElementById('pageTransition');
-  transition.textContent = '불러오는 중...';
-  transition.classList.add('active');
-  return new Promise(resolve => {
-    setTimeout(() => {
-      transition.classList.remove('active');
-      resolve();
-    }, 300);
-  });
+// [IMPACT-LOADING] A. Loading overlay controller (replaces showPageTransition)
+let __loadingTimer = null;
+let __loadingDelayTimer = null;
+let __loadingStartTime = null;
+
+function openLoading(label = '불러오는 중...', delay = 1500) {
+  const el = document.getElementById('pageTransition');
+  if (!el) return;
+  
+  // 기존 타이머 정리
+  clearTimeout(__loadingDelayTimer);
+  clearTimeout(__loadingTimer);
+  
+  // 시작 시간 기록
+  __loadingStartTime = Date.now();
+  
+  // delay 밀리초 후에만 로딩 표시 (기본 1.5초)
+  __loadingDelayTimer = setTimeout(() => {
+    el.textContent = label;
+    el.classList.add('active');
+    
+    // 안전장치: 표시된 후 8초 뒤 강제 해제
+    __loadingTimer = setTimeout(() => closeLoading(), 8000);
+  }, delay);
+}
+
+function closeLoading() {
+  const el = document.getElementById('pageTransition');
+  if (!el) return;
+  
+  // 지연 타이머가 아직 실행 안됐으면 취소
+  clearTimeout(__loadingDelayTimer);
+  clearTimeout(__loadingTimer);
+  
+  // 로딩이 실제로 표시됐으면 숨김
+  el.classList.remove('active');
+  
+  __loadingDelayTimer = null;
+  __loadingTimer = null;
+  __loadingStartTime = null;
+}
+
+// 스크롤 상단 세팅 헬퍼: 오버레이/페이지 컨테이너 모두 대응
+function resetScrollTop(target = 'window') {
+  if (target === 'post') {
+    const o = document.getElementById('postOverlay');
+    if (o) o.scrollTo({ top: 0, behavior: 'auto' });
+  } else if (target === 'category') {
+    const o = document.getElementById('categoryOverlay');
+    if (o) o.scrollTo({ top: 0, behavior: 'auto' });
+  } else if (target === 'editors') {
+    const o = document.getElementById('editorsOverlay');
+    if (o) o.scrollTo({ top: 0, behavior: 'auto' });
+  } else if (target === 'search') {
+    const o = document.getElementById('searchOverlay');
+    if (o) o.scrollTo({ top: 0, behavior: 'auto' });
+  } else if (target === 'about') {
+    const o = document.getElementById('aboutPage');
+    if (o) o.scrollTo({ top: 0, behavior: 'auto' });
+  } else {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+}
+
+// 렌더 프레임 동기화를 위한 작은 헬퍼
+function nextFrame() {
+  return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 }
 
 function api(path) {
@@ -1905,21 +1962,42 @@ function goToHome() {
     logo.classList.remove('clicked');
   }, 200);
 
+  // 게시물 오버레이가 열려있는 경우
   if(document.getElementById('postOverlay').classList.contains('active')) {
-    router.closePost();
+    const overlay = document.getElementById('postOverlay');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+    document.getElementById('progressBar').classList.remove('active');
+    document.getElementById('postHeaderBar').classList.remove('show');
+    document.getElementById('postToTopBtn').classList.remove('show');
+    
+    // 메인 페이지로 URL 변경
+    const newUrl = `${window.location.origin}${window.location.pathname}`;
+    history.pushState({page:'home'}, '', newUrl);
+    
+    // 부드럽게 위로 스크롤
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
 
-  // 불러오기 창 없이 바로 페이지 닫고 스크롤
-  document.querySelectorAll('.category-overlay, .search-overlay, .about-page, .editors-overlay').forEach(el => {
-    el.classList.remove('active');
+  // 카테고리나 다른 오버레이가 열려있는 경우
+  const overlays = document.querySelectorAll('.category-overlay, .search-overlay, .about-page, .editors-overlay');
+  let anyOverlayActive = false;
+  
+  overlays.forEach(el => {
+    if(el.classList.contains('active')) {
+      anyOverlayActive = true;
+      el.classList.remove('active');
+    }
   });
+  
   document.body.style.overflow = '';
 
+  // URL을 홈으로 변경
   const newUrl = `${window.location.origin}${window.location.pathname}`;
   history.pushState({page:'home'}, '', newUrl);
 
-  // 부드럽게 위로 스크롤
+  // 부드럽게 위로 스크롤 (오버레이가 있었든 없었든 항상 실행)
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -2066,6 +2144,8 @@ function createCardNode(post) {
     e.stopPropagation();
 
     if(state.isProcessing) return;
+    // [IMPACT-LOADING] 클릭 즉시 로딩 표시
+    openLoading('게시물을 불러오는 중...');
     clearTimeout(clickTimeout);
     clickTimeout = setTimeout(() => {
       openPostOverlayById(post.id);
@@ -2115,6 +2195,8 @@ function renderMobileLayout(posts, container) {
         e.stopPropagation();
 
         if(state.isProcessing) return;
+        // [IMPACT-LOADING] 클릭 즉시 로딩 표시
+        openLoading('게시물을 불러오는 중...');
         clearTimeout(clickTimeout);
         clickTimeout = setTimeout(() => {
           openPostOverlayById(largePost.id);
@@ -2189,6 +2271,8 @@ function renderDesktopLayout(posts, container) {
         e.stopPropagation();
 
         if(state.isProcessing) return;
+        // [IMPACT-LOADING] 클릭 즉시 로딩 표시
+        openLoading('게시물을 불러오는 중...');
         clearTimeout(clickTimeout);
         clickTimeout = setTimeout(() => {
           openPostOverlayById(largePost.id);
@@ -2248,7 +2332,10 @@ function renderDesktopLayout(posts, container) {
           if(state.isProcessing) return;
           clearTimeout(clickTimeout);
           clickTimeout = setTimeout(() => {
-            openPostOverlayById(largePost.id);
+            openLoading('게시물을 불러오는 중...');
+            setTimeout(() => {
+              openPostOverlayById(largePost.id);
+            }, 50);
           }, 150);
         });
 
@@ -2298,11 +2385,15 @@ async function loadHomeChunk(page = 1) {
         renderDesktopLayout(uniquePosts, container);
       }
       renderPagination('homePagination', page, totalPages, (p) => {
+        // [IMPACT-LOADING] 페이지네이션 클릭 시 로딩 표시
+        openLoading('페이지를 불러오는 중...');
         state.homePage = p;
         state.homeLoadPromise = null;
-        showPageTransition().then(() => {
-          loadHomeChunk(p);
-          scrollToTop();
+        loadHomeChunk(p).then(() => {
+          resetScrollTop('window');
+          closeLoading();
+        }).catch(() => {
+          closeLoading();
         });
       });
       loadingEl.textContent = '';
@@ -2382,15 +2473,17 @@ async function loadCategory(slug, page = 1) {
   if(state.isProcessing) return;
   state.isProcessing = true;
 
-  await showPageTransition();
+  // [IMPACT-LOADING] router.openCategory에서 이미 openLoading이 호출되었으므로
+  // 페이지네이션에서 직접 호출될 때만 로딩 표시
+  const loadingEl = document.getElementById('pageTransition');
+  if(!loadingEl || !loadingEl.classList.contains('active')) {
+    openLoading('카테고리를 불러오는 중...');
+  }
 
   state.currentCategory = slug;
   state.categoryPage = page;
 
   const overlay = document.getElementById('categoryOverlay');
-  
-  // 오버레이를 활성화하기 전에 스크롤을 맨 위로
-  overlay.scrollTop = 0;
   overlay.classList.add('active');
 
   if(window.innerWidth <= 680) {
@@ -2415,11 +2508,13 @@ async function loadCategory(slug, page = 1) {
   const grid = document.getElementById('categoryGrid');
   grid.innerHTML = '';
   document.getElementById('categoryLoading').textContent = '로딩 중...';
+  
   try {
     const catId = CATEGORIES[slug];
     if(!catId) {
       document.getElementById('categoryLoading').textContent = '알 수 없는 카테고리입니다.';
       state.isProcessing = false;
+      closeLoading();
       return;
     }
 
@@ -2443,18 +2538,25 @@ async function loadCategory(slug, page = 1) {
     }
 
     renderPagination('categoryPagination', page, totalPages, (p) => {
-      showPageTransition().then(() => {
-        loadCategory(slug, p);
-      });
+      // [IMPACT-LOADING] 페이지네이션 클릭 시 로딩 표시
+      openLoading('페이지를 불러오는 중...');
+      loadCategory(slug, p);
     });
 
     document.getElementById('categoryLoading').textContent = '';
+    
+    // [IMPACT-LOADING] 완료 후 스크롤 리셋 및 로딩 해제
+    resetScrollTop('category');
+    await nextFrame();
+    closeLoading();
   } catch(e) {
     console.error(e);
     document.getElementById('categoryLoading').textContent = '불러오기 실패';
+    // [IMPACT-LOADING] 에러 시에도 로딩 해제
+    closeLoading();
+  } finally {
+    state.isProcessing = false;
   }
-
-  state.isProcessing = false;
 }
 async function loadEditors() {
   if(state.editorsLoaded) return;
@@ -2534,7 +2636,8 @@ async function openPostOverlayById(id, updateURL = true) {
   if(!id || state.isProcessing) return;
   state.isProcessing = true;
 
-  await showPageTransition();
+  // [IMPACT-LOADING] 출발 즉시 로딩 오버레이 표시
+  openLoading('게시물을 불러오는 중...');
 
   state.currentPostId = id;
 
@@ -2573,14 +2676,16 @@ async function openPostOverlayById(id, updateURL = true) {
   const overlay = document.getElementById('postOverlay');
   const article = document.getElementById('postArticle');
 
-  // 오버레이를 활성화하기 전에 스크롤을 맨 위로
-  overlay.scrollTop = 0;
   overlay.classList.add('active');
   document.body.style.overflow = 'hidden';
 
   const cached = state.postsCache[id];
   if(cached && cached.content && cached.content.rendered) {
     await renderPostOverlay(cached);
+    // [IMPACT-LOADING] 렌더 완료 후 스크롤 리셋 및 로딩 해제
+    resetScrollTop('post');
+    await nextFrame();
+    closeLoading();
     state.isProcessing = false;
     return;
   }
@@ -2614,6 +2719,10 @@ async function openPostOverlayById(id, updateURL = true) {
     state.postsCache[id] = post;
 
     await renderPostOverlay(post);
+    // [IMPACT-LOADING] 렌더 완료 후 스크롤 리셋 및 로딩 해제
+    resetScrollTop('post');
+    await nextFrame();
+    closeLoading();
   } catch(e) {
     console.error(e);
     article.innerHTML = `
@@ -2629,9 +2738,11 @@ async function openPostOverlayById(id, updateURL = true) {
         <button onclick="router.closePost()" class="btn" style="padding: 8px 16px;">돌아가기</button>
       </div>
     `;
+    // [IMPACT-LOADING] 에러 시에도 로딩 해제
+    closeLoading();
+  } finally {
+    state.isProcessing = false;
   }
-
-  state.isProcessing = false;
 }
 async function renderPostOverlay(post) {
   const overlay = document.getElementById('postOverlay');
@@ -2680,7 +2791,11 @@ async function renderPostOverlay(post) {
       </div>
     </div>
     <div class="post-content">${contentHTML}</div>
-    <div class="author-profile-section" style="cursor: pointer;" onclick="event.preventDefault(); event.stopPropagation(); (() => { const overlay = document.getElementById('postOverlay'); overlay.classList.remove('active'); document.body.style.overflow = ''; document.getElementById('progressBar').classList.remove('active'); document.getElementById('postHeaderBar').classList.remove('show'); document.getElementById('postToTopBtn').classList.remove('show'); router.openEditorProfile({id: ${authorData.id}, name: '${authorName}', description: '${(authorData.description || '').replace(/'/g, "\\'")}', avatar_urls: ${JSON.stringify(authorData.avatar_urls || {})}, slug: '${authorData.slug || ''}'}, true); })()">
+    <div class="author-profile-section" 
+         role="link" 
+         tabindex="0" 
+         data-editor-id="${authorData.id}"
+         style="cursor: pointer;">
       <img src="${avatar || placeholderDataURI(96,96,'U')}" alt="${authorName}" class="author-profile-avatar">
       <div class="author-profile-info">
         <div class="author-profile-name">${authorName}</div>
@@ -2737,6 +2852,54 @@ async function renderPostOverlay(post) {
       });
     }
   }
+  
+  // [IMPACT-LOADING] C. 에디터 박스 클릭/키보드 이벤트 핸들러
+  const editorBox = article.querySelector('.author-profile-section');
+  if (editorBox && authorData.id) {
+    const handleEditorClick = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // [IMPACT-LOADING] 즉시 로딩 표시
+      openLoading('에디터 페이지로 이동 중...');
+      
+      // 게시물 오버레이 닫기
+      const postOverlay = document.getElementById('postOverlay');
+      postOverlay.classList.remove('active');
+      document.body.style.overflow = '';
+      document.getElementById('progressBar').classList.remove('active');
+      document.getElementById('postHeaderBar').classList.remove('show');
+      document.getElementById('postToTopBtn').classList.remove('show');
+      
+      // 에디터 프로필로 이동
+      try {
+        await router.openEditorProfile({
+          id: authorData.id,
+          name: authorName,
+          description: authorData.description || '',
+          avatar_urls: authorData.avatar_urls || {},
+          slug: authorData.slug || ''
+        }, true);
+        
+        // [IMPACT-LOADING] 완료 후 스크롤 리셋 및 로딩 해제
+        resetScrollTop('editors');
+        await nextFrame();
+        closeLoading();
+      } catch (err) {
+        console.error('에디터 페이지 이동 실패:', err);
+        closeLoading();
+      }
+    };
+    
+    editorBox.addEventListener('click', handleEditorClick);
+    editorBox.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleEditorClick(e);
+      }
+    });
+  }
+  
   overlay.classList.add('active');
   overlay.scrollTop = 0;
   document.body.style.overflow = 'hidden';
@@ -2767,75 +2930,104 @@ const ui = {
 };
 const router = {
   openCategory: (slug, updateURL = true) => {
+    // [IMPACT-LOADING] 즉시 로딩 표시
+    openLoading('카테고리를 불러오는 중...');
     loadCategory(slug, 1);
     if(updateURL) {
       const newUrl = `${window.location.origin}${window.location.pathname}?category=${slug}`;
       history.pushState({page:'category', slug:slug}, '', newUrl);
     }
   },
-  closeCategory: () => {
-    showPageTransition().then(async () => {
-      document.getElementById('categoryOverlay').classList.remove('active');
-      document.body.style.overflow = '';
-      const newUrl = `${window.location.origin}${window.location.pathname}`;
-      history.pushState({page:'home'}, '', newUrl);
-      
-      // 메인 홈이 로드되지 않았다면 다시 로드
-      if(state.homePosts.length === 0) {
-        await loadHomeChunk(1);
-      }
-    });
+  closeCategory: async () => {
+    document.getElementById('categoryOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+    const newUrl = `${window.location.origin}${window.location.pathname}`;
+    history.pushState({page:'home'}, '', newUrl);
+    
+    // 메인 홈이 로드되지 않았다면 다시 로드
+    const container = document.getElementById('rowsContainer');
+    if(!container || container.children.length === 0) {
+      openLoading('홈페이지를 불러오는 중...');
+      await loadHomeChunk(1);
+    }
+    
+    // 스크롤 리셋
+    resetScrollTop('window');
+    await nextFrame();
   },
   openEditors: async (updateURL = true) => {
-    await showPageTransition();
+    // [IMPACT-LOADING] 즉시 로딩 표시
+    openLoading('에디터 목록을 불러오는 중...');
+    
     document.getElementById('editorsOverlay').classList.add('active');
-    document.getElementById('editorsOverlay').scrollTop = 0;
     if(window.innerWidth <= 680) {
       document.body.style.overflow = 'hidden';
     }
-    loadEditors();
+    
+    await loadEditors();
+    
+    // [IMPACT-LOADING] 완료 후 스크롤 리셋 및 로딩 해제
+    resetScrollTop('editors');
+    await nextFrame();
+    closeLoading();
+    
     if(updateURL) {
       const newUrl = `${window.location.origin}${window.location.pathname}?page=editors`;
       history.pushState({page:'editors'}, '', newUrl);
     }
   },
-  closeEditors: () => {
-    showPageTransition().then(async () => {
-      document.getElementById('editorsOverlay').classList.remove('active');
-      document.body.style.overflow = '';
-      const newUrl = `${window.location.origin}${window.location.pathname}`;
-      history.pushState({page:'home'}, '', newUrl);
-      
-      // 메인 홈이 로드되지 않았다면 다시 로드
-      if(state.homePosts.length === 0) {
-        await loadHomeChunk(1);
-      }
-    });
+  closeEditors: async () => {
+    document.getElementById('editorsOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+    const newUrl = `${window.location.origin}${window.location.pathname}`;
+    history.pushState({page:'home'}, '', newUrl);
+    
+    // 메인 홈이 로드되지 않았다면 다시 로드
+    const container = document.getElementById('rowsContainer');
+    if(!container || container.children.length === 0) {
+      openLoading('홈페이지를 불러오는 중...');
+      await loadHomeChunk(1);
+    }
+    
+    // 스크롤 리셋
+    resetScrollTop('window');
+    await nextFrame();
   },
   openAbout: async (updateURL = true) => {
-    await showPageTransition();
+    // [IMPACT-LOADING] 즉시 로딩 표시
+    openLoading('ABOUT 페이지를 불러오는 중...');
+    
     document.getElementById('aboutPage').classList.add('active');
-    document.getElementById('aboutPage').scrollTop = 0;
     if(window.innerWidth <= 680) {
       document.body.style.overflow = 'hidden';
     }
+    
+    // [IMPACT-LOADING] 완료 후 스크롤 리셋 및 로딩 해제
+    resetScrollTop('about');
+    await nextFrame();
+    closeLoading();
+    
     if(updateURL) {
       const newUrl = `${window.location.origin}${window.location.pathname}?page=about`;
       history.pushState({page:'about'}, '', newUrl);
     }
   },
-  closeAbout: () => {
-    showPageTransition().then(async () => {
-      document.getElementById('aboutPage').classList.remove('active');
-      document.body.style.overflow = '';
-      const newUrl = `${window.location.origin}${window.location.pathname}`;
-      history.pushState({page:'home'}, '', newUrl);
-      
-      // 메인 홈이 로드되지 않았다면 다시 로드
-      if(state.homePosts.length === 0) {
-        await loadHomeChunk(1);
-      }
-    });
+  closeAbout: async () => {
+    document.getElementById('aboutPage').classList.remove('active');
+    document.body.style.overflow = '';
+    const newUrl = `${window.location.origin}${window.location.pathname}`;
+    history.pushState({page:'home'}, '', newUrl);
+    
+    // 메인 홈이 로드되지 않았다면 다시 로드
+    const container = document.getElementById('rowsContainer');
+    if(!container || container.children.length === 0) {
+      openLoading('홈페이지를 불러오는 중...');
+      await loadHomeChunk(1);
+    }
+    
+    // 스크롤 리셋
+    resetScrollTop('window');
+    await nextFrame();
   },
   closePost: () => {
     const overlay = document.getElementById('postOverlay');
@@ -2892,7 +3084,8 @@ const router = {
         history.pushState({page: 'home'}, '', newUrl);
         
         // 메인 홈이 로드되지 않았다면 다시 로드
-        if(state.homePosts.length === 0) {
+        const container = document.getElementById('rowsContainer');
+        if(!container || container.children.length === 0) {
           loadHomeChunk(1).then(() => {
             if(prev.scrollPosition) {
               setTimeout(() => {
@@ -2913,12 +3106,14 @@ const router = {
   openEditorProfile: async (user, updateURL = true) => {
     if(!user || !user.id) return;
     
-    await showPageTransition();
+    // [IMPACT-LOADING] 이미 에디터 박스에서 openLoading이 호출되었으므로 여기서는 생략
+    // 단, 직접 호출되는 경우를 위해 조건부로 체크
+    const loadingEl = document.getElementById('pageTransition');
+    if(!loadingEl || !loadingEl.classList.contains('active')) {
+      openLoading('에디터 프로필을 불러오는 중...');
+    }
     
     const overlay = document.getElementById('editorsOverlay');
-    
-    // 오버레이를 활성화하기 전에 스크롤을 맨 위로
-    overlay.scrollTop = 0;
     
     if(!overlay.classList.contains('active')) {
       overlay.classList.add('active');
@@ -2956,38 +3151,55 @@ const router = {
         const newUrl = `${window.location.origin}${window.location.pathname}?editor=${user.id}`;
         history.pushState({page:'editor', id:user.id}, '', newUrl);
       }
+      
+      // [IMPACT-LOADING] 완료 후 스크롤 리셋 (로딩 해제는 에디터 박스 핸들러에서 수행)
+      // 단, 직접 호출된 경우를 위해 여기서도 처리
+      resetScrollTop('editors');
+      await nextFrame();
+      // 에디터 박스에서 호출된 경우가 아니면 여기서 closeLoading
+      // (에디터 박스에서는 이미 closeLoading을 호출함)
     } catch(e) {
       console.error(e);
       document.getElementById('editorPostsLoading').textContent = '불러오기 실패';
+      // [IMPACT-LOADING] 에러 시에도 로딩 해제
+      closeLoading();
     }
   }
 };
 async function openNavlessSearch(updateURL = true) {
-  await showPageTransition();
-  const overlay = document.getElementById('searchOverlay');
+  // [IMPACT-LOADING] 즉시 로딩 표시
+  openLoading('검색 페이지를 불러오는 중...');
   
-  // 오버레이를 활성화하기 전에 스크롤을 맨 위로
-  overlay.scrollTop = 0;
+  const overlay = document.getElementById('searchOverlay');
   overlay.classList.add('active');
   
   if(window.innerWidth <= 680) {
     document.body.style.overflow = 'hidden';
   }
+  
+  // [IMPACT-LOADING] 완료 후 스크롤 리셋 및 로딩 해제
+  resetScrollTop('search');
+  await nextFrame();
+  closeLoading();
+  
   document.getElementById('searchInput').focus();
   if(updateURL) {
     const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
     history.pushState({page:'search'}, '', newUrl);
   }
 }
-function closeSearch() {
-  showPageTransition().then(() => {
-    document.getElementById('searchOverlay').classList.remove('active');
-    document.body.style.overflow = '';
-    document.getElementById('searchResults').innerHTML = '';
-    document.getElementById('searchInput').value = '';
-    const newUrl = `${window.location.origin}${window.location.pathname}`;
-    history.pushState({page:'home'}, '', newUrl);
-  });
+async function closeSearch() {
+  document.getElementById('searchOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+  document.getElementById('searchResults').innerHTML = '';
+  document.getElementById('searchInput').value = '';
+  const newUrl = `${window.location.origin}${window.location.pathname}`;
+  history.pushState({page:'home'}, '', newUrl);
+  
+  // [IMPACT-LOADING] 완료 후 스크롤 리셋 및 로딩 해제
+  resetScrollTop('window');
+  await nextFrame();
+  closeLoading();
 }
 document.getElementById('globalNavSearch').addEventListener('keypress', (e) => {
   if(e.key === 'Enter') {
@@ -3038,23 +3250,32 @@ async function performSearch(query, mode) {
       } else {
         loadingEl.textContent = '검색 결과가 없습니다.';
       }
+      
+      // [IMPACT-LOADING] 검색 완료 후 로딩 해제
+      await nextFrame();
+      closeLoading();
     } catch(e) {
       console.error(e);
       loadingEl.textContent = '검색 실패';
+      // [IMPACT-LOADING] 에러 시에도 로딩 해제
+      closeLoading();
     }
   }
 }
 async function openSearchWithQuery(query) {
-  await showPageTransition();
-  const overlay = document.getElementById('searchOverlay');
+  // [IMPACT-LOADING] 즉시 로딩 표시
+  openLoading('검색 중...');
   
-  // 오버레이를 활성화하기 전에 스크롤을 맨 위로
-  overlay.scrollTop = 0;
+  const overlay = document.getElementById('searchOverlay');
   overlay.classList.add('active');
   
   if(window.innerWidth <= 680) {
     document.body.style.overflow = 'hidden';
   }
+
+  // [IMPACT-LOADING] 스크롤 리셋
+  resetScrollTop('search');
+  await nextFrame();
 
   const searchInput = document.getElementById('searchInput');
   searchInput.value = query;
