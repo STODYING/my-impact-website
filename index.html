@@ -116,7 +116,7 @@
   body.dark-mode .category-sub,
   body.dark-mode .editor-bio,
   body.dark-mode .post-meta-info {
-    color: #e8e8e8 !important;
+    color: #cccccc !important;
   }
 
   body.dark-mode .post-info h1 {
@@ -183,13 +183,84 @@
   }
 
   body.dark-mode .date {
+    color: #cccccc !important;
+  }
+
+  body.dark-mode .page-header h2 {
+    color: #f5f5f5;
+  }
+
+  body.dark-mode .about-page p,
+  body.dark-mode .about-page h3,
+  body.dark-mode .about-page h4,
+  body.dark-mode .about-page div {
     color: #e8e8e8 !important;
   }
+
+  body.dark-mode .about-page a {
+    color: #ff8c5a !important;
+  }
+
+  body.dark-mode .roadmap-item h4 {
+    color: #f5f5f5 !important;
+  }
+
+  body.dark-mode .roadmap-item p {
+    color: #cccccc !important;
+  }
+
+  body.dark-mode .roadmap-item span {
+    color: #e8e8e8 !important;
+  }
+
+  body.dark-mode .copyright-notice {
+    color: #cccccc !important;
+  }
+
+  body.dark-mode .author-profile-section {
+    background: #1a1a1a;
+    border-color: rgba(255,255,255,0.12);
+  }
+
+  body.dark-mode .author-profile-name {
+    color: #f5f5f5 !important;
+  }
+
+  body.dark-mode .author-profile-bio {
+    color: #cccccc !important;
+  }
+
+  body.dark-mode .image-modal {
+    background: rgba(0,0,0,0.95);
+  }
+
   a { color: inherit; text-decoration: none; }
   img { display: block; max-width: 100%; height: auto; }
   input[type="search"]::-webkit-search-cancel-button { cursor: pointer; }
   .wrap { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
   .hidden { display:none !important; }
+
+  .page-transition {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #f6f7f9;
+    z-index: 10001;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  body.dark-mode .page-transition {
+    background: #0d0d0d;
+  }
+
+  .page-transition.active {
+    opacity: 1;
+    pointer-events: all;
+  }
 
   .progress-bar {
     position: fixed;
@@ -268,9 +339,21 @@
   body.dark-mode .brand .logo {
     color: #e8e8e8;
   }
-  .brand .logo:hover {
+  
+  @media (hover: hover) {
+    .brand .logo:hover {
+      opacity: 0.7;
+    }
+  }
+  
+  .brand .logo:active {
     opacity: 0.7;
   }
+  
+  .brand .logo.clicked {
+    opacity: 1 !important;
+  }
+  
   .brand .logo .logo-text {
     display: flex;
     flex-direction: column;
@@ -288,7 +371,7 @@
     line-height:1;
     letter-spacing: 1px;
   }
-  body.dark-mode .brand .logo small { color: #e8e8e8; }
+  body.dark-mode .brand .logo small { color: #cccccc; }
   .header-actions { display:flex; gap:8px; align-items:center; }
   .btn {
     border-radius:10px;
@@ -552,7 +635,7 @@
     margin-top: auto;
   }
   body.dark-mode .meta {
-    color: #e8e8e8;
+    color: #cccccc;
   }
   .author-name {
     font-weight: 700;
@@ -621,7 +704,7 @@
   }
   .category-title { font-size:24px; font-weight:900; color:#111; }
   .category-sub { font-size:13px; color:#666; margin-top:4px; }
-  body.dark-mode .category-sub { color: #e8e8e8; }
+  body.dark-mode .category-sub { color: #cccccc; }
   .category-grid {
     margin-top:18px;
     display:grid;
@@ -701,7 +784,7 @@
     margin-bottom: 32px;
   }
   body.dark-mode .post-meta-info {
-    color: #e8e8e8;
+    color: #cccccc;
   }
 
   .post-meta-info .meta-row {
@@ -766,6 +849,10 @@
     max-width: 800px;
     margin: 0 auto;
     padding: 48px 0;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
   }
 
   .post-content p {
@@ -795,6 +882,120 @@
     display: block;
     margin: 32px 0;
     border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    pointer-events: none;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+  }
+
+  .post-content img:hover {
+    transform: scale(1.02);
+  }
+
+  .author-profile-section {
+    max-width: 800px;
+    margin: 48px auto;
+    padding: 24px;
+    background: #f9f9f9;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .author-profile-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .author-profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #ff6b35;
+    flex-shrink: 0;
+  }
+
+  .author-profile-info {
+    flex: 1;
+  }
+
+  .author-profile-name {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: #111;
+  }
+
+  .author-profile-bio {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+  }
+
+  .image-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 10000;
+    cursor: zoom-out;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .image-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .image-modal img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+
+  .image-modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 10001;
+  }
+
+  .image-modal-close:hover {
+    background: rgba(255,255,255,0.2);
+    transform: rotate(90deg);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   .related-posts {
@@ -822,6 +1023,11 @@
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 24px;
   }
+
+  .related-grid .card h3 {
+    text-align: left;
+  }
+
   .search-bar {
     display:flex;
     align-items:center;
@@ -943,7 +1149,7 @@
     line-height: 1.5;
   }
   body.dark-mode .editor-bio {
-    color: #e8e8e8;
+    color: #cccccc;
   }
   .to-top {
     position: fixed;
@@ -976,6 +1182,41 @@
     transform: translateY(-4px);
     box-shadow: 0 6px 20px rgba(0,0,0,0.15);
   }
+
+  .post-to-top {
+    position: fixed;
+    bottom: 100px;
+    right: 32px;
+    width: 56px;
+    height: 56px;
+    background: #000000;
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 9998;
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  }
+
+  .post-to-top.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+  }
+
+  .post-to-top:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  }
+
   .site-footer {
     background: #2a2a2a;
     padding: 48px 0 32px;
@@ -1226,6 +1467,22 @@
     body.dark-mode .theme-switch-slider {
       left: 62px;
     }
+
+    .author-profile-section {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .post-to-top {
+      bottom: 32px;
+      right: 20px;
+      width: 48px;
+      height: 48px;
+    }
+
+    .to-top {
+      display: none;
+    }
   }
 
   @media (min-width: 1400px) {
@@ -1242,13 +1499,24 @@
     color: #666;
     font-size: 14px;
     text-align: center;
+    line-height: 1.8;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid rgba(0,0,0,0.06);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
   }
   body.dark-mode .copyright-notice {
-    color: #e8e8e8;
+    color: #cccccc;
+    background: #1a1a1a;
+    border-color: rgba(255,255,255,0.12);
   }
   </style>
 </head>
 <body>
+  <div class="page-transition" id="pageTransition"></div>
   <div class="progress-bar" id="progressBar"></div>
   <header class="header" id="siteHeader">
     <div class="header-inner wrap">
@@ -1366,8 +1634,8 @@
       </div>
       <div style="line-height:1.9;color:#444">
         <p style="font-size:22px;margin-bottom:16px;font-weight:700;color:#ff6b35">IMPACT MAGAZINE.</p>
-        <p style="font-size:17px;margin-bottom:12px;font-weight:500;color:#333">임팩트 매거진은 사회적 이슈와 기술 변화를 분석해 일상의 문제를 발견하고 그 본질을 탐구하는 플랫폼입니다.</p>
-        <p style="font-size:16px;margin-bottom:24px;color:#555">청년 창업가 인터뷰와 사회혁신 사례를 통해 문제를 기회로 전환하는 통찰을 제시하는 <span style="background:linear-gradient(to top, #ff6b35 40%, transparent 40%);padding:2px 4px;font-weight:600">'이슈 기반 인사이트 매거진'</span>입니다.</p>
+        <p style="font-size:17px;margin-bottom:32px;font-weight:500;color:#333">임팩트 매거진은 사회적 이슈와 기술 변화를 분석해 일상의 문제를 발견하고 그 본질을 탐구하는 플랫폼입니다.</p>
+        <p style="font-size:16px;margin-bottom:48px;color:#555">청년 창업가 인터뷰와 사회혁신 사례를 통해 문제를 기회로 전환하는 통찰을 제시하는 <span style="background:linear-gradient(to top, #ff6b35 40%, transparent 40%);padding:2px 4px;font-weight:600">'이슈 기반 인사이트 매거진'</span>입니다.</p>
 
         <p style="margin-top:48px"><strong>made by KAIST IP-CEO</strong></p>
 
@@ -1445,9 +1713,9 @@
         </div>
 
         <h3 style="margin-top:48px;font-size:24px">IMPACT 공식 계정</h3>
-        <p>광고 문의: <a href="mailto:welcome@impactceo.art" style="color:#ff6b35;font-weight:700" target="_blank">welcome@impactceo.art</a></p>
-        <p>뉴스레터: <a href="mailto:press@impactceo.art" style="color:#ff6b35;font-weight:700" target="_blank">press@impactceo.art</a></p>
-        <p>공식 계정: <a href="mailto:ceo@impactceo.art" style="color:#ff6b35;font-weight:700" target="_blank">ceo@impactceo.art</a></p>
+        <p>광고 문의: <a href="mailto:welcome@impactceo.art" style="color:#ff6b35;font-weight:700">welcome@impactceo.art</a></p>
+        <p>뉴스레터: <a href="mailto:press@impactceo.art" style="color:#ff6b35;font-weight:700">press@impactceo.art</a></p>
+        <p>공식 계정: <a href="mailto:ceo@impactceo.art" style="color:#ff6b35;font-weight:700">ceo@impactceo.art</a></p>
         <p>Instagram: <a href="https://www.instagram.com/ceo_impact_official" target="_blank" style="color:#ff6b35;font-weight:700">@ceo_impact_official</a></p>
       </div>
     </div>
@@ -1457,14 +1725,22 @@
     <div class="post-article" id="postArticle">
     </div>
   </section>
+
+  <div class="image-modal" id="imageModal">
+    <button class="image-modal-close" onclick="closeImageModal()">✕</button>
+    <img id="modalImage" src="" alt="확대 이미지">
+  </div>
+
   <button class="to-top" id="toTopBtn" onclick="scrollToTopButton()">↑</button>
+  <button class="post-to-top" id="postToTopBtn" onclick="scrollToTopButton()">↑</button>
+
   <footer class="site-footer">
     <div class="wrap footer-inner">
       <div>
         <div class="footer-brand">IMPACT</div>
-        <div style="margin-top:12px;color:#ddd;font-size:14px">광고 문의 | <a href="mailto:welcome@impactceo.art" target="_blank">welcome@impactceo.art</a></div>
-        <div style="color:#ddd;font-size:14px;margin-top:8px">뉴스레터 | <a href="mailto:press@impactceo.art" target="_blank">press@impactceo.art</a></div>
-        <div style="color:#ddd;font-size:14px;margin-top:8px">공식 계정 | <a href="mailto:ceo@impactceo.art" target="_blank">ceo@impactceo.art</a></div>
+        <div style="margin-top:12px;color:#ddd;font-size:14px">광고 문의 | <a href="mailto:welcome@impactceo.art">welcome@impactceo.art</a></div>
+        <div style="color:#ddd;font-size:14px;margin-top:8px">뉴스레터 | <a href="mailto:press@impactceo.art">press@impactceo.art</a></div>
+        <div style="color:#ddd;font-size:14px;margin-top:8px">공식 계정 | <a href="mailto:ceo@impactceo.art">ceo@impactceo.art</a></div>
       </div>
       <div class="footer-links">
         <a href="javascript:void(0)" onclick="router.openAbout()">ABOUT</a>
@@ -1538,6 +1814,18 @@ const state = {
   searchDebounce: null,
   homeLoadPromise: null
 };
+
+function showPageTransition() {
+  const transition = document.getElementById('pageTransition');
+  transition.classList.add('active');
+  return new Promise(resolve => {
+    setTimeout(() => {
+      transition.classList.remove('active');
+      resolve();
+    }, 300);
+  });
+}
+
 function api(path) {
   const p = path.includes('_embed') ? path : (path + (path.includes('?') ? '&' : '?') + '_embed');
   return `/.netlify/functions/wpProxy?path=${encodeURIComponent(p)}`;
@@ -1582,22 +1870,32 @@ function toggleTheme() {
   const isDark = document.body.classList.contains('dark-mode');
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
 }
+
 function goToHome() {
+  const logo = document.getElementById('logoBtn');
+  logo.classList.add('clicked');
+  setTimeout(() => {
+    logo.classList.remove('clicked');
+  }, 200);
+
   if(document.getElementById('postOverlay').classList.contains('active')) {
     router.closePost();
     return;
   }
 
-  document.querySelectorAll('.category-overlay, .search-overlay, .about-page, .editors-overlay').forEach(el => {
-    el.classList.remove('active');
+  showPageTransition().then(() => {
+    document.querySelectorAll('.category-overlay, .search-overlay, .about-page, .editors-overlay').forEach(el => {
+      el.classList.remove('active');
+    });
+    document.body.style.overflow = '';
+
+    const newUrl = `${window.location.origin}${window.location.pathname}`;
+    history.pushState({page:'home'}, '', newUrl);
+
+    scrollToTop();
   });
-  document.body.style.overflow = '';
-
-  const newUrl = `${window.location.origin}${window.location.pathname}`;
-  history.pushState({page:'home'}, '', newUrl);
-
-  scrollToTop();
 }
+
 function handleNavToggle() {
   ui.toggleNav();
 }
@@ -1610,6 +1908,7 @@ function handleNavAction(actionCallback) {
     document.body.style.overflow = '';
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
+    document.getElementById('postToTopBtn').classList.remove('show');
   }
 
   actionCallback();
@@ -1647,6 +1946,7 @@ document.getElementById('postOverlay').addEventListener('scroll', () => {
       const progressBar = document.getElementById('progressBar');
       const postOverlay = document.getElementById('postOverlay');
       const postHeaderBar = document.getElementById('postHeaderBar');
+      const postToTopBtn = document.getElementById('postToTopBtn');
       const winScroll = postOverlay.scrollTop;
       const height = postOverlay.scrollHeight - postOverlay.clientHeight;
       const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
@@ -1657,6 +1957,12 @@ document.getElementById('postOverlay').addEventListener('scroll', () => {
         postHeaderBar.classList.add('show');
       } else {
         postHeaderBar.classList.remove('show');
+      }
+
+      if(winScroll > 300) {
+        postToTopBtn.classList.add('show');
+      } else {
+        postToTopBtn.classList.remove('show');
       }
 
       const thumbnail = document.querySelector('.post-thumbnail');
@@ -1967,8 +2273,10 @@ async function loadHomeChunk(page = 1) {
       renderPagination('homePagination', page, totalPages, (p) => {
         state.homePage = p;
         state.homeLoadPromise = null;
-        loadHomeChunk(p);
-        scrollToTop();
+        showPageTransition().then(() => {
+          loadHomeChunk(p);
+          scrollToTop();
+        });
       });
       loadingEl.textContent = '';
       resolve();
@@ -2047,6 +2355,8 @@ async function loadCategory(slug, page = 1) {
   if(state.isProcessing) return;
   state.isProcessing = true;
 
+  await showPageTransition();
+
   state.currentCategory = slug;
   state.categoryPage = page;
 
@@ -2103,8 +2413,10 @@ async function loadCategory(slug, page = 1) {
     }
 
     renderPagination('categoryPagination', page, totalPages, (p) => {
-      loadCategory(slug, p);
-      document.getElementById('categoryOverlay').scrollTop = 0;
+      showPageTransition().then(() => {
+        loadCategory(slug, p);
+        document.getElementById('categoryOverlay').scrollTop = 0;
+      });
     });
 
     document.getElementById('categoryLoading').textContent = '';
@@ -2172,9 +2484,28 @@ async function loadRelatedPosts(categories, currentPostId) {
     return [];
   }
 }
+
+function openImageModal(imgSrc) {
+  const modal = document.getElementById('imageModal');
+  const modalImg = document.getElementById('modalImage');
+  modalImg.src = imgSrc;
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal() {
+  const modal = document.getElementById('imageModal');
+  modal.classList.remove('active');
+  if(!document.getElementById('postOverlay').classList.contains('active')) {
+    document.body.style.overflow = '';
+  }
+}
+
 async function openPostOverlayById(id, updateURL = true) {
   if(!id || state.isProcessing) return;
   state.isProcessing = true;
+
+  await showPageTransition();
 
   state.currentPostId = id;
 
@@ -2276,6 +2607,7 @@ async function renderPostOverlay(post) {
   const article = document.getElementById('postArticle');
   const title = post.title && post.title.rendered ? post.title.rendered : '제목 없음';
   const authorName = (post._embedded && post._embedded.author && post._embedded.author[0] && post._embedded.author[0].name) ? post._embedded.author[0].name : '익명';
+  const authorData = post._embedded?.author?.[0] || {};
   const avatar = (post._embedded && post._embedded.author && post._embedded.author[0] && post._embedded.author[0].avatar_urls) ? (post._embedded.author[0].avatar_urls['96'] || post._embedded.author[0].avatar_urls['48']) : '';
   const categories = (post._embedded && post._embedded['wp:term'] && post._embedded['wp:term'][0]) ? post._embedded['wp:term'][0].map(t=>t.name).join(', ') : '-';
   const dateStr = formatDate(post.date);
@@ -2317,17 +2649,34 @@ async function renderPostOverlay(post) {
       </div>
     </div>
     <div class="post-content">${contentHTML}</div>
+    <div class="author-profile-section" onclick="router.openEditorProfile({id: ${authorData.id}, name: '${authorName}', description: '${(authorData.description || '').replace(/'/g, "\\'")}', avatar_urls: ${JSON.stringify(authorData.avatar_urls || {})}, slug: '${authorData.slug || ''}'}, true)">
+      <img src="${avatar || placeholderDataURI(96,96,'U')}" alt="${authorName}" class="author-profile-avatar">
+      <div class="author-profile-info">
+        <div class="author-profile-name">${authorName}</div>
+        <div class="author-profile-bio">${authorData.description || '에디터 소개가 없습니다.'}</div>
+      </div>
+    </div>
     <div class="copyright-notice">
       본 콘텐츠의 모든 저작권 및 지식재산권은 IMPACT에 귀속됩니다. 무단 복제, 전재 등 2차적 저작물 생성 등 일체의 무단 이용을 금합니다. 이를 위반할 경우, 민형사상 강력한 법적 조치가 취해질 수 있습니다.
     </div>
     <div id="relatedPostsContainer"></div>
   `;
+  
   article.querySelectorAll('.post-content img').forEach(img=>{
     img.style.maxWidth = '100%';
     img.style.height = 'auto';
     img.style.display = 'block';
     img.style.margin = '12px 0';
+    img.style.cursor = 'pointer';
+    img.style.pointerEvents = 'auto';
+    
+    img.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openImageModal(img.src);
+    });
   });
+
   try {
     const allNodes = Array.from(article.querySelectorAll('.post-content *'));
     allNodes.forEach(el => {
@@ -2394,12 +2743,15 @@ const router = {
     }
   },
   closeCategory: () => {
-    document.getElementById('categoryOverlay').classList.remove('active');
-    document.body.style.overflow = '';
-    const newUrl = `${window.location.origin}${window.location.pathname}`;
-    history.pushState({page:'home'}, '', newUrl);
+    showPageTransition().then(() => {
+      document.getElementById('categoryOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+      const newUrl = `${window.location.origin}${window.location.pathname}`;
+      history.pushState({page:'home'}, '', newUrl);
+    });
   },
-  openEditors: (updateURL = true) => {
+  openEditors: async (updateURL = true) => {
+    await showPageTransition();
     document.getElementById('editorsOverlay').classList.add('active');
     if(window.innerWidth <= 680) {
       document.body.style.overflow = 'hidden';
@@ -2411,12 +2763,15 @@ const router = {
     }
   },
   closeEditors: () => {
-    document.getElementById('editorsOverlay').classList.remove('active');
-    document.body.style.overflow = '';
-    const newUrl = `${window.location.origin}${window.location.pathname}`;
-    history.pushState({page:'home'}, '', newUrl);
+    showPageTransition().then(() => {
+      document.getElementById('editorsOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+      const newUrl = `${window.location.origin}${window.location.pathname}`;
+      history.pushState({page:'home'}, '', newUrl);
+    });
   },
-  openAbout: (updateURL = true) => {
+  openAbout: async (updateURL = true) => {
+    await showPageTransition();
     document.getElementById('aboutPage').classList.add('active');
     if(window.innerWidth <= 680) {
       document.body.style.overflow = 'hidden';
@@ -2427,10 +2782,12 @@ const router = {
     }
   },
   closeAbout: () => {
-    document.getElementById('aboutPage').classList.remove('active');
-    document.body.style.overflow = '';
-    const newUrl = `${window.location.origin}${window.location.pathname}`;
-    history.pushState({page:'home'}, '', newUrl);
+    showPageTransition().then(() => {
+      document.getElementById('aboutPage').classList.remove('active');
+      document.body.style.overflow = '';
+      const newUrl = `${window.location.origin}${window.location.pathname}`;
+      history.pushState({page:'home'}, '', newUrl);
+    });
   },
   closePost: () => {
     const overlay = document.getElementById('postOverlay');
@@ -2438,6 +2795,7 @@ const router = {
     document.body.style.overflow = '';
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
+    document.getElementById('postToTopBtn').classList.remove('show');
 
     const currentState = history.state;
     if(currentState && currentState.previous) {
@@ -2496,6 +2854,9 @@ const router = {
   },
   openEditorProfile: async (user, updateURL = true) => {
     if(!user || !user.id) return;
+    
+    await showPageTransition();
+    
     document.getElementById('editorsGridWrapper').style.display = 'none';
     const section = document.getElementById('editorProfileSection');
     section.style.display = 'block';
@@ -2526,7 +2887,8 @@ const router = {
     }
   }
 };
-function openNavlessSearch(updateURL = true) {
+async function openNavlessSearch(updateURL = true) {
+  await showPageTransition();
   document.getElementById('searchOverlay').classList.add('active');
   if(window.innerWidth <= 680) {
     document.body.style.overflow = 'hidden';
@@ -2538,12 +2900,14 @@ function openNavlessSearch(updateURL = true) {
   }
 }
 function closeSearch() {
-  document.getElementById('searchOverlay').classList.remove('active');
-  document.body.style.overflow = '';
-  document.getElementById('searchResults').innerHTML = '';
-  document.getElementById('searchInput').value = '';
-  const newUrl = `${window.location.origin}${window.location.pathname}`;
-  history.pushState({page:'home'}, '', newUrl);
+  showPageTransition().then(() => {
+    document.getElementById('searchOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+    document.getElementById('searchResults').innerHTML = '';
+    document.getElementById('searchInput').value = '';
+    const newUrl = `${window.location.origin}${window.location.pathname}`;
+    history.pushState({page:'home'}, '', newUrl);
+  });
 }
 document.getElementById('globalNavSearch').addEventListener('keypress', (e) => {
   if(e.key === 'Enter') {
@@ -2600,7 +2964,8 @@ async function performSearch(query, mode) {
     }
   }
 }
-function openSearchWithQuery(query) {
+async function openSearchWithQuery(query) {
+  await showPageTransition();
   const overlay = document.getElementById('searchOverlay');
   overlay.classList.add('active');
   if(window.innerWidth <= 680) {
@@ -2723,6 +3088,7 @@ window.addEventListener('popstate', (e) => {
     document.body.style.overflow = '';
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
+    document.getElementById('postToTopBtn').classList.remove('show');
 
     router.openCategory(categoryParam, false);
     return;
@@ -2737,6 +3103,7 @@ window.addEventListener('popstate', (e) => {
       document.body.style.overflow = '';
       document.getElementById('progressBar').classList.remove('active');
       document.getElementById('postHeaderBar').classList.remove('show');
+      document.getElementById('postToTopBtn').classList.remove('show');
 
       if(!document.getElementById('editorsOverlay').classList.contains('active')) {
         router.openEditors(false);
@@ -2762,6 +3129,7 @@ window.addEventListener('popstate', (e) => {
     document.body.style.overflow = '';
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
+    document.getElementById('postToTopBtn').classList.remove('show');
 
     router.openEditors(false);
     return;
@@ -2772,6 +3140,7 @@ window.addEventListener('popstate', (e) => {
     document.body.style.overflow = '';
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
+    document.getElementById('postToTopBtn').classList.remove('show');
 
     router.openAbout(false);
     return;
@@ -2782,6 +3151,7 @@ window.addEventListener('popstate', (e) => {
     document.body.style.overflow = '';
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
+    document.getElementById('postToTopBtn').classList.remove('show');
 
     openNavlessSearch(false);
     return;
@@ -2794,8 +3164,16 @@ window.addEventListener('popstate', (e) => {
     document.body.style.overflow = '';
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
+    document.getElementById('postToTopBtn').classList.remove('show');
   }
 });
+
+document.getElementById('imageModal').addEventListener('click', (e) => {
+  if(e.target.id === 'imageModal' || e.target.classList.contains('image-modal')) {
+    closeImageModal();
+  }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   renderNavList();
 
@@ -2833,7 +3211,9 @@ window.addEventListener('resize', () => {
 });
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape') {
-    if(document.getElementById('postOverlay').classList.contains('active')) {
+    if(document.getElementById('imageModal').classList.contains('active')) {
+      closeImageModal();
+    } else if(document.getElementById('postOverlay').classList.contains('active')) {
       router.closePost();
     } else if(document.getElementById('searchOverlay').classList.contains('active')) {
       closeSearch();
