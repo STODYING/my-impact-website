@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -1173,6 +1174,12 @@
     justify-content: center;
     box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   }
+
+  body.dark-mode .to-top {
+    background: #ffffff;
+    color: #000000;
+  }
+
   .to-top.show {
     opacity: 1;
     transform: translateY(0);
@@ -1204,6 +1211,11 @@
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  }
+
+  body.dark-mode .post-to-top {
+    background: #ffffff;
+    color: #000000;
   }
 
   .post-to-top.show {
@@ -2362,6 +2374,7 @@ async function loadCategory(slug, page = 1) {
 
   const overlay = document.getElementById('categoryOverlay');
   overlay.classList.add('active');
+  overlay.scrollTop = 0;
 
   if(window.innerWidth <= 680) {
     document.body.style.overflow = 'hidden';
@@ -2415,7 +2428,6 @@ async function loadCategory(slug, page = 1) {
     renderPagination('categoryPagination', page, totalPages, (p) => {
       showPageTransition().then(() => {
         loadCategory(slug, p);
-        document.getElementById('categoryOverlay').scrollTop = 0;
       });
     });
 
@@ -2753,6 +2765,7 @@ const router = {
   openEditors: async (updateURL = true) => {
     await showPageTransition();
     document.getElementById('editorsOverlay').classList.add('active');
+    document.getElementById('editorsOverlay').scrollTop = 0;
     if(window.innerWidth <= 680) {
       document.body.style.overflow = 'hidden';
     }
@@ -2773,6 +2786,7 @@ const router = {
   openAbout: async (updateURL = true) => {
     await showPageTransition();
     document.getElementById('aboutPage').classList.add('active');
+    document.getElementById('aboutPage').scrollTop = 0;
     if(window.innerWidth <= 680) {
       document.body.style.overflow = 'hidden';
     }
@@ -2857,6 +2871,16 @@ const router = {
     
     await showPageTransition();
     
+    const overlay = document.getElementById('editorsOverlay');
+    if(!overlay.classList.contains('active')) {
+      overlay.classList.add('active');
+      if(window.innerWidth <= 680) {
+        document.body.style.overflow = 'hidden';
+      }
+    }
+    
+    overlay.scrollTop = 0;
+    
     document.getElementById('editorsGridWrapper').style.display = 'none';
     const section = document.getElementById('editorProfileSection');
     section.style.display = 'block';
@@ -2865,6 +2889,11 @@ const router = {
     const grid = document.getElementById('editorPostsGrid');
     grid.innerHTML = '';
     document.getElementById('editorPostsLoading').textContent = '로딩 중...';
+    
+    if(state.editorsList.length === 0) {
+      await loadEditors();
+    }
+    
     try {
       const res = await fetch(api(`posts?author=${user.id}&per_page=50`));
       const posts = await res.json();
@@ -2890,6 +2919,7 @@ const router = {
 async function openNavlessSearch(updateURL = true) {
   await showPageTransition();
   document.getElementById('searchOverlay').classList.add('active');
+  document.getElementById('searchOverlay').scrollTop = 0;
   if(window.innerWidth <= 680) {
     document.body.style.overflow = 'hidden';
   }
@@ -2968,6 +2998,7 @@ async function openSearchWithQuery(query) {
   await showPageTransition();
   const overlay = document.getElementById('searchOverlay');
   overlay.classList.add('active');
+  overlay.scrollTop = 0;
   if(window.innerWidth <= 680) {
     document.body.style.overflow = 'hidden';
   }
