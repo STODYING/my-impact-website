@@ -235,11 +235,46 @@
     background: rgba(0,0,0,0.95);
   }
 
+  body.dark-mode .loading-overlay {
+    background: #0d0d0d;
+  }
+
+  body.dark-mode .loading-text {
+    color: #e8e8e8;
+  }
+
   a { color: inherit; text-decoration: none; }
   img { display: block; max-width: 100%; height: auto; }
   input[type="search"]::-webkit-search-cancel-button { cursor: pointer; }
   .wrap { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
   .hidden { display:none !important; }
+
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #f6f7f9;
+    z-index: 10002;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .loading-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .loading-text {
+    font-size: 16px;
+    font-weight: 500;
+    color: #111;
+  }
 
   .page-transition {
     position: fixed;
@@ -1528,6 +1563,10 @@
   </style>
 </head>
 <body>
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-text">불러오는 중...</div>
+  </div>
+
   <div class="page-transition" id="pageTransition"></div>
   <div class="progress-bar" id="progressBar"></div>
   <header class="header" id="siteHeader">
@@ -1827,15 +1866,30 @@ const state = {
   homeLoadPromise: null
 };
 
-function showPageTransition() {
+async function showPageTransition() {
   const transition = document.getElementById('pageTransition');
   transition.classList.add('active');
-  return new Promise(resolve => {
-    setTimeout(() => {
-      transition.classList.remove('active');
-      resolve();
-    }, 300);
-  });
+  await new Promise(resolve => setTimeout(resolve, 300));
+}
+
+async function hidePageTransition() {
+  await new Promise(resolve => setTimeout(resolve, 100));
+  const transition = document.getElementById('pageTransition');
+  transition.classList.remove('active');
+}
+
+async function showLoadingOverlay(text = '불러오는 중...') {
+  const overlay = document.getElementById('loadingOverlay');
+  const loadingText = overlay.querySelector('.loading-text');
+  loadingText.textContent = text;
+  overlay.classList.add('active');
+  await new Promise(resolve => setTimeout(resolve, 50));
+}
+
+async function hideLoadingOverlay() {
+  await new Promise(resolve => setTimeout(resolve, 100));
+  const overlay = document.getElementById('loadingOverlay');
+  overlay.classList.remove('active');
 }
 
 function api(path) {
@@ -2517,7 +2571,7 @@ async function openPostOverlayById(id, updateURL = true) {
   if(!id || state.isProcessing) return;
   state.isProcessing = true;
 
-  await showPageTransition();
+  await showLoadingOverlay('게시물 불러오는 중...');
 
   state.currentPostId = id;
 
@@ -2557,35 +2611,18 @@ async function openPostOverlayById(id, updateURL = true) {
   const article = document.getElementById('postArticle');
 
   overlay.classList.add('active');
+  overlay.scrollTop = 0;
   document.body.style.overflow = 'hidden';
 
   const cached = state.postsCache[id];
   if(cached && cached.content && cached.content.rendered) {
     await renderPostOverlay(cached);
+    await hideLoadingOverlay();
     state.isProcessing = false;
     return;
   }
 
-  article.innerHTML = `
-    <div class="post-loading-container" style="
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 60vh;
-      flex-direction: column;
-      gap: 16px;
-    ">
-      <div class="spinner" style="
-        width: 40px;
-        height: 40px;
-        border: 3px solid #f3f3f3;
-        border-top: 3px solid #ff6b35;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-      "></div>
-      <p style="color: #666; font-size: 16px;">게시물을 불러오는 중...</p>
-    </div>
-  `;
+  article.innerHTML = `<div style="text-align: center; padding: 60px 20px; color: #999;">게시물을 불러오는 중...</div>`;
 
   try {
     const res = await fetch(api(`posts/${id}?_embed`));
@@ -2725,6 +2762,8 @@ async function renderPostOverlay(post) {
   const progressBar = document.getElementById('progressBar');
   progressBar.classList.add('active');
   progressBar.style.width = '0%';
+  
+  await hideLoadingOverlay();
 }
 const ui = {
   toggleNav: (forceClose = false) => {
@@ -2747,8 +2786,11 @@ const ui = {
   }
 };
 const router = {
-  openCategory: (slug, updateURL = true) => {
-    loadCategory(slug, 1);
+  openCategory: async (slug, updateURL = true) => {
+    await showLoadingOverlay(`${slug} 불러오는 중...`);
+    await loadCategory(slug, 1);
+    document.getElementById('categoryOverlay').scrollTop = 0;
+    await hideLoadingOverlay();
     if(updateURL) {
       const newUrl = `${window.location.origin}${window.location.pathname}?category=${slug}`;
       history.pushState({page:'category', slug:slug}, '', newUrl);
@@ -2763,13 +2805,14 @@ const router = {
     });
   },
   openEditors: async (updateURL = true) => {
-    await showPageTransition();
+    await showLoadingOverlay('에디터 목록 불러오는 중...');
     document.getElementById('editorsOverlay').classList.add('active');
     document.getElementById('editorsOverlay').scrollTop = 0;
     if(window.innerWidth <= 680) {
       document.body.style.overflow = 'hidden';
     }
-    loadEditors();
+    await loadEditors();
+    await hideLoadingOverlay();
     if(updateURL) {
       const newUrl = `${window.location.origin}${window.location.pathname}?page=editors`;
       history.pushState({page:'editors'}, '', newUrl);
@@ -2784,12 +2827,13 @@ const router = {
     });
   },
   openAbout: async (updateURL = true) => {
-    await showPageTransition();
+    await showLoadingOverlay('About 페이지 불러오는 중...');
     document.getElementById('aboutPage').classList.add('active');
     document.getElementById('aboutPage').scrollTop = 0;
     if(window.innerWidth <= 680) {
       document.body.style.overflow = 'hidden';
     }
+    await hideLoadingOverlay();
     if(updateURL) {
       const newUrl = `${window.location.origin}${window.location.pathname}?page=about`;
       history.pushState({page:'about'}, '', newUrl);
@@ -2869,7 +2913,7 @@ const router = {
   openEditorProfile: async (user, updateURL = true) => {
     if(!user || !user.id) return;
     
-    await showPageTransition();
+    await showLoadingOverlay(`${user.name || '에디터'} 프로필 불러오는 중...`);
     
     const overlay = document.getElementById('editorsOverlay');
     if(!overlay.classList.contains('active')) {
@@ -2888,7 +2932,7 @@ const router = {
     document.getElementById('editorProfileBio').textContent = user.description || '';
     const grid = document.getElementById('editorPostsGrid');
     grid.innerHTML = '';
-    document.getElementById('editorPostsLoading').textContent = '로딩 중...';
+    document.getElementById('editorPostsLoading').textContent = '';
     
     if(state.editorsList.length === 0) {
       await loadEditors();
@@ -2907,12 +2951,16 @@ const router = {
       document.getElementById('editorPostsLoading').textContent = '';
 
       if(updateURL) {
-        const newUrl = `${window.location.origin}${window.location.pathname}?editor=${user.id}`;
-        history.pushState({page:'editor', id:user.id}, '', newUrl);
+        const editorSlug = (user.slug || user.name || '').toLowerCase().replace(/\s+/g, '');
+        const newUrl = `${window.location.origin}/editor/@${editorSlug}`;
+        history.pushState({page:'editor', id:user.id, slug:editorSlug, name:user.name}, '', newUrl);
       }
+      
+      await hideLoadingOverlay();
     } catch(e) {
       console.error(e);
       document.getElementById('editorPostsLoading').textContent = '불러오기 실패';
+      await hideLoadingOverlay();
     }
   }
 };
@@ -3009,11 +3057,34 @@ async function openSearchWithQuery(query) {
   performSearch(query, 'fullSearch');
 }
 function checkURLAndLoadPost() {
+  const path = window.location.pathname;
   const urlParams = new URLSearchParams(window.location.search);
   const postParam = urlParams.get('post');
   const categoryParam = urlParams.get('category');
   const editorParam = urlParams.get('editor');
   const pageParam = urlParams.get('page');
+
+  if(path.startsWith('/editor/@')) {
+    const editorSlug = path.replace('/editor/@', '').toLowerCase();
+    
+    setTimeout(async () => {
+      if(state.editorsList.length === 0) {
+        await loadEditors();
+      }
+      
+      const editor = state.editorsList.find(e => {
+        const slug = (e.slug || e.name || '').toLowerCase().replace(/\s+/g, '');
+        return slug === editorSlug;
+      });
+      
+      if(editor) {
+        router.openEditorProfile(editor, false);
+      } else {
+        history.replaceState({page: 'home'}, '', `${window.location.origin}${window.location.pathname}`);
+      }
+    }, 300);
+    return true;
+  }
 
   if(postParam) {
     const postId = parseInt(postParam);
@@ -3096,11 +3167,40 @@ function checkURLAndLoadPost() {
   return false;
 }
 window.addEventListener('popstate', (e) => {
+  const path = window.location.pathname;
   const urlParams = new URLSearchParams(window.location.search);
   const postParam = urlParams.get('post');
   const categoryParam = urlParams.get('category');
   const editorParam = urlParams.get('editor');
   const pageParam = urlParams.get('page');
+
+  if(path.startsWith('/editor/@')) {
+    const editorSlug = path.replace('/editor/@', '').toLowerCase();
+    
+    setTimeout(async () => {
+      if(state.editorsList.length === 0) {
+        await loadEditors();
+      }
+      
+      const editor = state.editorsList.find(e => {
+        const slug = (e.slug || e.name || '').toLowerCase().replace(/\s+/g, '');
+        return slug === editorSlug;
+      });
+      
+      if(editor) {
+        document.querySelectorAll('.post-overlay, .search-overlay, .about-page, .category-overlay').forEach(el => {
+          el.classList.remove('active');
+        });
+        document.body.style.overflow = '';
+        document.getElementById('progressBar').classList.remove('active');
+        document.getElementById('postHeaderBar').classList.remove('show');
+        document.getElementById('postToTopBtn').classList.remove('show');
+
+        router.openEditorProfile(editor, false);
+      }
+    }, 100);
+    return;
+  }
 
   if(postParam) {
     const postId = parseInt(postParam);
