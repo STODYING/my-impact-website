@@ -1884,24 +1884,35 @@ function closeLoading() {
 }
 
 // 스크롤 상단 세팅 헬퍼: 오버레이/페이지 컨테이너 모두 대응
+// 수정됨: 모든 페이지 진입 시 즉시 최상단으로 이동
 function resetScrollTop(target = 'window') {
   if (target === 'post') {
     const o = document.getElementById('postOverlay');
-    if (o) o.scrollTo({ top: 0, behavior: 'auto' });
+    if (o) {
+      o.scrollTop = 0; // 즉시 상단으로 이동 (애니메이션 없이)
+    }
   } else if (target === 'category') {
     const o = document.getElementById('categoryOverlay');
-    if (o) o.scrollTo({ top: 0, behavior: 'auto' });
+    if (o) {
+      o.scrollTop = 0; // 즉시 상단으로 이동
+    }
   } else if (target === 'editors') {
     const o = document.getElementById('editorsOverlay');
-    if (o) o.scrollTo({ top: 0, behavior: 'auto' });
+    if (o) {
+      o.scrollTop = 0; // 즉시 상단으로 이동
+    }
   } else if (target === 'search') {
     const o = document.getElementById('searchOverlay');
-    if (o) o.scrollTo({ top: 0, behavior: 'auto' });
+    if (o) {
+      o.scrollTop = 0; // 즉시 상단으로 이동
+    }
   } else if (target === 'about') {
     const o = document.getElementById('aboutPage');
-    if (o) o.scrollTo({ top: 0, behavior: 'auto' });
+    if (o) {
+      o.scrollTop = 0; // 즉시 상단으로 이동
+    }
   } else {
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    window.scrollTop = 0; // 즉시 상단으로 이동
   }
 }
 
@@ -2484,11 +2495,12 @@ async function loadCategory(slug, page = 1) {
   state.categoryPage = page;
 
   const overlay = document.getElementById('categoryOverlay');
+  // 수정됨: 카테고리 페이지 열기 전에 먼저 스크롤 리셋
+  overlay.scrollTop = 0;
   overlay.classList.add('active');
 
-  if(window.innerWidth <= 680) {
-    document.body.style.overflow = 'hidden';
-  }
+  // 수정됨: 모바일과 데스크탑 모두에서 메인 홈 스크롤 중단
+  document.body.style.overflow = 'hidden';
 
   document.getElementById('categoryOverlayTitle').textContent = slug.toUpperCase();
 
@@ -2678,11 +2690,17 @@ async function openPostOverlayById(id, updateURL = true) {
 
   overlay.classList.add('active');
   document.body.style.overflow = 'hidden';
+  
+  // 수정됨: 오버레이 열기 전에 먼저 스크롤을 최상단으로 리셋
+  overlay.scrollTop = 0;
 
   const cached = state.postsCache[id];
   if(cached && cached.content && cached.content.rendered) {
     await renderPostOverlay(cached);
     // [IMPACT-LOADING] 렌더 완료 후 스크롤 리셋 및 로딩 해제
+    // 수정됨: 캐시된 게시물도 항상 최상단부터 표시
+    const postOverlay = document.getElementById('postOverlay');
+    postOverlay.scrollTop = 0;
     resetScrollTop('post');
     await nextFrame();
     closeLoading();
@@ -2720,6 +2738,9 @@ async function openPostOverlayById(id, updateURL = true) {
 
     await renderPostOverlay(post);
     // [IMPACT-LOADING] 렌더 완료 후 스크롤 리셋 및 로딩 해제
+    // 수정됨: 새로 로드된 게시물도 항상 최상단부터 표시
+    const postOverlay = document.getElementById('postOverlay');
+    postOverlay.scrollTop = 0;
     resetScrollTop('post');
     await nextFrame();
     closeLoading();
@@ -2944,7 +2965,7 @@ const router = {
     const newUrl = `${window.location.origin}${window.location.pathname}`;
     history.pushState({page:'home'}, '', newUrl);
     
-    // 메인 홈이 로드되지 않았다면 다시 로드
+    // 수정됨: 메인 홈이 로드되지 않았다면 즉시 로드 및 로딩 표시
     const container = document.getElementById('rowsContainer');
     if(!container || container.children.length === 0) {
       openLoading('홈페이지를 불러오는 중...');
@@ -2960,10 +2981,13 @@ const router = {
     // [IMPACT-LOADING] 즉시 로딩 표시
     openLoading('에디터 목록을 불러오는 중...');
     
+    // 수정됨: EDITORS 페이지 열기 전에 먼저 스크롤 리셋
+    const editorsOverlay = document.getElementById('editorsOverlay');
+    editorsOverlay.scrollTop = 0;
+    
     document.getElementById('editorsOverlay').classList.add('active');
-    if(window.innerWidth <= 680) {
-      document.body.style.overflow = 'hidden';
-    }
+    // 수정됨: 모바일과 데스크탑 모두에서 메인 홈 스크롤 중단
+    document.body.style.overflow = 'hidden';
     
     await loadEditors();
     
@@ -2983,7 +3007,7 @@ const router = {
     const newUrl = `${window.location.origin}${window.location.pathname}`;
     history.pushState({page:'home'}, '', newUrl);
     
-    // 메인 홈이 로드되지 않았다면 다시 로드
+    // 수정됨: 메인 홈이 로드되지 않았다면 즉시 로드 및 로딩 표시
     const container = document.getElementById('rowsContainer');
     if(!container || container.children.length === 0) {
       openLoading('홈페이지를 불러오는 중...');
@@ -2999,10 +3023,13 @@ const router = {
     // [IMPACT-LOADING] 즉시 로딩 표시
     openLoading('ABOUT 페이지를 불러오는 중...');
     
+    // 수정됨: ABOUT 페이지 열기 전에 먼저 스크롤 리셋
+    const aboutPage = document.getElementById('aboutPage');
+    aboutPage.scrollTop = 0;
+    
     document.getElementById('aboutPage').classList.add('active');
-    if(window.innerWidth <= 680) {
-      document.body.style.overflow = 'hidden';
-    }
+    // 수정됨: 모바일과 데스크탑 모두에서 메인 홈 스크롤 중단
+    document.body.style.overflow = 'hidden';
     
     // [IMPACT-LOADING] 완료 후 스크롤 리셋 및 로딩 해제
     resetScrollTop('about');
@@ -3020,7 +3047,7 @@ const router = {
     const newUrl = `${window.location.origin}${window.location.pathname}`;
     history.pushState({page:'home'}, '', newUrl);
     
-    // 메인 홈이 로드되지 않았다면 다시 로드
+    // 수정됨: 메인 홈이 로드되지 않았다면 즉시 로드 및 로딩 표시
     const container = document.getElementById('rowsContainer');
     if(!container || container.children.length === 0) {
       openLoading('홈페이지를 불러오는 중...');
@@ -3086,15 +3113,19 @@ const router = {
         const newUrl = `${window.location.origin}${window.location.pathname}`;
         history.pushState({page: 'home'}, '', newUrl);
         
-        // 메인 홈이 로드되지 않았다면 다시 로드
+        // 수정됨: 메인 홈이 로드되지 않았다면 즉시 로딩 표시 및 로드
         const container = document.getElementById('rowsContainer');
         if(!container || container.children.length === 0) {
+          openLoading('홈페이지를 불러오는 중...');
           loadHomeChunk(1).then(() => {
+            closeLoading();
             if(prev.scrollPosition) {
               setTimeout(() => {
                 window.scrollTo(0, prev.scrollPosition);
               }, 100);
             }
+          }).catch(() => {
+            closeLoading();
           });
         } else if(prev.scrollPosition) {
           setTimeout(() => {
@@ -3118,11 +3149,13 @@ const router = {
     
     const overlay = document.getElementById('editorsOverlay');
     
+    // 수정됨: 에디터 프로필 페이지 열기 전에 먼저 스크롤 리셋
+    overlay.scrollTop = 0;
+    
     if(!overlay.classList.contains('active')) {
       overlay.classList.add('active');
-      if(window.innerWidth <= 680) {
-        document.body.style.overflow = 'hidden';
-      }
+      // 수정됨: 모바일과 데스크탑 모두에서 메인 홈 스크롤 중단
+      document.body.style.overflow = 'hidden';
     }
     
     document.getElementById('editorsGridWrapper').style.display = 'none';
@@ -3172,11 +3205,12 @@ async function openNavlessSearch(updateURL = true) {
   openLoading('검색 페이지를 불러오는 중...');
   
   const overlay = document.getElementById('searchOverlay');
+  // 수정됨: 검색 페이지 열기 전에 먼저 스크롤 리셋
+  overlay.scrollTop = 0;
   overlay.classList.add('active');
   
-  if(window.innerWidth <= 680) {
-    document.body.style.overflow = 'hidden';
-  }
+  // 수정됨: 모바일과 데스크탑 모두에서 메인 홈 스크롤 중단
+  document.body.style.overflow = 'hidden';
   
   // [IMPACT-LOADING] 완료 후 스크롤 리셋 및 로딩 해제
   resetScrollTop('search');
@@ -3480,15 +3514,27 @@ document.getElementById('imageModal').addEventListener('click', (e) => {
   }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   renderNavList();
 
   const loadingEl = document.getElementById('homeLoading');
   loadingEl.textContent = '페이지를 불러오는 중...';
 
+  // 수정됨: 새로고침 시 항상 메인 콘텐츠를 미리 로드
+  // 메인 홈 콘텐츠를 백그라운드로 로드
+  const loadHomeInBackground = async () => {
+    try {
+      await loadHomeChunk(1);
+      console.log('Home loaded successfully in background');
+    } catch(err) {
+      console.error('Background home loading failed:', err);
+    }
+  };
+
   const hasSpecificPage = checkURLAndLoadPost();
 
   if(!hasSpecificPage) {
+    // 메인 페이지인 경우 즉시 로드
     loadHomeChunk(1)
       .then(() => {
         console.log('Home loaded successfully');
@@ -3498,7 +3544,12 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingEl.textContent = '페이지를 불러오지 못했습니다. 새로고침을 시도해주세요.';
       });
   } else {
+    // 수정됨: 서브 페이지에서 시작한 경우도 백그라운드로 메인 콘텐츠 로드
     loadingEl.textContent = '';
+    // 약간의 디레이 후 백그라운드로 메인 콘텐츠 로드
+    setTimeout(() => {
+      loadHomeInBackground();
+    }, 1000);
   }
 });
 let resizeTimeout;
@@ -3537,4 +3588,3 @@ document.addEventListener('keydown', (e) => {
 </script>
 </body>
 </html>
-
