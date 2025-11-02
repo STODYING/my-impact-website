@@ -1910,17 +1910,17 @@ function goToHome() {
     return;
   }
 
-  showPageTransition().then(() => {
-    document.querySelectorAll('.category-overlay, .search-overlay, .about-page, .editors-overlay').forEach(el => {
-      el.classList.remove('active');
-    });
-    document.body.style.overflow = '';
-
-    const newUrl = `${window.location.origin}${window.location.pathname}`;
-    history.pushState({page:'home'}, '', newUrl);
-
-    scrollToTop();
+  // 불러오기 창 없이 바로 페이지 닫고 스크롤
+  document.querySelectorAll('.category-overlay, .search-overlay, .about-page, .editors-overlay').forEach(el => {
+    el.classList.remove('active');
   });
+  document.body.style.overflow = '';
+
+  const newUrl = `${window.location.origin}${window.location.pathname}`;
+  history.pushState({page:'home'}, '', newUrl);
+
+  // 부드럽게 위로 스크롤
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function handleNavToggle() {
@@ -2680,7 +2680,7 @@ async function renderPostOverlay(post) {
       </div>
     </div>
     <div class="post-content">${contentHTML}</div>
-    <div class="author-profile-section" style="cursor: pointer;" onclick="event.preventDefault(); event.stopPropagation(); router.openEditorProfile({id: ${authorData.id}, name: '${authorName}', description: '${(authorData.description || '').replace(/'/g, "\\'")}', avatar_urls: ${JSON.stringify(authorData.avatar_urls || {})}, slug: '${authorData.slug || ''}'}, true)">
+    <div class="author-profile-section" style="cursor: pointer;" onclick="event.preventDefault(); event.stopPropagation(); (() => { const overlay = document.getElementById('postOverlay'); overlay.classList.remove('active'); document.body.style.overflow = ''; document.getElementById('progressBar').classList.remove('active'); document.getElementById('postHeaderBar').classList.remove('show'); document.getElementById('postToTopBtn').classList.remove('show'); router.openEditorProfile({id: ${authorData.id}, name: '${authorName}', description: '${(authorData.description || '').replace(/'/g, "\\'")}', avatar_urls: ${JSON.stringify(authorData.avatar_urls || {})}, slug: '${authorData.slug || ''}'}, true); })()">
       <img src="${avatar || placeholderDataURI(96,96,'U')}" alt="${authorName}" class="author-profile-avatar">
       <div class="author-profile-info">
         <div class="author-profile-name">${authorName}</div>
@@ -2774,11 +2774,16 @@ const router = {
     }
   },
   closeCategory: () => {
-    showPageTransition().then(() => {
+    showPageTransition().then(async () => {
       document.getElementById('categoryOverlay').classList.remove('active');
       document.body.style.overflow = '';
       const newUrl = `${window.location.origin}${window.location.pathname}`;
       history.pushState({page:'home'}, '', newUrl);
+      
+      // 메인 홈이 로드되지 않았다면 다시 로드
+      if(state.homePosts.length === 0) {
+        await loadHomeChunk(1);
+      }
     });
   },
   openEditors: async (updateURL = true) => {
@@ -2885,7 +2890,17 @@ const router = {
       } else {
         const newUrl = `${window.location.origin}${window.location.pathname}`;
         history.pushState({page: 'home'}, '', newUrl);
-        if(prev.scrollPosition) {
+        
+        // 메인 홈이 로드되지 않았다면 다시 로드
+        if(state.homePosts.length === 0) {
+          loadHomeChunk(1).then(() => {
+            if(prev.scrollPosition) {
+              setTimeout(() => {
+                window.scrollTo(0, prev.scrollPosition);
+              }, 100);
+            }
+          });
+        } else if(prev.scrollPosition) {
           setTimeout(() => {
             window.scrollTo(0, prev.scrollPosition);
           }, 100);
