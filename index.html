@@ -1862,8 +1862,8 @@ function openLoading(label = '불러오는 중...', delay = 1500) {
     el.textContent = label;
     el.classList.add('active');
     
-    // 안전장치: 표시된 후 8초 뒤 강제 해제
-    __loadingTimer = setTimeout(() => closeLoading(), 8000);
+    // 안전장치: 표시된 후 2초 뒤 강제 해제
+    __loadingTimer = setTimeout(() => closeLoading(), 2000);
   }, delay);
 }
 
@@ -2949,6 +2949,7 @@ const router = {
     if(!container || container.children.length === 0) {
       openLoading('홈페이지를 불러오는 중...');
       await loadHomeChunk(1);
+      closeLoading();
     }
     
     // 스크롤 리셋
@@ -2987,6 +2988,7 @@ const router = {
     if(!container || container.children.length === 0) {
       openLoading('홈페이지를 불러오는 중...');
       await loadHomeChunk(1);
+      closeLoading();
     }
     
     // 스크롤 리셋
@@ -3023,6 +3025,7 @@ const router = {
     if(!container || container.children.length === 0) {
       openLoading('홈페이지를 불러오는 중...');
       await loadHomeChunk(1);
+      closeLoading();
     }
     
     // 스크롤 리셋
@@ -3152,12 +3155,10 @@ const router = {
         history.pushState({page:'editor', id:user.id}, '', newUrl);
       }
       
-      // [IMPACT-LOADING] 완료 후 스크롤 리셋 (로딩 해제는 에디터 박스 핸들러에서 수행)
-      // 단, 직접 호출된 경우를 위해 여기서도 처리
+      // [IMPACT-LOADING] 완료 후 스크롤 리셋 및 로딩 해제
       resetScrollTop('editors');
       await nextFrame();
-      // 에디터 박스에서 호출된 경우가 아니면 여기서 closeLoading
-      // (에디터 박스에서는 이미 closeLoading을 호출함)
+      closeLoading();
     } catch(e) {
       console.error(e);
       document.getElementById('editorPostsLoading').textContent = '불러오기 실패';
@@ -3536,3 +3537,4 @@ document.addEventListener('keydown', (e) => {
 </script>
 </body>
 </html>
+
