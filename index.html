@@ -2388,8 +2388,10 @@ async function loadCategory(slug, page = 1) {
   state.categoryPage = page;
 
   const overlay = document.getElementById('categoryOverlay');
-  overlay.classList.add('active');
+  
+  // 오버레이를 활성화하기 전에 스크롤을 맨 위로
   overlay.scrollTop = 0;
+  overlay.classList.add('active');
 
   if(window.innerWidth <= 680) {
     document.body.style.overflow = 'hidden';
@@ -2571,6 +2573,8 @@ async function openPostOverlayById(id, updateURL = true) {
   const overlay = document.getElementById('postOverlay');
   const article = document.getElementById('postArticle');
 
+  // 오버레이를 활성화하기 전에 스크롤을 맨 위로
+  overlay.scrollTop = 0;
   overlay.classList.add('active');
   document.body.style.overflow = 'hidden';
 
@@ -2791,11 +2795,16 @@ const router = {
     }
   },
   closeEditors: () => {
-    showPageTransition().then(() => {
+    showPageTransition().then(async () => {
       document.getElementById('editorsOverlay').classList.remove('active');
       document.body.style.overflow = '';
       const newUrl = `${window.location.origin}${window.location.pathname}`;
       history.pushState({page:'home'}, '', newUrl);
+      
+      // 메인 홈이 로드되지 않았다면 다시 로드
+      if(state.homePosts.length === 0) {
+        await loadHomeChunk(1);
+      }
     });
   },
   openAbout: async (updateURL = true) => {
@@ -2811,11 +2820,16 @@ const router = {
     }
   },
   closeAbout: () => {
-    showPageTransition().then(() => {
+    showPageTransition().then(async () => {
       document.getElementById('aboutPage').classList.remove('active');
       document.body.style.overflow = '';
       const newUrl = `${window.location.origin}${window.location.pathname}`;
       history.pushState({page:'home'}, '', newUrl);
+      
+      // 메인 홈이 로드되지 않았다면 다시 로드
+      if(state.homePosts.length === 0) {
+        await loadHomeChunk(1);
+      }
     });
   },
   closePost: () => {
@@ -2887,14 +2901,16 @@ const router = {
     await showPageTransition();
     
     const overlay = document.getElementById('editorsOverlay');
+    
+    // 오버레이를 활성화하기 전에 스크롤을 맨 위로
+    overlay.scrollTop = 0;
+    
     if(!overlay.classList.contains('active')) {
       overlay.classList.add('active');
       if(window.innerWidth <= 680) {
         document.body.style.overflow = 'hidden';
       }
     }
-    
-    overlay.scrollTop = 0;
     
     document.getElementById('editorsGridWrapper').style.display = 'none';
     const section = document.getElementById('editorProfileSection');
@@ -2933,8 +2949,12 @@ const router = {
 };
 async function openNavlessSearch(updateURL = true) {
   await showPageTransition();
-  document.getElementById('searchOverlay').classList.add('active');
-  document.getElementById('searchOverlay').scrollTop = 0;
+  const overlay = document.getElementById('searchOverlay');
+  
+  // 오버레이를 활성화하기 전에 스크롤을 맨 위로
+  overlay.scrollTop = 0;
+  overlay.classList.add('active');
+  
   if(window.innerWidth <= 680) {
     document.body.style.overflow = 'hidden';
   }
@@ -3012,8 +3032,11 @@ async function performSearch(query, mode) {
 async function openSearchWithQuery(query) {
   await showPageTransition();
   const overlay = document.getElementById('searchOverlay');
-  overlay.classList.add('active');
+  
+  // 오버레이를 활성화하기 전에 스크롤을 맨 위로
   overlay.scrollTop = 0;
+  overlay.classList.add('active');
+  
   if(window.innerWidth <= 680) {
     document.body.style.overflow = 'hidden';
   }
