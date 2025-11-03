@@ -1115,41 +1115,24 @@
     font-weight: 800;
     font-size: 18px;
     transition: all 0.2s ease;
-    color: #333;  /* 기본 색상을 어두운 색으로 변경 */
+    color: #fff;
     min-width: 40px;
   }
   .pagination button:hover:not(:disabled):not(.active) {
-    color: #666;  /* 호버 시 약간 더 밝은 회색 */
-    background: rgba(0,0,0,0.05);
+    color: #ddd;
   }
   .pagination button.active {
-    color: #fff;  /* 활성화된 버튼은 흰색 텍스트 */
-    background: #ff6b35;  /* 주황색 배경 */
+    color: #ff6b35;
   }
   .pagination button:disabled {
     opacity: 0.3;
     cursor: not-allowed;
   }
   .pagination span {
-    color: #999;  /* ... 표시도 회색으로 */
+    color: #ccc;
     font-size: 18px;
     font-weight: 800;
     padding: 0 8px;
-  }
-  /* 다크 모드 지원 추가 */
-  body.dark-mode .pagination button {
-    color: #e8e8e8;
-  }
-  body.dark-mode .pagination button:hover:not(:disabled):not(.active) {
-    color: #fff;
-    background: rgba(255,255,255,0.1);
-  }
-  body.dark-mode .pagination button.active {
-    color: #fff;
-    background: #ff6b35;
-  }
-  body.dark-mode .pagination span {
-    color: #666;
   }
   .editors-overlay {
     padding: 28px;
@@ -2552,100 +2535,65 @@ function renderPagination(containerId, currentPage, totalPages, onPageClick) {
 
   container.innerHTML = '';
   
-  console.log(`=== Rendering Pagination ===`);
-  console.log(`Container: ${containerId}`);
-  console.log(`Current Page: ${currentPage}`);
-  console.log(`Total Pages: ${totalPages}`);
+  console.log('Pagination:', containerId, 'Page:', currentPage, 'Total:', totalPages);
 
-  // 페이지가 없거나 1페이지뿐이면 페이지네이션 숨기기
-  if(totalPages <= 1) {
-    console.log('Only 1 page or less, hiding pagination');
-    return;
-  }
+  // totalPages가 1 이하여도 일단 표시하도록 수정 (디버깅용)
+  if(totalPages <= 0) return;
 
-  // « 이전 페이지 버튼
+  // << 버튼 (첫 페이지가 아닐 때만 표시)
   if(currentPage > 1) {
     const prevBtn = document.createElement('button');
     prevBtn.textContent = '«';
-    prevBtn.title = '이전 페이지';
     prevBtn.onclick = () => onPageClick(currentPage - 1);
     container.appendChild(prevBtn);
   }
 
-  // 페이지 번호 계산
-  const maxVisible = 5; // 한 번에 보여줄 최대 페이지 번호 수
-  let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-  let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-  
-  // 끝 페이지에 가까우면 시작 페이지 재조정
-  if(endPage - startPage < maxVisible - 1) {
-    startPage = Math.max(1, endPage - maxVisible + 1);
-  }
-  
-  console.log(`Page range: ${startPage} to ${endPage}`);
+  const startPage = Math.max(1, currentPage - 2);
+  const endPage = Math.min(totalPages, currentPage + 2);
 
-  // 첫 페이지와 ... 표시
   if(startPage > 1) {
     const firstBtn = document.createElement('button');
     firstBtn.textContent = '1';
-    firstBtn.title = '첫 페이지';
-    if(currentPage === 1) firstBtn.classList.add('active');
     firstBtn.onclick = () => onPageClick(1);
     container.appendChild(firstBtn);
 
     if(startPage > 2) {
       const dots = document.createElement('span');
       dots.textContent = '...';
+      dots.style.padding = '0 8px';
       container.appendChild(dots);
     }
   }
 
-  // 중간 페이지 번호들
   for(let i = startPage; i <= endPage; i++) {
     const btn = document.createElement('button');
     btn.textContent = i;
-    btn.title = `${i} 페이지`;
-    
-    if(i === currentPage) {
-      btn.classList.add('active');
-      console.log(`Page ${i} marked as active`);
-    }
-    
-    btn.onclick = () => {
-      if(i !== currentPage) {
-        onPageClick(i);
-      }
-    };
-    
+    if(i === currentPage) btn.classList.add('active');
+    btn.onclick = () => onPageClick(i);
     container.appendChild(btn);
   }
 
-  // ... 과 마지막 페이지 표시
   if(endPage < totalPages) {
     if(endPage < totalPages - 1) {
       const dots = document.createElement('span');
       dots.textContent = '...';
+      dots.style.padding = '0 8px';
       container.appendChild(dots);
     }
 
     const lastBtn = document.createElement('button');
     lastBtn.textContent = totalPages;
-    lastBtn.title = '마지막 페이지';
-    if(currentPage === totalPages) lastBtn.classList.add('active');
     lastBtn.onclick = () => onPageClick(totalPages);
     container.appendChild(lastBtn);
   }
 
-  // » 다음 페이지 버튼
+  // >> 버튼 (마지막 페이지가 아닐 때만 표시)
   if(currentPage < totalPages) {
     const nextBtn = document.createElement('button');
     nextBtn.textContent = '»';
-    nextBtn.title = '다음 페이지';
     nextBtn.onclick = () => onPageClick(currentPage + 1);
     container.appendChild(nextBtn);
   }
-  
-  console.log(`Total buttons created: ${container.children.length}`);
 }
 async function loadCategory(slug, page = 1) {
   if(state.isProcessing) return;
