@@ -1955,14 +1955,42 @@ function nextFrame() {
   return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 }
 
-function api(path) {
+// WordPress API 호출을 위한 두 가지 방법
+function api(path, direct = false) {
   const p = path.includes('_embed') ? path : (path + (path.includes('?') ? '&' : '?') + '_embed');
   
-  // 개발 모드: 직접 WordPress API 호출 (CORS 문제 있을 수 있음)
-  // return `https://${WP_SITE}/wp-json/wp/v2/${p}`;
+  // direct=true면 WordPress API 직접 호출 (CORS 허용 시)
+  if(direct) {
+    return `https://${WP_SITE}/wp-json/wp/v2/${p}`;
+  }
   
-  // 프로덕션 모드: Netlify Functions를 통한 프록시
+  // 기본: Netlify Functions를 통한 프록시
   return `/.netlify/functions/wpProxy?path=${encodeURIComponent(p)}`;
+}
+
+// 전체 게시물 수를 직접 계산하는 헬퍼 함수
+async function getTotalPostsCount() {
+  try {
+    // 방법 1: WordPress API 직접 호출로 개수 확인 (per_page=1로 최소 데이터만)
+    const directUrl = `https://${WP_SITE}/wp-json/wp/v2/posts?per_page=1&page=1`;
+    const res = await fetch(directUrl);
+    
+    const totalFromHeader = parseInt(res.headers.get('X-WP-Total') || '0');
+    const totalPagesFromHeader = parseInt(res.headers.get('X-WP-TotalPages') || '0');
+    
+    console.log('Direct API check - Total:', totalFromHeader, 'TotalPages:', totalPagesFromHeader);
+    
+    if(totalFromHeader > 0) {
+      return {
+        total: totalFromHeader,
+        totalPages: Math.ceil(totalFromHeader / HOME_PER_PAGE)
+      };
+    }
+  } catch(e) {
+    console.error('Direct API failed:', e);
+  }
+  
+  return null;
 }
 function formatDate(dstr) {
   try {
@@ -2421,21 +2449,28 @@ async function loadHomeChunk(page = 1) {
         console.log('Calculated totalPages from totalPosts:', totalPages);
       }
       
-      // 방법 3: 헤더도 없고 totalPosts도 없으면, 별도 API 호출로 전체 개수 확인
+      // 방법 3: 헤더도 없고 totalPosts도 없으면, WordPress API 직접 호출
       if(totalPages === 0 && page === 1) {
-        try {
-          const countRes = await fetch(api(`posts?per_page=1&page=1`));
-          totalPages = parseInt(countRes.headers.get('X-WP-TotalPages') || '1');
-          totalPosts = parseInt(countRes.headers.get('X-WP-Total') || '0');
-          
-          if(totalPages === 0 && totalPosts > 0) {
-            totalPages = Math.ceil(totalPosts / HOME_PER_PAGE);
-          }
-          
-          console.log('From count API - TotalPages:', totalPages, 'TotalPosts:', totalPosts);
-        } catch(e) {
-          console.error('Failed to get total count:', e);
+        console.log('Trying direct WordPress API...');
+        const directCount = await getTotalPostsCount();
+        
+        if(directCount && directCount.totalPages > 0) {
+          totalPages = directCount.totalPages;
+          state.allPostsCount = directCount.total;
+          console.log('Got from direct API - TotalPages:', totalPages, 'Total:', directCount.total);
+        }
+      }
+      
+      // 방법 4: 받은 게시물 개수로 추정 (최후의 수단)
+      if(totalPages === 0 && Array.isArray(posts)) {
+        // 20개 받았다면 최소 1페이지, 아마 더 있을 것
+        if(posts.length === HOME_PER_PAGE) {
+          // 정확한 개수를 모르지만 최소 2페이지는 있다고 가정
+          totalPages = 2;
+          console.log('Estimated from posts length (20 posts = likely 2+ pages)');
+        } else if(posts.length > 0) {
           totalPages = 1;
+          console.log('Only one page (less than 20 posts)');
         }
       }
       
@@ -2443,7 +2478,7 @@ async function loadHomeChunk(page = 1) {
       if(totalPages === 0) totalPages = 1;
       
       state.homeTotal = totalPages;
-      console.log('Final totalPages:', totalPages);
+      console.log('=== FINAL totalPages:', totalPages, '===');
 
       if(!Array.isArray(posts) || posts.length === 0) {
         loadingEl.textContent = '게시물이 없습니다.';
