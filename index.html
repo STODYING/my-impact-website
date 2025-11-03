@@ -148,12 +148,12 @@
   }
 
   body.dark-mode .pagination button {
-    color: #aaa;
+    color: #fff;
     background: transparent;
   }
   
   body.dark-mode .pagination button:hover:not(:disabled):not(.active) {
-    color: #e8e8e8;
+    color: #ddd;
   }
   
   body.dark-mode .pagination button.active {
@@ -161,7 +161,7 @@
   }
   
   body.dark-mode .pagination span {
-    color: #666;
+    color: #ccc;
   }
 
   body.dark-mode .editor-card {
@@ -1114,11 +1114,11 @@
     font-weight: 800;
     font-size: 18px;
     transition: all 0.2s ease;
-    color: #666;
+    color: #fff;
     min-width: 40px;
   }
   .pagination button:hover:not(:disabled):not(.active) {
-    color: #333;
+    color: #ddd;
   }
   .pagination button.active {
     color: #ff6b35;
@@ -1128,7 +1128,7 @@
     cursor: not-allowed;
   }
   .pagination span {
-    color: #999;
+    color: #ccc;
     font-size: 18px;
     font-weight: 800;
     padding: 0 8px;
@@ -1863,7 +1863,7 @@ let __loadingTimer = null;
 let __loadingDelayTimer = null;
 let __loadingStartTime = null;
 
-function openLoading(label = '불러오는 중...', delay = 1500) {
+function openLoading(label = '불러오는 중...', delay = 300) {
   const el = document.getElementById('pageTransition');
   if (!el) return;
   
@@ -1874,13 +1874,13 @@ function openLoading(label = '불러오는 중...', delay = 1500) {
   // 시작 시간 기록
   __loadingStartTime = Date.now();
   
-  // delay 밀리초 후에만 로딩 표시 (기본 1.5초)
+  // delay 밀리초 후에만 로딩 표시 (기본 300ms)
   __loadingDelayTimer = setTimeout(() => {
     el.textContent = label;
     el.classList.add('active');
     
-    // 안전장치: 표시된 후 2초 뒤 강제 해제
-    __loadingTimer = setTimeout(() => closeLoading(), 2000);
+    // 안전장치: 표시된 후 3초 뒤 강제 해제
+    __loadingTimer = setTimeout(() => closeLoading(), 3000);
   }, delay);
 }
 
@@ -2038,6 +2038,13 @@ function goToHome() {
     
     // 부드럽게 위로 스크롤
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // 홈 콘텐츠가 비어있으면 다시 로드
+    const container = document.getElementById('rowsContainer');
+    if(!container || container.children.length === 0) {
+      state.homeLoadPromise = null;
+      loadHomeChunk(state.homePage || 1);
+    }
     return;
   }
 
@@ -2060,6 +2067,13 @@ function goToHome() {
 
   // 부드럽게 위로 스크롤 (오버레이가 있었든 없었든 항상 실행)
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  // 홈 콘텐츠가 비어있으면 다시 로드
+  const container = document.getElementById('rowsContainer');
+  if(!container || container.children.length === 0) {
+    state.homeLoadPromise = null;
+    loadHomeChunk(state.homePage || 1);
+  }
 }
 
 function handleNavToggle() {
@@ -2167,6 +2181,7 @@ function createCardNode(post) {
     thumbUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
   } catch(e) { thumbUrl = ''; }
   imgEl.src = thumbUrl || placeholderDataURI(1200,800,'No Image');
+  imgEl.loading = 'lazy'; // Lazy loading 추가
   imgEl.alt = (post.title && post.title.rendered) ? stripTags(post.title.rendered) : 'thumb';
   node.querySelector('.title').innerHTML = post.title && post.title.rendered ? post.title.rendered : '제목 없음';
   const avatarImg = node.querySelector('.author-avatar');
@@ -2176,6 +2191,7 @@ function createCardNode(post) {
     const a = post._embedded.author[0];
     const avatarUrl = a.avatar_urls ? (a.avatar_urls['48']||a.avatar_urls['24']||'') : '';
     avatarImg.src = avatarUrl || placeholderDataURI(96,96,'U');
+    avatarImg.loading = 'lazy'; // Lazy loading 추가
     avatarImg.alt = a.name || 'author';
     authorNameEl.textContent = a.name || '익명';
   } else {
@@ -2206,7 +2222,7 @@ function createCardNode(post) {
 
     if(state.isProcessing) return;
     // [IMPACT-LOADING] 클릭 즉시 로딩 표시
-    openLoading('게시물을 불러오는 중...');
+    openLoading('게시물을 불러오는 중...', 100); // delay 짧게
     clearTimeout(clickTimeout);
     clickTimeout = setTimeout(() => {
       openPostOverlayById(post.id);
@@ -2305,7 +2321,7 @@ function renderDesktopLayout(posts, container) {
 
       let heroUrl = largePost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
       largeDiv.innerHTML = `
-        <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero">
+        <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero" loading="lazy">
         <div class="hero-overlay">
           <h2 class="hero-title">${largePost.title?.rendered || '제목 없음'}</h2>
           <div style="display:flex;align-items:center;gap:10px">
@@ -2364,7 +2380,7 @@ function renderDesktopLayout(posts, container) {
 
         let heroUrl = largePost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
         largeDiv.innerHTML = `
-          <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero">
+          <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero" loading="lazy">
           <div class="hero-overlay">
             <h2 class="hero-title">${largePost.title?.rendered || '제목 없음'}</h2>
             <div style="display:flex;align-items:center;gap:10px">
