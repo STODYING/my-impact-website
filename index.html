@@ -1860,6 +1860,7 @@ const NAV_ORDER = ["TECH","EAT","STYLE","CULTURE","LIFE","EDITORS' PICK"];
 const state = {
   homePage: 1,
   homeTotal: 0,
+  allPostsCount: 0, // 전체 게시물 수 저장
   categoryPage: 1,
   categoryTotal: 0,
   currentCategory: '',
@@ -1956,6 +1957,11 @@ function nextFrame() {
 
 function api(path) {
   const p = path.includes('_embed') ? path : (path + (path.includes('?') ? '&' : '?') + '_embed');
+  
+  // 개발 모드: 직접 WordPress API 호출 (CORS 문제 있을 수 있음)
+  // return `https://${WP_SITE}/wp-json/wp/v2/${p}`;
+  
+  // 프로덕션 모드: Netlify Functions를 통한 프록시
   return `/.netlify/functions/wpProxy?path=${encodeURIComponent(p)}`;
 }
 function formatDate(dstr) {
@@ -2401,10 +2407,44 @@ async function loadHomeChunk(page = 1) {
       const res = await fetch(api(`posts?per_page=${HOME_PER_PAGE}&page=${page}`));
       if(!res.ok) throw new Error('Failed to load');
 
-      const totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '1');
-      state.homeTotal = totalPages;
+      // 방법 1: 헤더에서 읽기 시도
+      let totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '0');
+      let totalPosts = parseInt(res.headers.get('X-WP-Total') || '0');
+      
+      console.log('Headers - TotalPages:', totalPages, 'TotalPosts:', totalPosts);
 
       const posts = await res.json();
+      
+      // 방법 2: 헤더가 없으면 전체 게시물 수로 계산
+      if(totalPages === 0 && totalPosts > 0) {
+        totalPages = Math.ceil(totalPosts / HOME_PER_PAGE);
+        console.log('Calculated totalPages from totalPosts:', totalPages);
+      }
+      
+      // 방법 3: 헤더도 없고 totalPosts도 없으면, 별도 API 호출로 전체 개수 확인
+      if(totalPages === 0 && page === 1) {
+        try {
+          const countRes = await fetch(api(`posts?per_page=1&page=1`));
+          totalPages = parseInt(countRes.headers.get('X-WP-TotalPages') || '1');
+          totalPosts = parseInt(countRes.headers.get('X-WP-Total') || '0');
+          
+          if(totalPages === 0 && totalPosts > 0) {
+            totalPages = Math.ceil(totalPosts / HOME_PER_PAGE);
+          }
+          
+          console.log('From count API - TotalPages:', totalPages, 'TotalPosts:', totalPosts);
+        } catch(e) {
+          console.error('Failed to get total count:', e);
+          totalPages = 1;
+        }
+      }
+      
+      // 최소값 보장
+      if(totalPages === 0) totalPages = 1;
+      
+      state.homeTotal = totalPages;
+      console.log('Final totalPages:', totalPages);
+
       if(!Array.isArray(posts) || posts.length === 0) {
         loadingEl.textContent = '게시물이 없습니다.';
         state.isProcessing = false;
@@ -2573,10 +2613,24 @@ async function loadCategory(slug, page = 1) {
     const res = await fetch(api(`posts?categories=${catId}&per_page=20&page=${page}`));
     if(!res.ok) throw new Error('Failed');
 
-    const totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '1');
-    state.categoryTotal = totalPages;
-
+    let totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '0');
+    let totalPosts = parseInt(res.headers.get('X-WP-Total') || '0');
+    
+    console.log('Category Headers - TotalPages:', totalPages, 'TotalPosts:', totalPosts);
+    
     const posts = await res.json();
+    
+    // 헤더가 없으면 전체 게시물 수로 계산
+    if(totalPages === 0 && totalPosts > 0) {
+      totalPages = Math.ceil(totalPosts / 20);
+      console.log('Category - Calculated totalPages:', totalPages);
+    }
+    
+    // 최소값 보장
+    if(totalPages === 0) totalPages = 1;
+    
+    state.categoryTotal = totalPages;
+    console.log('Category - Final totalPages:', totalPages);
     if(Array.isArray(posts)) {
       const uniquePosts = posts.filter((post, index, self) =>
         index === self.findIndex(p => p.id === post.id)
