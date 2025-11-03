@@ -148,7 +148,11 @@
     color: #e8e8e8;
   }
 
-  
+  body.dark-mode .pagination button {
+    background: #1a1a1a;
+    color: #e8e8e8;
+    border-color: rgba(255,255,255,0.12);
+  }
 
   body.dark-mode .editor-card {
     background: #1a1a1a;
@@ -672,77 +676,6 @@
   .cat-culture{ background:#8a2be2; }
   .cat-life{ background:#ffa500; color:#000; }
   .cat-editors-pick{ background:#ff1493; }
-  
-  /* Pagination Styles */
-  .pager {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 40px 0;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .pager button {
-    padding: 8px 12px;
-    background: #fff;
-    border: 1px solid rgba(0,0,0,0.06);
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: transform 0.3s ease;
-    font-weight: 500;
-    color: #333;
-    min-width: 36px;
-  }
-
-  .pager button:hover:not(:disabled) {
-    transform: translateY(-2px);
-    transition: transform 0.3s ease;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  }
-
-  .pager button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .pager button.active {
-    background: #ff6b35;
-    color: #fff;
-    border: none;
-  }
-
-  body.dark-mode .pager button {
-    background: #1a1a1a;
-    color: #ddd;
-    border-color: rgba(255,255,255,0.12);
-  }
-
-  body.dark-mode .pager button:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(255,255,255,0.1);
-  }
-
-  body.dark-mode .pager button.active {
-    background: #ff6b35;
-    color: #fff;
-  }
-
-  html[data-theme="dark"] .pager button.active {
-    background: #ff6b35;
-    color: #fff;
-  }
-
-  .pager .dots {
-    padding: 0 8px;
-    color: #666;
-    font-weight: 400;
-  }
-
-  body.dark-mode .pager .dots {
-    color: #aaa;
-  }
   .category-overlay, .post-overlay, .search-overlay, .about-page, .editors-overlay {
     display:none;
     position:fixed;
@@ -1664,7 +1597,7 @@
   <main class="home" id="home">
     <div id="rowsContainer"></div>
     <div id="homeLoading" style="text-align:center;color:#666;padding:36px 0">로딩 중...</div>
-    <div class="pager" id="homePagination"></div>
+    <div class="pagination" id="homePagination"></div>
   </main>
   <section class="category-overlay" id="categoryOverlay">
     <div class="wrap">
@@ -1679,7 +1612,7 @@
       </div>
       <div class="category-grid" id="categoryGrid"></div>
       <div id="categoryLoading" style="text-align:center;color:#666;padding:28px 0"></div>
-      <div class="pager" id="categoryPagination"></div>
+      <div class="pagination" id="categoryPagination"></div>
     </div>
   </section>
   <section class="editors-overlay" id="editorsOverlay">
@@ -2462,12 +2395,13 @@ async function loadHomeChunk(page = 1) {
       } else {
         renderDesktopLayout(uniquePosts, container);
       }
-      renderPager('homePagination', page, totalPages, (p) => {
+      renderPagination('homePagination', page, totalPages, (p) => {
         // [IMPACT-LOADING] 페이지네이션 클릭 시 로딩 표시
         openLoading('페이지를 불러오는 중...');
         state.homePage = p;
         state.homeLoadPromise = null;
         loadHomeChunk(p).then(() => {
+          resetScrollTop('window');
           closeLoading();
         }).catch(() => {
           closeLoading();
@@ -2487,7 +2421,7 @@ async function loadHomeChunk(page = 1) {
 
   return state.homeLoadPromise;
 }
-function renderPager(containerId, currentPage, totalPages, onPageClick) {
+function renderPagination(containerId, currentPage, totalPages, onPageClick) {
   const container = document.getElementById(containerId);
   if(!container) return;
 
@@ -2495,87 +2429,56 @@ function renderPager(containerId, currentPage, totalPages, onPageClick) {
 
   if(totalPages <= 1) return;
 
-  // << 버튼 (첫 페이지가 아닐 때만 표시)
-  if(currentPage > 1) {
-    const prevBtn = document.createElement('button');
-    prevBtn.textContent = '<<';
-    prevBtn.onclick = () => {
-      onPageClick(currentPage - 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-    container.appendChild(prevBtn);
-  }
+  const prevBtn = document.createElement('button');
+  prevBtn.textContent = '‹';
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.onclick = () => onPageClick(currentPage - 1);
+  container.appendChild(prevBtn);
 
-  // 페이지 번호 계산
-  const maxVisible = 5; // 보이는 페이지 번호 최대 개수
-  let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-  let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+  const startPage = Math.max(1, currentPage - 2);
+  const endPage = Math.min(totalPages, currentPage + 2);
 
-  // 끝 페이지에 가까울 때 시작 페이지 조정
-  if(endPage === totalPages) {
-    startPage = Math.max(1, endPage - maxVisible + 1);
-  }
-
-  // 첫 페이지
   if(startPage > 1) {
     const firstBtn = document.createElement('button');
     firstBtn.textContent = '1';
-    firstBtn.onclick = () => {
-      onPageClick(1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+    firstBtn.onclick = () => onPageClick(1);
     container.appendChild(firstBtn);
 
     if(startPage > 2) {
       const dots = document.createElement('span');
-      dots.className = 'dots';
-      dots.textContent = '...';
+      dots.textContent = '•••';
+      dots.style.padding = '0 8px';
       container.appendChild(dots);
     }
   }
 
-  // 중간 페이지들
   for(let i = startPage; i <= endPage; i++) {
     const btn = document.createElement('button');
     btn.textContent = i;
-    if(i === currentPage) {
-      btn.classList.add('active');
-    }
-    btn.onclick = () => {
-      onPageClick(i);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+    if(i === currentPage) btn.classList.add('active');
+    btn.onclick = () => onPageClick(i);
     container.appendChild(btn);
   }
 
-  // 마지막 페이지
   if(endPage < totalPages) {
     if(endPage < totalPages - 1) {
       const dots = document.createElement('span');
-      dots.className = 'dots';
-      dots.textContent = '...';
+      dots.textContent = '•••';
+      dots.style.padding = '0 8px';
       container.appendChild(dots);
     }
 
     const lastBtn = document.createElement('button');
     lastBtn.textContent = totalPages;
-    lastBtn.onclick = () => {
-      onPageClick(totalPages);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+    lastBtn.onclick = () => onPageClick(totalPages);
     container.appendChild(lastBtn);
   }
 
-  // >> 버튼 (마지막 페이지가 아닐 때만 표시)
-  if(currentPage < totalPages) {
-    const nextBtn = document.createElement('button');
-    nextBtn.textContent = '>>';
-    nextBtn.onclick = () => {
-      onPageClick(currentPage + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-    container.appendChild(nextBtn);
-  }
+  const nextBtn = document.createElement('button');
+  nextBtn.textContent = '›';
+  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.onclick = () => onPageClick(currentPage + 1);
+  container.appendChild(nextBtn);
 }
 async function loadCategory(slug, page = 1) {
   if(state.isProcessing) return;
@@ -2646,7 +2549,7 @@ async function loadCategory(slug, page = 1) {
       });
     }
 
-    renderPager('categoryPagination', page, totalPages, (p) => {
+    renderPagination('categoryPagination', page, totalPages, (p) => {
       // [IMPACT-LOADING] 페이지네이션 클릭 시 로딩 표시
       openLoading('페이지를 불러오는 중...');
       loadCategory(slug, p);
