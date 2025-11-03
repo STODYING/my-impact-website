@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -151,18 +152,6 @@
     background: #1a1a1a;
     color: #e8e8e8;
     border-color: rgba(255,255,255,0.12);
-  }
-  body.dark-mode .pagination button:hover:not(:disabled):not(.active) {
-    background: #252525;
-    box-shadow: 0 2px 8px rgba(255,255,255,0.05);
-  }
-  body.dark-mode .pagination button.active {
-    background: transparent;
-    color: #ff6b35;
-    border-color: transparent;
-  }
-  body.dark-mode .pagination .page-dots {
-    color: #666;
   }
 
   body.dark-mode .editor-card {
@@ -1101,54 +1090,32 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     margin: 48px 0;
     flex-wrap: wrap;
-    padding: 0 20px;
   }
   .pagination button {
     border: none;
     background: #fff;
-    padding: 10px 14px;
+    padding: 10px 16px;
     border-radius: 8px;
     cursor: pointer;
-    font-weight: 600;
-    min-width: 42px;
+    font-weight: 700;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid rgba(0,0,0,0.08);
-    color: #333;
-    font-size: 14px;
   }
-  .pagination button:hover:not(:disabled):not(.active) {
-    background: #f5f5f5;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  .pagination button:hover:not(:disabled) {
+    background: #ff6b35;
+    color: #fff;
+    transform: translateY(-2px);
   }
   .pagination button.active {
-    background: transparent;
-    color: #ff6b35;
-    font-weight: 700;
-    border-color: transparent;
-    cursor: default;
-    transform: none;
+    background: #ff6b35;
+    color: #fff;
   }
   .pagination button:disabled {
-    display: none;
-  }
-  .pagination button.nav-arrow {
-    font-size: 18px;
-    padding: 8px 12px;
-    min-width: auto;
-  }
-  .pagination button.nav-arrow:disabled {
-    display: none;
-  }
-  .pagination .page-dots {
-    padding: 0 8px;
-    color: #999;
-    font-weight: 400;
-    display: inline-flex;
-    align-items: center;
+    opacity: 0.3;
+    cursor: not-allowed;
   }
   .editors-overlay {
     padding: 28px;
@@ -2460,91 +2427,65 @@ function renderPagination(containerId, currentPage, totalPages, onPageClick) {
 
   container.innerHTML = '';
 
-  if(totalPages <= 1) return;
-
-  // << 버튼 (첫 페이지가 아닐 때만 표시)
-  if(currentPage > 1) {
-    const firstBtn = document.createElement('button');
-    firstBtn.textContent = '«';
-    firstBtn.className = 'nav-arrow';
-    firstBtn.onclick = () => onPageClick(1);
-    firstBtn.title = '처음 페이지';
-    container.appendChild(firstBtn);
+  // 게시물이 20개 이하일 때(totalPages가 1 이하) 페이지네이션을 완전히 숨김
+  if(totalPages <= 1) {
+    container.style.display = 'none';
+    return;
   }
-
-  // 페이지 번호 계산
-  let startPage = 1;
-  let endPage = totalPages;
   
-  // 표시할 페이지 수 설정 (모바일: 5개, 데스크탑: 10개)
-  const maxPages = window.innerWidth <= 680 ? 5 : 10;
-  
-  if(totalPages > maxPages) {
-    const halfPages = Math.floor(maxPages / 2);
-    
-    if(currentPage <= halfPages) {
-      startPage = 1;
-      endPage = maxPages;
-    } else if(currentPage >= totalPages - halfPages) {
-      startPage = totalPages - maxPages + 1;
-      endPage = totalPages;
-    } else {
-      startPage = currentPage - halfPages;
-      endPage = currentPage + halfPages;
-    }
-  }
+  // 21개 이상일 때 페이지네이션 표시
+  container.style.display = 'flex';
 
-  // 시작 페이지가 1이 아니면 1페이지 버튼과 ... 표시
+  const prevBtn = document.createElement('button');
+  prevBtn.textContent = '‹';
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.onclick = () => onPageClick(currentPage - 1);
+  container.appendChild(prevBtn);
+
+  const startPage = Math.max(1, currentPage - 2);
+  const endPage = Math.min(totalPages, currentPage + 2);
+
   if(startPage > 1) {
-    const firstPageBtn = document.createElement('button');
-    firstPageBtn.textContent = '1';
-    firstPageBtn.onclick = () => onPageClick(1);
-    container.appendChild(firstPageBtn);
+    const firstBtn = document.createElement('button');
+    firstBtn.textContent = '1';
+    firstBtn.onclick = () => onPageClick(1);
+    container.appendChild(firstBtn);
 
     if(startPage > 2) {
       const dots = document.createElement('span');
-      dots.className = 'page-dots';
-      dots.textContent = '...';
+      dots.textContent = '•••';
+      dots.style.padding = '0 8px';
       container.appendChild(dots);
     }
   }
 
-  // 페이지 번호 버튼들
   for(let i = startPage; i <= endPage; i++) {
     const btn = document.createElement('button');
     btn.textContent = i;
-    if(i === currentPage) {
-      btn.classList.add('active');
-    } else {
-      btn.onclick = () => onPageClick(i);
-    }
+    if(i === currentPage) btn.classList.add('active');
+    btn.onclick = () => onPageClick(i);
     container.appendChild(btn);
   }
 
-  // 끝 페이지가 totalPages가 아니면 ... 과 마지막 페이지 버튼 표시
   if(endPage < totalPages) {
     if(endPage < totalPages - 1) {
       const dots = document.createElement('span');
-      dots.className = 'page-dots';
-      dots.textContent = '...';
+      dots.textContent = '•••';
+      dots.style.padding = '0 8px';
       container.appendChild(dots);
     }
 
-    const lastPageBtn = document.createElement('button');
-    lastPageBtn.textContent = totalPages;
-    lastPageBtn.onclick = () => onPageClick(totalPages);
-    container.appendChild(lastPageBtn);
-  }
-
-  // >> 버튼 (마지막 페이지가 아닐 때만 표시)
-  if(currentPage < totalPages) {
     const lastBtn = document.createElement('button');
-    lastBtn.textContent = '»';
-    lastBtn.className = 'nav-arrow';
+    lastBtn.textContent = totalPages;
     lastBtn.onclick = () => onPageClick(totalPages);
-    lastBtn.title = '마지막 페이지';
     container.appendChild(lastBtn);
   }
+
+  const nextBtn = document.createElement('button');
+  nextBtn.textContent = '›';
+  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.onclick = () => onPageClick(currentPage + 1);
+  container.appendChild(nextBtn);
 }
 async function loadCategory(slug, page = 1) {
   if(state.isProcessing) return;
