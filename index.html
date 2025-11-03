@@ -23,6 +23,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="IMPACT">
+  
+  <!-- 유튜브 스타일: DNS Prefetch & Preconnect로 연결 시간 단축 -->
+  <link rel="dns-prefetch" href="https://impactceo0.wordpress.com">
+  <link rel="preconnect" href="https://impactceo0.wordpress.com" crossorigin>
+  <link rel="dns-prefetch" href="https://i0.wp.com">
+  <link rel="preconnect" href="https://i0.wp.com" crossorigin>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
@@ -2176,12 +2183,32 @@ function createCardNode(post) {
   const tpl = document.getElementById('cardTpl');
   const node = tpl.content.firstElementChild.cloneNode(true);
   const imgEl = node.querySelector('.thumb img');
-  let thumbUrl = '';
+  
   try {
-    thumbUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
-  } catch(e) { thumbUrl = ''; }
-  imgEl.src = thumbUrl || placeholderDataURI(1200,800,'No Image');
-  imgEl.loading = 'lazy'; // Lazy loading 추가
+    const media = post._embedded?.['wp:featuredmedia']?.[0];
+    if(media && media.media_details?.sizes) {
+      // WordPress의 여러 이미지 크기 활용
+      const thumb = media.media_details.sizes.thumbnail?.source_url;
+      const medium = media.media_details.sizes.medium?.source_url;
+      const large = media.media_details.sizes.large?.source_url;
+      const full = media.source_url;
+      
+      // srcset으로 적절한 크기 자동 선택
+      if(thumb && medium) {
+        imgEl.srcset = `${thumb} 150w, ${medium} 300w, ${large || full} 1024w`;
+        imgEl.sizes = '(max-width: 680px) 100vw, 300px';
+        imgEl.src = medium; // fallback
+      } else {
+        imgEl.src = full;
+      }
+    } else {
+      imgEl.src = placeholderDataURI(1200,800,'No Image');
+    }
+  } catch(e) {
+    imgEl.src = placeholderDataURI(1200,800,'No Image');
+  }
+  
+  imgEl.loading = 'lazy';
   imgEl.alt = (post.title && post.title.rendered) ? stripTags(post.title.rendered) : 'thumb';
   node.querySelector('.title').innerHTML = post.title && post.title.rendered ? post.title.rendered : '제목 없음';
   const avatarImg = node.querySelector('.author-avatar');
@@ -2191,7 +2218,7 @@ function createCardNode(post) {
     const a = post._embedded.author[0];
     const avatarUrl = a.avatar_urls ? (a.avatar_urls['48']||a.avatar_urls['24']||'') : '';
     avatarImg.src = avatarUrl || placeholderDataURI(96,96,'U');
-    avatarImg.loading = 'lazy'; // Lazy loading 추가
+    avatarImg.loading = 'lazy';
     avatarImg.alt = a.name || 'author';
     authorNameEl.textContent = a.name || '익명';
   } else {
@@ -2216,13 +2243,34 @@ function createCardNode(post) {
     });
   }
   let clickTimeout;
+  let hoverTimeout;
+  
+  // 유튜브 스타일: 마우스 호버 시 게시물 데이터 미리 로드
+  node.addEventListener('mouseenter', () => {
+    hoverTimeout = setTimeout(() => {
+      // 이미 캐시되어 있지 않으면 미리 로드
+      if(!state.postsCache[post.id]?.content) {
+        fetch(api(`posts/${post.id}`))
+          .then(res => res.json())
+          .then(data => {
+            state.postsCache[post.id] = data;
+            console.log('Prefetched:', post.id);
+          })
+          .catch(e => console.log('Prefetch failed:', e));
+      }
+    }, 200); // 200ms 호버 후 시작
+  });
+  
+  node.addEventListener('mouseleave', () => {
+    clearTimeout(hoverTimeout);
+  });
+  
   node.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
 
     if(state.isProcessing) return;
-    // [IMPACT-LOADING] 클릭 즉시 로딩 표시
-    openLoading('게시물을 불러오는 중...', 100); // delay 짧게
+    openLoading('게시물을 불러오는 중...', 100);
     clearTimeout(clickTimeout);
     clickTimeout = setTimeout(() => {
       openPostOverlayById(post.id);
@@ -3647,6 +3695,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const loadingEl = document.getElementById('homeLoading');
   loadingEl.textContent = '페이지를 불러오는 중...';
+  
+  // 유튜브 스타일: IntersectionObserver로 스크롤 시 다음 페이지 자동 로드
+  const observerOptions = {
+    root: null,
+    rootMargin: '200px', // 200px 전에 미리 로드
+    threshold: 0.1
+  };
+  
+  const paginationObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting && !state.isProcessing) {
+        const nextPage = state.homePage + 1;
+        if(nextPage <= state.homeTotal) {
+          console.log('Auto-loading next page:', nextPage);
+          // 자동으로 다음 페이지는 로드하지 않고, 사용자가 버튼 클릭하도록 유지
+          // 하지만 prefetch는 가능
+        }
+      }
+    });
+  }, observerOptions);
+  
+  // 페이지네이션 영역 관찰
+  const paginationEl = document.getElementById('homePagination');
+  if(paginationEl) {
+    paginationObserver.observe(paginationEl);
+  }
 
   // 수정됨: 새로고침 시 항상 메인 콘텐츠를 미리 로드
   // 메인 홈 콘텐츠를 백그라운드로 로드
