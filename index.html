@@ -2427,14 +2427,7 @@ function renderPagination(containerId, currentPage, totalPages, onPageClick) {
 
   container.innerHTML = '';
 
-  // 게시물이 20개 이하일 때(totalPages가 1 이하) 페이지네이션을 완전히 숨김
-  if(totalPages <= 1) {
-    container.style.display = 'none';
-    return;
-  }
-  
-  // 21개 이상일 때 페이지네이션 표시
-  container.style.display = 'flex';
+  if(totalPages <= 1) return;
 
   const prevBtn = document.createElement('button');
   prevBtn.textContent = '‹';
