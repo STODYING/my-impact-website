@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -146,23 +145,6 @@
 
   body.dark-mode .search-bar input[type="search"] {
     color: #e8e8e8;
-  }
-
-  body.dark-mode .pagination button {
-    color: #fff;
-    background: transparent;
-  }
-  
-  body.dark-mode .pagination button:hover:not(:disabled):not(.active) {
-    color: #ddd;
-  }
-  
-  body.dark-mode .pagination button.active {
-    color: #ff6b35;
-  }
-  
-  body.dark-mode .pagination span {
-    color: #ccc;
   }
 
   body.dark-mode .editor-card {
@@ -1101,38 +1083,81 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     margin: 60px auto 40px;
     padding: 20px;
     flex-wrap: wrap;
   }
   .pagination button {
-    border: none;
-    background: transparent;
-    padding: 8px 12px;
+    background-color: #1a1a1a;
+    color: #ccc;
+    border: 1px solid #333;
+    padding: 10px 16px;
     border-radius: 6px;
     cursor: pointer;
-    font-weight: 800;
-    font-size: 18px;
     transition: all 0.2s ease;
-    color: #fff;
-    min-width: 40px;
+    font-size: 15px;
+    font-weight: 500;
+    min-width: 44px;
+    text-align: center;
+    user-select: none;
   }
   .pagination button:hover:not(:disabled):not(.active) {
-    color: #ddd;
+    background-color: #2a2a2a;
+    color: #fff;
+    border-color: #444;
   }
   .pagination button.active {
-    color: #ff6b35;
+    background-color: #ff6600;
+    color: #fff;
+    border-color: #ff6600;
+    font-weight: 700;
+    cursor: default;
   }
   .pagination button:disabled {
     opacity: 0.3;
     cursor: not-allowed;
   }
   .pagination span {
+    background-color: transparent;
+    border-color: transparent;
     color: #ccc;
-    font-size: 18px;
-    font-weight: 800;
+    font-size: 15px;
+    font-weight: 500;
     padding: 0 8px;
+    pointer-events: none;
+  }
+  
+  /* 라이트 모드용 페이지네이션 */
+  body:not(.dark-mode) .pagination button {
+    background-color: #fff;
+    color: #333;
+    border-color: #ddd;
+  }
+  body:not(.dark-mode) .pagination button:hover:not(:disabled):not(.active) {
+    background-color: #f5f5f5;
+    color: #111;
+    border-color: #ccc;
+  }
+  body:not(.dark-mode) .pagination button.active {
+    background-color: #ff6600;
+    color: #fff;
+    border-color: #ff6600;
+  }
+  body:not(.dark-mode) .pagination span {
+    color: #666;
+  }
+  
+  /* 모바일 반응형 */
+  @media (max-width: 640px) {
+    .pagination button {
+      padding: 8px 12px;
+      font-size: 14px;
+      min-width: 38px;
+    }
+    .pagination {
+      gap: 6px;
+    }
   }
   .editors-overlay {
     padding: 28px;
@@ -2537,63 +2562,100 @@ function renderPagination(containerId, currentPage, totalPages, onPageClick) {
   
   console.log('Pagination:', containerId, 'Page:', currentPage, 'Total:', totalPages);
 
-  // totalPages가 1 이하여도 일단 표시하도록 수정 (디버깅용)
   if(totalPages <= 0) return;
 
-  // << 버튼 (첫 페이지가 아닐 때만 표시)
+  // 이전 버튼
+  const prevBtn = document.createElement('button');
+  prevBtn.textContent = '«';
+  prevBtn.disabled = currentPage === 1;
   if(currentPage > 1) {
-    const prevBtn = document.createElement('button');
-    prevBtn.textContent = '«';
     prevBtn.onclick = () => onPageClick(currentPage - 1);
-    container.appendChild(prevBtn);
   }
+  container.appendChild(prevBtn);
 
-  const startPage = Math.max(1, currentPage - 2);
-  const endPage = Math.min(totalPages, currentPage + 2);
+  // 모바일 감지
+  const isMobile = window.innerWidth <= 640;
+  const maxVisible = isMobile ? 5 : 7;
 
-  if(startPage > 1) {
-    const firstBtn = document.createElement('button');
-    firstBtn.textContent = '1';
-    firstBtn.onclick = () => onPageClick(1);
-    container.appendChild(firstBtn);
+  // 페이지 번호 계산
+  const pages = calculatePageNumbers(currentPage, totalPages, maxVisible);
 
-    if(startPage > 2) {
+  pages.forEach(page => {
+    if(page === '...') {
       const dots = document.createElement('span');
       dots.textContent = '...';
-      dots.style.padding = '0 8px';
       container.appendChild(dots);
+    } else {
+      const btn = document.createElement('button');
+      btn.textContent = page;
+      if(page === currentPage) {
+        btn.classList.add('active');
+      }
+      btn.onclick = () => onPageClick(page);
+      container.appendChild(btn);
     }
-  }
+  });
 
-  for(let i = startPage; i <= endPage; i++) {
-    const btn = document.createElement('button');
-    btn.textContent = i;
-    if(i === currentPage) btn.classList.add('active');
-    btn.onclick = () => onPageClick(i);
-    container.appendChild(btn);
-  }
-
-  if(endPage < totalPages) {
-    if(endPage < totalPages - 1) {
-      const dots = document.createElement('span');
-      dots.textContent = '...';
-      dots.style.padding = '0 8px';
-      container.appendChild(dots);
-    }
-
-    const lastBtn = document.createElement('button');
-    lastBtn.textContent = totalPages;
-    lastBtn.onclick = () => onPageClick(totalPages);
-    container.appendChild(lastBtn);
-  }
-
-  // >> 버튼 (마지막 페이지가 아닐 때만 표시)
+  // 다음 버튼
+  const nextBtn = document.createElement('button');
+  nextBtn.textContent = '»';
+  nextBtn.disabled = currentPage === totalPages;
   if(currentPage < totalPages) {
-    const nextBtn = document.createElement('button');
-    nextBtn.textContent = '»';
     nextBtn.onclick = () => onPageClick(currentPage + 1);
-    container.appendChild(nextBtn);
   }
+  container.appendChild(nextBtn);
+}
+
+function calculatePageNumbers(current, total, maxVisible) {
+  const pages = [];
+
+  if(total <= maxVisible) {
+    // 전체 페이지가 표시 가능한 범위 이내
+    for(let i = 1; i <= total; i++) {
+      pages.push(i);
+    }
+  } else {
+    // 첫 페이지는 항상 표시
+    pages.push(1);
+
+    const leftSiblings = Math.floor((maxVisible - 3) / 2);
+    const rightSiblings = Math.ceil((maxVisible - 3) / 2);
+
+    let startPage = Math.max(2, current - leftSiblings);
+    let endPage = Math.min(total - 1, current + rightSiblings);
+
+    // 현재 페이지가 왼쪽 끝에 가까울 때
+    if(current <= leftSiblings + 2) {
+      endPage = Math.min(maxVisible - 2, total - 1);
+    }
+
+    // 현재 페이지가 오른쪽 끝에 가까울 때
+    if(current >= total - rightSiblings - 1) {
+      startPage = Math.max(2, total - maxVisible + 3);
+    }
+
+    // 왼쪽 ellipsis
+    if(startPage > 2) {
+      pages.push('...');
+    }
+
+    // 중간 페이지들
+    for(let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    // 오른쪽 ellipsis
+    if(endPage < total - 1) {
+      pages.push('...');
+    }
+
+    // 마지막 페이지는 항상 표시
+    if(total > 1) {
+      pages.push(total);
+    }
+  }
+
+  return pages;
 }
 async function loadCategory(slug, page = 1) {
   if(state.isProcessing) return;
