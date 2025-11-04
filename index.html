@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -145,6 +146,23 @@
 
   body.dark-mode .search-bar input[type="search"] {
     color: #e8e8e8;
+  }
+
+  body.dark-mode .pagination button {
+    color: #fff;
+    background: transparent;
+  }
+  
+  body.dark-mode .pagination button:hover:not(:disabled):not(.active) {
+    color: #ddd;
+  }
+  
+  body.dark-mode .pagination button.active {
+    color: #ff6b35;
+  }
+  
+  body.dark-mode .pagination span {
+    color: #ccc;
   }
 
   body.dark-mode .editor-card {
@@ -1083,81 +1101,38 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     margin: 60px auto 40px;
     padding: 20px;
     flex-wrap: wrap;
   }
   .pagination button {
-    background-color: #1a1a1a;
-    color: #ccc;
-    border: 1px solid #333;
-    padding: 10px 16px;
+    border: none;
+    background: transparent;
+    padding: 8px 12px;
     border-radius: 6px;
     cursor: pointer;
+    font-weight: 800;
+    font-size: 18px;
     transition: all 0.2s ease;
-    font-size: 15px;
-    font-weight: 500;
-    min-width: 44px;
-    text-align: center;
-    user-select: none;
+    color: #fff;
+    min-width: 40px;
   }
   .pagination button:hover:not(:disabled):not(.active) {
-    background-color: #2a2a2a;
-    color: #fff;
-    border-color: #444;
+    color: #ddd;
   }
   .pagination button.active {
-    background-color: #ff6600;
-    color: #fff;
-    border-color: #ff6600;
-    font-weight: 700;
-    cursor: default;
+    color: #ff6b35;
   }
   .pagination button:disabled {
     opacity: 0.3;
     cursor: not-allowed;
   }
   .pagination span {
-    background-color: transparent;
-    border-color: transparent;
     color: #ccc;
-    font-size: 15px;
-    font-weight: 500;
+    font-size: 18px;
+    font-weight: 800;
     padding: 0 8px;
-    pointer-events: none;
-  }
-  
-  /* 라이트 모드용 페이지네이션 */
-  body:not(.dark-mode) .pagination button {
-    background-color: #fff;
-    color: #333;
-    border-color: #ddd;
-  }
-  body:not(.dark-mode) .pagination button:hover:not(:disabled):not(.active) {
-    background-color: #f5f5f5;
-    color: #111;
-    border-color: #ccc;
-  }
-  body:not(.dark-mode) .pagination button.active {
-    background-color: #ff6600;
-    color: #fff;
-    border-color: #ff6600;
-  }
-  body:not(.dark-mode) .pagination span {
-    color: #666;
-  }
-  
-  /* 모바일 반응형 */
-  @media (max-width: 640px) {
-    .pagination button {
-      padding: 8px 12px;
-      font-size: 14px;
-      min-width: 38px;
-    }
-    .pagination {
-      gap: 6px;
-    }
   }
   .editors-overlay {
     padding: 28px;
@@ -1857,15 +1832,14 @@
 <script>
 const WP_SITE = "impactceo0.wordpress.com";
 const HOME_PER_PAGE = 20;
-
-// 카테고리 ID는 동적으로 로드됩니다
-let CATEGORY_MAP = {};
-let CATEGORIES = {};
-
-// WordPress.com 퍼블릭 API 헬퍼 함수
-function wp(path) {
-  return `https://public-api.wordpress.com/wp/v2/sites/${WP_SITE}/${path}`;
-}
+const CATEGORIES = {
+  "tech": 318,
+  "eat": 123073,
+  "style": 2286,
+  "culture": 1098,
+  "life": 124,
+  "editors-pick": 259543
+};
 const NAV_ORDER = ["TECH","EAT","STYLE","CULTURE","LIFE","EDITORS' PICK"];
 const state = {
   homePage: 1,
@@ -1965,58 +1939,30 @@ function nextFrame() {
   return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 }
 
-// 카테고리 맵 초기화 함수
-async function ensureCategoryMap() {
-  if (Object.keys(CATEGORY_MAP).length > 0) return;
+// WordPress API 호출을 위한 두 가지 방법
+function api(path, direct = false) {
+  const p = path.includes('_embed') ? path : (path + (path.includes('?') ? '&' : '?') + '_embed');
   
-  try {
-    const res = await fetch(wp('categories?per_page=100'));
-    if (!res.ok) throw new Error('Failed to load categories');
-    const cats = await res.json();
-    
-    CATEGORY_MAP = cats.reduce((m, c) => {
-      m[c.slug.toLowerCase()] = c.id;
-      return m;
-    }, {});
-    
-    // 기존 CATEGORIES 객체도 업데이트
-    CATEGORIES = {
-      "tech": CATEGORY_MAP['tech'] || CATEGORY_MAP['technology'] || 318,
-      "eat": CATEGORY_MAP['eat'] || 123073,
-      "style": CATEGORY_MAP['style'] || 2286,
-      "culture": CATEGORY_MAP['culture'] || 1098,
-      "life": CATEGORY_MAP['life'] || 124,
-      "editors-pick": CATEGORY_MAP['editors-pick'] || 259543
-    };
-    
-    console.log('카테고리 맵 로드 완료:', CATEGORY_MAP);
-  } catch(e) {
-    console.error('카테고리 로드 실패:', e);
-    // 폴백: 하드코딩된 값 사용
-    CATEGORIES = {
-      "tech": 318,
-      "eat": 123073,
-      "style": 2286,
-      "culture": 1098,
-      "life": 124,
-      "editors-pick": 259543
-    };
+  // direct=true면 WordPress API 직접 호출 (CORS 허용 시)
+  if(direct) {
+    return `https://${WP_SITE}/wp-json/wp/v2/${p}`;
   }
+  
+  // 기본: Netlify Functions를 통한 프록시
+  return `/.netlify/functions/wpProxy?path=${encodeURIComponent(p)}`;
 }
 
 // 전체 게시물 수를 직접 계산하는 헬퍼 함수
 async function getTotalPostsCount() {
-  console.log('getTotalPostsCount 호출...');
-  
   try {
-    // WordPress.com 퍼블릭 API로 호출
-    const res = await fetch(wp('posts?per_page=1&page=1&_embed'));
-    console.log('  → 퍼블릭 API 호출:', wp('posts?per_page=1&page=1&_embed'));
+    // 방법 1: WordPress API 직접 호출로 개수 확인 (per_page=1로 최소 데이터만)
+    const directUrl = `https://${WP_SITE}/wp-json/wp/v2/posts?per_page=1&page=1`;
+    const res = await fetch(directUrl);
     
     const totalFromHeader = parseInt(res.headers.get('X-WP-Total') || '0');
     const totalPagesFromHeader = parseInt(res.headers.get('X-WP-TotalPages') || '0');
     
-    console.log('  → 직접 API 응답 헤더 - Total:', totalFromHeader, 'TotalPages:', totalPagesFromHeader);
+    console.log('Direct API check - Total:', totalFromHeader, 'TotalPages:', totalPagesFromHeader);
     
     if(totalFromHeader > 0) {
       return {
@@ -2024,26 +1970,10 @@ async function getTotalPostsCount() {
         totalPages: Math.ceil(totalFromHeader / HOME_PER_PAGE)
       };
     }
-    
-    // 방법 2: 응답 본문 확인
-    const data = await res.json();
-    console.log('  → 응답 본문 확인:', data);
-    
-    if(Array.isArray(data) && data.length > 0) {
-      console.log('  → 최소 1개 이상의 게시물 존재');
-      // 최소한 데이터가 있다는 것은 확인
-      return {
-        total: 1,
-        totalPages: 1
-      };
-    }
   } catch(e) {
-    console.error('  → 직접 API 실패:', e);
+    console.error('Direct API failed:', e);
   }
   
-
-  
-  console.log('  → 모든 방법 실패');
   return null;
 }
 function formatDate(dstr) {
@@ -2250,8 +2180,6 @@ function createCardNode(post) {
   let thumbUrl = '';
   try {
     thumbUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
-    // 이미지 최적화: 폭 1200px로 제한
-    if (thumbUrl) thumbUrl += '?w=1200';
   } catch(e) { thumbUrl = ''; }
   imgEl.src = thumbUrl || placeholderDataURI(1200,800,'No Image');
   imgEl.loading = 'lazy'; // Lazy loading 추가
@@ -2317,7 +2245,6 @@ function renderMobileLayout(posts, container) {
       largeContainer.className = 'magazine-large';
 
       let heroUrl = largePost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
-      if (heroUrl) heroUrl += '?w=1200';
       largeContainer.innerHTML = `
         <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero">
         <div class="hero-overlay">
@@ -2394,7 +2321,6 @@ function renderDesktopLayout(posts, container) {
       largeDiv.className = 'magazine-large';
 
       let heroUrl = largePost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
-      if (heroUrl) heroUrl += '?w=1200';
       largeDiv.innerHTML = `
         <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero" loading="lazy">
         <div class="hero-overlay">
@@ -2454,7 +2380,6 @@ function renderDesktopLayout(posts, container) {
         largeDiv.className = 'magazine-large';
 
         let heroUrl = largePost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
-        if (heroUrl) heroUrl += '?w=1200';
         largeDiv.innerHTML = `
           <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero" loading="lazy">
           <div class="hero-overlay">
@@ -2507,19 +2432,16 @@ async function loadHomeChunk(page = 1) {
   loadingEl.textContent = '로딩 중...';
   state.homeLoadPromise = new Promise(async (resolve, reject) => {
     try {
-      await ensureCategoryMap();
-      const res = await fetch(wp(`posts?per_page=${HOME_PER_PAGE}&page=${page}&_embed`));
+      const res = await fetch(api(`posts?per_page=${HOME_PER_PAGE}&page=${page}`));
       if(!res.ok) throw new Error('Failed to load');
 
       // 방법 1: 헤더에서 읽기 시도
       let totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '0');
       let totalPosts = parseInt(res.headers.get('X-WP-Total') || '0');
       
-      console.log('=== Page', page, '로딩 시작 ===');
       console.log('Headers - TotalPages:', totalPages, 'TotalPosts:', totalPosts);
 
       const posts = await res.json();
-      console.log('받은 게시물 수:', posts.length);
       
       // 방법 2: 헤더가 없으면 전체 게시물 수로 계산
       if(totalPages === 0 && totalPosts > 0) {
@@ -2528,83 +2450,43 @@ async function loadHomeChunk(page = 1) {
       }
       
       // 방법 3: 헤더도 없고 totalPosts도 없으면, WordPress API 직접 호출
-      if(totalPages === 0) {
-        console.log('헤더 정보 없음 - 직접 API 호출 시도...');
+      if(totalPages === 0 && page === 1) {
+        console.log('Trying direct WordPress API...');
         const directCount = await getTotalPostsCount();
         
         if(directCount && directCount.totalPages > 0) {
           totalPages = directCount.totalPages;
           state.allPostsCount = directCount.total;
-          console.log('직접 API 호출 성공 - TotalPages:', totalPages, 'Total:', directCount.total);
+          console.log('Got from direct API - TotalPages:', totalPages, 'Total:', directCount.total);
         }
       }
       
-      // 방법 4: state에 저장된 값 사용
-      if(totalPages === 0 && state.homeTotal > 0) {
-        totalPages = state.homeTotal;
-        console.log('이전에 저장된 totalPages 사용:', totalPages);
-      }
-      
-      // 방법 5: 받은 게시물 개수로 추정 (최후의 수단)
+      // 방법 4: 받은 게시물 개수로 추정 (최후의 수단)
       if(totalPages === 0 && Array.isArray(posts)) {
+        // 20개 받았다면 최소 1페이지, 아마 더 있을 것
         if(posts.length === HOME_PER_PAGE) {
-          // 20개 받았다면 최소 현재 페이지 + 1
-          totalPages = page + 1;
-          console.log('게시물 개수로 추정 (20개 = ', page, '페이지 이상):', totalPages);
+          // 정확한 개수를 모르지만 최소 2페이지는 있다고 가정
+          totalPages = 2;
+          console.log('Estimated from posts length (20 posts = likely 2+ pages)');
         } else if(posts.length > 0) {
-          // 20개 미만이면 현재가 마지막 페이지
-          totalPages = page;
-          console.log('현재가 마지막 페이지:', totalPages);
-        } else {
-          totalPages = Math.max(1, page - 1);
-          console.log('게시물 없음, 이전 페이지로:', totalPages);
+          totalPages = 1;
+          console.log('Only one page (less than 20 posts)');
         }
       }
       
       // 최소값 보장
       if(totalPages === 0) totalPages = 1;
       
-      // 현재 페이지가 totalPages보다 크면 조정
-      if(page > totalPages) {
-        console.warn('현재 페이지가 총 페이지보다 큼. 조정 필요');
-        totalPages = page;
-      }
-      
       state.homeTotal = totalPages;
-      console.log('=== 최종 totalPages:', totalPages, '===');
+      console.log('=== FINAL totalPages:', totalPages, '===');
 
       if(!Array.isArray(posts) || posts.length === 0) {
-        console.warn('게시물 없음 - 페이지:', page);
-        
-        // 페이지가 1이 아니면 1페이지로 리다이렉트
-        if(page !== 1) {
-          console.log('1페이지로 리다이렉트');
-          state.isProcessing = false;
-          state.homeLoadPromise = null;
-          return loadHomeChunk(1);
-        }
-        
         loadingEl.textContent = '게시물이 없습니다.';
-        
-        // 게시물이 없어도 페이지네이션은 표시 (비활성화 상태로)
-        renderPagination('homePagination', page, totalPages, (p) => {
-          openLoading('페이지를 불러오는 중...');
-          state.homePage = p;
-          state.homeLoadPromise = null;
-          loadHomeChunk(p).then(() => {
-            resetScrollTop('window');
-            closeLoading();
-          }).catch(() => {
-            closeLoading();
-          });
-        });
-        
         state.isProcessing = false;
         state.homeLoadPromise = null;
         resolve();
         return;
       }
-      
       const uniquePosts = posts.filter((post, index, self) =>
         index === self.findIndex(p => p.id === post.id)
       );
@@ -2621,8 +2503,6 @@ async function loadHomeChunk(page = 1) {
       } else {
         renderDesktopLayout(uniquePosts, container);
       }
-      
-      console.log('페이지네이션 렌더링:', 'page=', page, 'totalPages=', totalPages);
       renderPagination('homePagination', page, totalPages, (p) => {
         // [IMPACT-LOADING] 페이지네이션 클릭 시 로딩 표시
         openLoading('페이지를 불러오는 중...');
@@ -2638,7 +2518,7 @@ async function loadHomeChunk(page = 1) {
       loadingEl.textContent = '';
       resolve();
     } catch(err) {
-      console.error('loadHomeChunk 에러:', err);
+      console.error(err);
       loadingEl.textContent = '로딩 실패. 새로고침을 시도해주세요.';
       reject(err);
     } finally {
@@ -2651,175 +2531,69 @@ async function loadHomeChunk(page = 1) {
 }
 function renderPagination(containerId, currentPage, totalPages, onPageClick) {
   const container = document.getElementById(containerId);
-  if(!container) {
-    console.error('페이지네이션 컨테이너를 찾을 수 없음:', containerId);
-    return;
-  }
+  if(!container) return;
 
   container.innerHTML = '';
   
-  console.log('━━━ renderPagination 호출 ━━━');
-  console.log('Container:', containerId);
-  console.log('Current Page:', currentPage, '(타입:', typeof currentPage, ')');
-  console.log('Total Pages:', totalPages, '(타입:', typeof totalPages, ')');
+  console.log('Pagination:', containerId, 'Page:', currentPage, 'Total:', totalPages);
 
-  if(totalPages <= 0) {
-    console.warn('totalPages가 0 이하입니다. 페이지네이션 표시 안함.');
-    return;
-  }
-  
-  // 현재 페이지를 숫자로 강제 변환
-  currentPage = parseInt(currentPage) || 1;
-  totalPages = parseInt(totalPages) || 1;
-  
-  // 현재 페이지가 범위를 벗어나면 조정
-  if(currentPage < 1) currentPage = 1;
-  if(currentPage > totalPages) currentPage = totalPages;
+  // totalPages가 1 이하여도 일단 표시하도록 수정 (디버깅용)
+  if(totalPages <= 0) return;
 
-  // 이전 버튼
-  const prevBtn = document.createElement('button');
-  prevBtn.textContent = '«';
-  prevBtn.disabled = currentPage === 1;
+  // << 버튼 (첫 페이지가 아닐 때만 표시)
   if(currentPage > 1) {
+    const prevBtn = document.createElement('button');
+    prevBtn.textContent = '«';
     prevBtn.onclick = () => onPageClick(currentPage - 1);
-  }
-  container.appendChild(prevBtn);
-
-  // 모바일 감지
-  const isMobile = window.innerWidth <= 640;
-  const maxVisible = isMobile ? 5 : 7;
-  
-  console.log('모바일:', isMobile, '/ 최대 표시:', maxVisible);
-
-  // 페이지 번호 계산
-  const pages = calculatePageNumbers(currentPage, totalPages, maxVisible);
-  
-  console.log('생성된 페이지 배열:', pages);
-
-  if(!pages || pages.length === 0) {
-    console.error('페이지 배열이 비어있습니다!');
-    // 최소한 현재 페이지라도 표시
-    pages = [currentPage];
+    container.appendChild(prevBtn);
   }
 
-  pages.forEach((page, index) => {
-    console.log(`  [${index}] 페이지:`, page, '현재:', currentPage, '일치:', page === currentPage);
-    
-    if(page === '...') {
+  const startPage = Math.max(1, currentPage - 2);
+  const endPage = Math.min(totalPages, currentPage + 2);
+
+  if(startPage > 1) {
+    const firstBtn = document.createElement('button');
+    firstBtn.textContent = '1';
+    firstBtn.onclick = () => onPageClick(1);
+    container.appendChild(firstBtn);
+
+    if(startPage > 2) {
       const dots = document.createElement('span');
       dots.textContent = '...';
+      dots.style.padding = '0 8px';
       container.appendChild(dots);
-    } else {
-      const btn = document.createElement('button');
-      btn.textContent = page;
-      if(page === currentPage) {
-        btn.classList.add('active');
-        console.log(`    → ${page}번 버튼에 'active' 클래스 추가됨`);
-      }
-      btn.onclick = () => onPageClick(page);
-      container.appendChild(btn);
     }
-  });
+  }
 
-  // 다음 버튼
-  const nextBtn = document.createElement('button');
-  nextBtn.textContent = '»';
-  nextBtn.disabled = currentPage === totalPages;
+  for(let i = startPage; i <= endPage; i++) {
+    const btn = document.createElement('button');
+    btn.textContent = i;
+    if(i === currentPage) btn.classList.add('active');
+    btn.onclick = () => onPageClick(i);
+    container.appendChild(btn);
+  }
+
+  if(endPage < totalPages) {
+    if(endPage < totalPages - 1) {
+      const dots = document.createElement('span');
+      dots.textContent = '...';
+      dots.style.padding = '0 8px';
+      container.appendChild(dots);
+    }
+
+    const lastBtn = document.createElement('button');
+    lastBtn.textContent = totalPages;
+    lastBtn.onclick = () => onPageClick(totalPages);
+    container.appendChild(lastBtn);
+  }
+
+  // >> 버튼 (마지막 페이지가 아닐 때만 표시)
   if(currentPage < totalPages) {
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = '»';
     nextBtn.onclick = () => onPageClick(currentPage + 1);
+    container.appendChild(nextBtn);
   }
-  container.appendChild(nextBtn);
-  
-  console.log('━━━ renderPagination 완료 ━━━\n');
-}
-
-function calculatePageNumbers(current, total, maxVisible) {
-  console.log('  calculatePageNumbers:', 'current=', current, 'total=', total, 'maxVisible=', maxVisible);
-  
-  const pages = [];
-  
-  // 입력값 검증
-  current = parseInt(current) || 1;
-  total = parseInt(total) || 1;
-  maxVisible = parseInt(maxVisible) || 7;
-  
-  if(current < 1) current = 1;
-  if(current > total) current = total;
-
-  // 전체 페이지가 maxVisible 이하면 모두 표시
-  if(total <= maxVisible) {
-    console.log('  → 전체 페이지 표시 (total <= maxVisible)');
-    for(let i = 1; i <= total; i++) {
-      pages.push(i);
-    }
-    console.log('  → 결과:', pages);
-    return pages;
-  }
-
-  // 항상 첫 페이지 표시
-  pages.push(1);
-  console.log('  → 1 추가');
-
-  // 현재 페이지 기준으로 표시할 범위 계산
-  const sidesCount = maxVisible - 3; // 첫 페이지, 마지막 페이지, 현재 페이지를 제외한 개수
-  const leftSide = Math.floor(sidesCount / 2);
-  const rightSide = Math.ceil(sidesCount / 2);
-  
-  console.log('  → sidesCount:', sidesCount, 'leftSide:', leftSide, 'rightSide:', rightSide);
-
-  // 현재 페이지가 왼쪽에 치우쳐 있는 경우
-  if(current <= leftSide + 2) {
-    console.log('  → 왼쪽 치우침 (current <= ', leftSide + 2, ')');
-    // 1, 2, 3, 4, 5 ... last 형태
-    for(let i = 2; i < Math.min(maxVisible - 1, total); i++) {
-      pages.push(i);
-      console.log('    → ', i, '추가');
-    }
-    
-    if(total > maxVisible - 1) {
-      pages.push('...');
-      console.log('    → ... 추가');
-    }
-  }
-  // 현재 페이지가 오른쪽에 치우쳐 있는 경우
-  else if(current >= total - rightSide - 1) {
-    console.log('  → 오른쪽 치우침 (current >= ', total - rightSide - 1, ')');
-    // 1 ... 16, 17, 18, 19, 20 형태
-    pages.push('...');
-    console.log('    → ... 추가');
-    
-    for(let i = Math.max(total - maxVisible + 3, 2); i < total; i++) {
-      pages.push(i);
-      console.log('    → ', i, '추가');
-    }
-  }
-  // 현재 페이지가 중간에 있는 경우
-  else {
-    console.log('  → 중간 위치');
-    // 1 ... 8, 9, 10 ... 20 형태
-    pages.push('...');
-    console.log('    → ... 추가');
-    
-    for(let i = current - leftSide; i <= current + rightSide; i++) {
-      if(i > 1 && i < total) {
-        pages.push(i);
-        console.log('    → ', i, '추가');
-      }
-    }
-    
-    pages.push('...');
-    console.log('    → ... 추가');
-  }
-
-  // 항상 마지막 페이지 표시
-  if(total > 1) {
-    pages.push(total);
-    console.log('  → ', total, '(마지막) 추가');
-  }
-  
-  console.log('  → 최종 결과:', pages);
-
-  return pages;
 }
 async function loadCategory(slug, page = 1) {
   if(state.isProcessing) return;
@@ -2863,7 +2637,6 @@ async function loadCategory(slug, page = 1) {
   document.getElementById('categoryLoading').textContent = '로딩 중...';
   
   try {
-    await ensureCategoryMap();
     const catId = CATEGORIES[slug];
     if(!catId) {
       document.getElementById('categoryLoading').textContent = '알 수 없는 카테고리입니다.';
@@ -2872,7 +2645,7 @@ async function loadCategory(slug, page = 1) {
       return;
     }
 
-    const res = await fetch(wp(`posts?categories=${catId}&per_page=20&page=${page}&_embed`));
+    const res = await fetch(api(`posts?categories=${catId}&per_page=20&page=${page}`));
     if(!res.ok) throw new Error('Failed');
 
     let totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '0');
@@ -2930,7 +2703,7 @@ async function loadEditors() {
   if(state.editorsLoaded) return;
   document.getElementById('editorsLoading').textContent = '로딩 중...';
   try {
-    const res = await fetch(wp(`users?per_page=100&_embed`));
+    const res = await fetch(api(`users?per_page=100`));
     if(!res.ok) throw new Error('editors api fail ' + res.status);
     const users = await res.json();
     state.editorsList = Array.isArray(users) ? users : [];
@@ -2967,7 +2740,7 @@ async function loadRelatedPosts(categories, currentPostId) {
 
   try {
     const catId = categories[0].id;
-    const res = await fetch(wp(`posts?categories=${catId}&per_page=8&exclude=${currentPostId}&_embed`));
+    const res = await fetch(api(`posts?categories=${catId}&per_page=8&exclude=${currentPostId}`));
     if(!res.ok) return [];
     const posts = await res.json();
 
@@ -3086,7 +2859,7 @@ async function openPostOverlayById(id, updateURL = true) {
   `;
 
   try {
-    const res = await fetch(wp(`posts/${id}?_embed`));
+    const res = await fetch(api(`posts/${id}?_embed`));
     if(!res.ok) throw new Error('post fetch failed ' + res.status);
     const post = await res.json();
 
@@ -3131,8 +2904,7 @@ async function renderPostOverlay(post) {
   const categories = (post._embedded && post._embedded['wp:term'] && post._embedded['wp:term'][0]) ? post._embedded['wp:term'][0].map(t=>t.name).join(', ') : '-';
   const dateStr = formatDate(post.date);
   const contentHTML = post.content && post.content.rendered ? post.content.rendered : (post.excerpt && post.excerpt.rendered ? post.excerpt.rendered : '');
-  let featuredUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
-  if (featuredUrl) featuredUrl += '?w=1200';
+  const featuredUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
   article.innerHTML = `
     <div class="post-hero-section">
       <div class="post-header">
@@ -3529,7 +3301,7 @@ const router = {
     }
     
     try {
-      const res = await fetch(wp(`posts?author=${user.id}&per_page=50&_embed`));
+      const res = await fetch(api(`posts?author=${user.id}&per_page=50`));
       const posts = await res.json();
       if(Array.isArray(posts)) {
         posts.forEach(p => {
@@ -3624,7 +3396,7 @@ async function performSearch(query, mode) {
     loadingEl.textContent = '검색 중...';
 
     try {
-      const res = await fetch(wp(`posts?search=${encodeURIComponent(query)}&per_page=20&_embed`));
+      const res = await fetch(api(`posts?search=${encodeURIComponent(query)}&per_page=20`));
       const posts = await res.json();
 
       loadingEl.textContent = '';
