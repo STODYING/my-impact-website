@@ -25,16 +25,13 @@
   <meta name="apple-mobile-web-app-title" content="IMPACT">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-  <noscript>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
-  </noscript>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <style>
   *, *::before, *::after { box-sizing: border-box; }
   html, body { height: 100%; }
   body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
     background: #f6f7f9;
     color: #111;
     line-height: 1.6;
@@ -3473,13 +3470,9 @@ function checkURLAndLoadPost() {
     if(!isNaN(editorId)) {
       router.openEditors(false);
       setTimeout(async () => {
-        if(state.editorsList.length === 0) {
-          await loadEditors();
-        }
+        if(state.editorsList.length === 0) await loadEditors();
         const editor = state.editorsList.find(e => e.id === editorId);
-        if(editor) {
-          router.openEditorProfile(editor, false);
-        }
+        if(editor) router.openEditorProfile(editor, false);
       }, 300);
       return true;
     }
@@ -3488,53 +3481,65 @@ function checkURLAndLoadPost() {
   if(pageParam === 'editors') {
     router.openEditors(false);
     return true;
-  } else if(pageParam === 'about') {
+  }
+  
+  if(pageParam === 'about') {
     router.openAbout(false);
     return true;
-  } else if(pageParam === 'search') {
+  }
+  
+  if(pageParam === 'search') {
     openNavlessSearch(false);
     return true;
   }
 
+  // Hash 기반 URL은 Query String으로 전환 (하위 호환성)
   const hash = window.location.hash;
-
   if(hash.startsWith('#post-')) {
-    const postId = hash.replace('#post-', '');
-    if(postId && !isNaN(parseInt(postId))) {
-      const newUrl = `${window.location.origin}${window.location.pathname}?post=${postId}`;
-      history.replaceState({page: 'post', id: parseInt(postId)}, '', newUrl);
-      setTimeout(() => {
-        openPostOverlayById(parseInt(postId), false);
-      }, 100);
+    const postId = parseInt(hash.replace('#post-', ''));
+    if(!isNaN(postId)) {
+      history.replaceState({page: 'post', id: postId}, '', `?post=${postId}`);
+      setTimeout(() => openPostOverlayById(postId, false), 100);
       return true;
     }
-  } else if(hash.startsWith('#editor-')) {
-    const editorId = hash.replace('#editor-', '');
-    if(editorId && !isNaN(parseInt(editorId))) {
-      const newUrl = `${window.location.origin}${window.location.pathname}?editor=${editorId}`;
-      history.replaceState({page: 'editor', id: parseInt(editorId)}, '', newUrl);
-      router.openEditorProfile(parseInt(editorId), false);
+  }
+  
+  if(hash.startsWith('#editor-')) {
+    const editorId = parseInt(hash.replace('#editor-', ''));
+    if(!isNaN(editorId)) {
+      history.replaceState({page: 'editor', id: editorId}, '', `?editor=${editorId}`);
+      router.openEditorProfile(editorId, false);
       return true;
     }
-  } else if(hash === '#editors') {
-    const newUrl = `${window.location.origin}${window.location.pathname}?page=editors`;
-    history.replaceState({page: 'editors'}, '', newUrl);
-    router.openEditors(false);
-    return true;
-  } else if(hash === '#about') {
-    const newUrl = `${window.location.origin}${window.location.pathname}?page=about`;
-    history.replaceState({page: 'about'}, '', newUrl);
-    router.openAbout(false);
-    return true;
-  } else if(hash === '#search') {
-    const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
-    history.replaceState({page: 'search'}, '', newUrl);
-    openNavlessSearch(false);
+  }
+  
+  const hashPageMap = {
+    '#editors': 'editors',
+    '#about': 'about',
+    '#search': 'search'
+  };
+  
+  if(hashPageMap[hash]) {
+    history.replaceState({page: hashPageMap[hash]}, '', `?page=${hashPageMap[hash]}`);
+    if(hash === '#editors') router.openEditors(false);
+    else if(hash === '#about') router.openAbout(false);
+    else if(hash === '#search') openNavlessSearch(false);
     return true;
   }
 
   return false;
 }
+// 공통 오버레이 초기화 함수
+function resetOverlays() {
+  document.querySelectorAll('.category-overlay, .post-overlay, .search-overlay, .about-page, .editors-overlay').forEach(el => {
+    el.classList.remove('active');
+  });
+  document.body.style.overflow = '';
+  document.getElementById('progressBar').classList.remove('active');
+  document.getElementById('postHeaderBar').classList.remove('show');
+  document.getElementById('postToTopBtn').classList.remove('show');
+}
+
 window.addEventListener('popstate', (e) => {
   const urlParams = new URLSearchParams(window.location.search);
   const postParam = urlParams.get('post');
@@ -3545,22 +3550,13 @@ window.addEventListener('popstate', (e) => {
   if(postParam) {
     const postId = parseInt(postParam);
     if(!isNaN(postId)) {
-      setTimeout(() => {
-        openPostOverlayById(postId, false);
-      }, 50);
+      setTimeout(() => openPostOverlayById(postId, false), 50);
       return;
     }
   }
 
   if(categoryParam) {
-    document.querySelectorAll('.post-overlay, .search-overlay, .about-page, .editors-overlay').forEach(el => {
-      el.classList.remove('active');
-    });
-    document.body.style.overflow = '';
-    document.getElementById('progressBar').classList.remove('active');
-    document.getElementById('postHeaderBar').classList.remove('show');
-    document.getElementById('postToTopBtn').classList.remove('show');
-
+    resetOverlays();
     router.openCategory(categoryParam, false);
     return;
   }
@@ -3568,74 +3564,35 @@ window.addEventListener('popstate', (e) => {
   if(editorParam) {
     const editorId = parseInt(editorParam);
     if(!isNaN(editorId)) {
-      document.querySelectorAll('.post-overlay, .search-overlay, .about-page, .category-overlay').forEach(el => {
-        el.classList.remove('active');
-      });
-      document.body.style.overflow = '';
-      document.getElementById('progressBar').classList.remove('active');
-      document.getElementById('postHeaderBar').classList.remove('show');
-      document.getElementById('postToTopBtn').classList.remove('show');
-
+      resetOverlays();
       if(!document.getElementById('editorsOverlay').classList.contains('active')) {
         router.openEditors(false);
       }
-
       setTimeout(async () => {
-        if(state.editorsList.length === 0) {
-          await loadEditors();
-        }
+        if(state.editorsList.length === 0) await loadEditors();
         const editor = state.editorsList.find(e => e.id === editorId);
-        if(editor) {
-          router.openEditorProfile(editor, false);
-        }
+        if(editor) router.openEditorProfile(editor, false);
       }, 100);
       return;
     }
   }
 
   if(pageParam === 'editors') {
-    document.querySelectorAll('.post-overlay, .search-overlay, .about-page, .category-overlay').forEach(el => {
-      el.classList.remove('active');
-    });
-    document.body.style.overflow = '';
-    document.getElementById('progressBar').classList.remove('active');
-    document.getElementById('postHeaderBar').classList.remove('show');
-    document.getElementById('postToTopBtn').classList.remove('show');
-
+    resetOverlays();
     router.openEditors(false);
     return;
   } else if(pageParam === 'about') {
-    document.querySelectorAll('.post-overlay, .search-overlay, .editors-overlay, .category-overlay').forEach(el => {
-      el.classList.remove('active');
-    });
-    document.body.style.overflow = '';
-    document.getElementById('progressBar').classList.remove('active');
-    document.getElementById('postHeaderBar').classList.remove('show');
-    document.getElementById('postToTopBtn').classList.remove('show');
-
+    resetOverlays();
     router.openAbout(false);
     return;
   } else if(pageParam === 'search') {
-    document.querySelectorAll('.post-overlay, .about-page, .editors-overlay, .category-overlay').forEach(el => {
-      el.classList.remove('active');
-    });
-    document.body.style.overflow = '';
-    document.getElementById('progressBar').classList.remove('active');
-    document.getElementById('postHeaderBar').classList.remove('show');
-    document.getElementById('postToTopBtn').classList.remove('show');
-
+    resetOverlays();
     openNavlessSearch(false);
     return;
   }
 
   if(!postParam && !categoryParam && !editorParam && !pageParam) {
-    document.querySelectorAll('.category-overlay, .post-overlay, .search-overlay, .about-page, .editors-overlay').forEach(el => {
-      el.classList.remove('active');
-    });
-    document.body.style.overflow = '';
-    document.getElementById('progressBar').classList.remove('active');
-    document.getElementById('postHeaderBar').classList.remove('show');
-    document.getElementById('postToTopBtn').classList.remove('show');
+    resetOverlays();
   }
 });
 
@@ -3651,36 +3608,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   const loadingEl = document.getElementById('homeLoading');
   loadingEl.textContent = '페이지를 불러오는 중...';
 
-  // 수정됨: 새로고침 시 항상 메인 콘텐츠를 미리 로드
-  // 메인 홈 콘텐츠를 백그라운드로 로드
-  const loadHomeInBackground = async () => {
-    try {
-      await loadHomeChunk(1);
-      console.log('Home loaded successfully in background');
-    } catch(err) {
-      console.error('Background home loading failed:', err);
-    }
-  };
-
   const hasSpecificPage = checkURLAndLoadPost();
 
   if(!hasSpecificPage) {
-    // 메인 페이지인 경우 즉시 로드
-    loadHomeChunk(1)
-      .then(() => {
-        console.log('Home loaded successfully');
-      })
-      .catch((err) => {
-        console.error('Home loading failed:', err);
-        loadingEl.textContent = '페이지를 불러오지 못했습니다. 새로고침을 시도해주세요.';
-      });
+    // 메인 페이지: 즉시 로드
+    loadHomeChunk(1).catch((err) => {
+      console.error('Home loading failed:', err);
+      loadingEl.textContent = '페이지를 불러오지 못했습니다. 새로고침을 시도해주세요.';
+    });
   } else {
-    // 수정됨: 서브 페이지에서 시작한 경우도 백그라운드로 메인 콘텐츠 로드
+    // 서브 페이지: 백그라운드로 메인 콘텐츠 로드 (지연 시간 증가)
     loadingEl.textContent = '';
-    // 약간의 디레이 후 백그라운드로 메인 콘텐츠 로드
-    setTimeout(() => {
-      loadHomeInBackground();
-    }, 1000);
+    setTimeout(() => loadHomeChunk(1).catch(console.error), 2000);
   }
 });
 let resizeTimeout;
