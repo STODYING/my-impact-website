@@ -7,6 +7,27 @@
   <meta name="description" content="Innovation Management Passion Acceleration Creativity Technology">
   <meta name="naver-site-verification" content="75a4e73cbf2b7f3acb2c71fac1ea821a9c13ae85" />
 
+  <!-- Preconnect for faster font loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://impactceo0.wordpress.com">
+  
+  <!-- Icons -->
+  <link rel="icon" href="logo.png" type="image/png">
+  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="logo.png">
+  
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="IMPACT">
+  
+  <!-- External CSS for better caching -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- Google Analytics - Async loading -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-D0DVTWYNGN"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -14,240 +35,171 @@
     gtag('js', new Date());
     gtag('config', 'G-D0DVTWYNGN');
   </script>
-  <link rel="icon" href="logo.png" type="image/png">
-  <link rel="apple-touch-icon" href="logo.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="logo.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
-  <link rel="apple-touch-icon" sizes="167x167" href="logo.png">
-
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="IMPACT">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<body>
-  <div class="page-transition" id="pageTransition"></div>
+  <!-- Loading overlay -->
+  <div class="page-transition" id="pageTransition">불러오는 중...</div>
   <div class="progress-bar" id="progressBar"></div>
-  <header class="header" id="siteHeader">
-    <div class="header-inner wrap">
+
+  <!-- Main Header -->
+  <header class="header" id="mainHeader">
+    <div class="header-inner">
       <div class="brand">
         <div class="logo" id="logoBtn" onclick="goToHome()">
-          <img src="logo.png" alt="IMPACT logo" style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
           <div class="logo-text">
-            <div class="main-text">IMPACT</div>
+            <span class="main-text">IMPACT</span>
             <small>MAKE A IMPACT</small>
           </div>
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn icon-btn" id="topSearchBtn" onclick="openNavlessSearch()">🔍</button>
-        <button class="btn icon-btn" onclick="ui.toggleNav()">☰</button>
+        <button class="btn icon-btn" onclick="router.openSearch()">🔍</button>
+        <button class="btn icon-btn" onclick="router.toggleNav()">☰</button>
       </div>
     </div>
   </header>
 
+  <!-- Post Header Bar -->
   <div class="post-header-bar" id="postHeaderBar">
-    <div class="header-inner wrap">
+    <div class="header-inner">
       <div class="brand">
         <div class="logo" onclick="goToHome()">
-          <img src="logo.png" alt="IMPACT logo" style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
           <div class="logo-text">
-            <div class="main-text">IMPACT</div>
-            <small>MAKE A IMPACT</small>
+            <span class="main-text">IMPACT</span>
           </div>
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn icon-btn" onclick="handleNavToggle()">☰</button>
+        <button class="btn" onclick="router.closePost()">닫기</button>
       </div>
     </div>
   </div>
-  <aside class="nav-overlay" id="navOverlay">
-    <button class="nav-close" onclick="ui.toggleNav(true)">✕</button>
-    <div style="display:flex;flex-direction:column;gap:12px;">
-      <div class="nav-search">
-        <span style="font-size:18px">🔍</span>
-        <input type="search" id="globalNavSearch" placeholder="검색어 입력">
-      </div>
-      <ul class="nav-list" id="navList"></ul>
-      <div class="nav-footer-links">
-        <a href="javascript:void(0)" onclick="handleNavAction(() => router.openAbout())">ABOUT</a>
-        <a href="javascript:void(0)" onclick="handleNavAction(() => router.openEditors())">EDITORS</a>
-        <a href="javascript:void(0)" onclick="ui.toggleNav(true); window.open('https://impactceo.art/newsletter', '_blank')">NEWSLETTER</a>
-        <a href="https://www.instagram.com/ceo_impact_official" target="_blank" rel="noopener">INSTAGRAM</a>
-      </div>
+
+  <!-- Navigation Overlay -->
+  <nav class="nav-overlay" id="navOverlay">
+    <button class="nav-close" onclick="router.closeNav()">×</button>
+    <div class="nav-search">
+      <span>🔍</span>
+      <input type="search" placeholder="검색..." onfocus="router.openSearch();router.closeNav()">
     </div>
-  </aside>
-  <main class="home" id="home">
-    <div id="rowsContainer"></div>
-    <div id="homeLoading" style="text-align:center;color:#666;padding:36px 0">로딩 중...</div>
-    <div class="pagination" id="homePagination"></div>
+    <ul class="nav-list">
+      <li onclick="router.openCategory('tech');router.closeNav()">TECH</li>
+      <li onclick="router.openCategory('eat');router.closeNav()">EAT</li>
+      <li onclick="router.openCategory('style');router.closeNav()">STYLE</li>
+      <li onclick="router.openCategory('culture');router.closeNav()">CULTURE</li>
+      <li onclick="router.openCategory('life');router.closeNav()">LIFE</li>
+      <li onclick="router.openCategory('editors-pick');router.closeNav()">EDITORS' PICK</li>
+    </ul>
+    <div class="nav-footer-links">
+      <a href="javascript:void(0)" onclick="router.openAbout();router.closeNav()">ABOUT</a>
+      <a href="javascript:void(0)" onclick="router.openEditors();router.closeNav()">EDITORS</a>
+      <a href="javascript:void(0)" onclick="window.open('https://impactceo.art/newsletter', '_blank')">NEWSLETTER</a>
+      <a href="https://www.instagram.com/ceo_impact_official" target="_blank" rel="noopener">INSTAGRAM</a>
+    </div>
+  </nav>
+
+  <!-- Main Home Content -->
+  <main class="home">
+    <div id="homeGrid"></div>
+    <div id="homePagination"></div>
   </main>
-  <section class="category-overlay" id="categoryOverlay">
-    <div class="wrap">
-      <div class="category-top">
-        <div>
-          <div class="category-title" id="categoryOverlayTitle">CATEGORY</div>
-          <div class="category-sub" id="categoryOverlaySubtitle">카테고리 설명</div>
-        </div>
-        <div>
-          <button class="btn" onclick="router.closeCategory()">✕</button>
-        </div>
-      </div>
-      <div class="category-grid" id="categoryGrid"></div>
-      <div id="categoryLoading" style="text-align:center;color:#666;padding:28px 0"></div>
-      <div class="pagination" id="categoryPagination"></div>
-    </div>
-  </section>
-  <section class="editors-overlay" id="editorsOverlay">
-    <div class="wrap">
-      <div class="page-header">
-        <div>
-          <h2>EDITORS</h2>
-          <div style="color:#666;font-size:14px;margin-top:8px">IMPACT에 참여하는 에디터 목록과 각 에디터의 작성 글을 확인할 수 있습니다.</div>
-        </div>
-        <div>
-          <button class="btn" onclick="router.closeEditors()">✕</button>
-        </div>
-      </div>
-      <div id="editorsGridWrapper">
-        <div id="editorsGrid" class="editors-grid"></div>
-        <div id="editorsLoading" style="text-align:center;color:#666;padding:28px 0"></div>
-      </div>
-      <div id="editorProfileSection" style="display:none">
-        <button class="btn" onclick="showEditorsList()" style="margin-bottom:20px">← 에디터 목록으로</button>
-        <h3 id="editorProfileName" style="font-size:28px;margin:0 0 12px"></h3>
-        <p id="editorProfileBio" style="color:#666;margin-bottom:32px"></p>
-        <div id="editorPostsGrid" class="category-grid"></div>
-        <div id="editorPostsLoading" style="text-align:center;color:#666;padding:28px 0"></div>
-      </div>
-    </div>
-  </section>
-  <section class="search-overlay" id="searchOverlay">
-    <div class="wrap" style="max-width:1200px">
-      <div style="margin-bottom:32px">
-        <div class="search-bar">
-          <span style="font-size:20px">🔍</span>
-          <input type="search" id="searchInput" placeholder="검색어를 입력하세요" autofocus>
-          <button class="close-btn" onclick="closeSearch()">✕</button>
-        </div>
-      </div>
-      <div id="searchResults" class="category-grid"></div>
-      <div id="searchLoading" style="text-align:center;color:#666;padding:28px 0"></div>
-    </div>
-  </section>
-  <section class="about-page" id="aboutPage">
-    <div class="wrap">
-      <div class="page-header">
-        <h2>ABOUT</h2>
-        <button class="btn" onclick="router.closeAbout()">✕</button>
-      </div>
-      <div style="line-height:1.9;color:#444">
-        <p style="font-size:22px;margin-bottom:16px;font-weight:700;color:#ff6b35">IMPACT MAGAZINE.</p>
-        <p style="font-size:17px;margin-bottom:32px;font-weight:500;color:#333">임팩트 매거진은 사회적 이슈와 기술 변화를 분석해 일상의 문제를 발견하고 그 본질을 탐구하는 플랫폼입니다.</p>
-        <p style="font-size:16px;margin-bottom:48px;color:#555">청년 창업가 인터뷰와 사회혁신 사례를 통해 문제를 기회로 전환하는 통찰을 제시하는 <span style="background:linear-gradient(to top, #ff6b35 40%, transparent 40%);padding:2px 4px;font-weight:600">'이슈 기반 인사이트 매거진'</span>입니다.</p>
 
-        <p style="margin-top:48px"><strong>made by KAIST IP-CEO</strong></p>
-
-        <div style="margin-top:80px;margin-bottom:80px;border-top:1px solid #e0e0e0;padding-top:60px">
-          <h3 style="font-size:20px;margin-bottom:8px;color:#333;font-weight:600">Our Journey</h3>
-          <p style="font-size:14px;margin-bottom:48px;color:#999">2025-2029 성장 로드맵</p>
-
-          <div style="position:relative">
-            <div class="roadmap-timeline">
-              <div class="roadmap-item" style="opacity:0;transform:translateX(-30px);animation:slideIn 0.6s ease forwards;animation-delay:0.2s">
-                <div style="display:flex;align-items:center;margin-bottom:32px">
-                  <div style="min-width:80px">
-                    <span style="font-size:24px;font-weight:700;color:#ff6b35">2025</span>
-                  </div>
-                  <div style="flex:1;padding-left:24px;border-left:3px solid #ff6b35">
-                    <h4 style="font-size:16px;font-weight:600;color:#333;margin-bottom:6px">커뮤니티 기반 구축</h4>
-                    <p style="font-size:14px;color:#777;line-height:1.5">First Impact — 브랜드 보이스 확립 및 공식 채널 런칭</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="roadmap-item" style="opacity:0;transform:translateX(-30px);animation:slideIn 0.6s ease forwards;animation-delay:0.4s">
-                <div style="display:flex;align-items:center;margin-bottom:32px">
-                  <div style="min-width:80px">
-                    <span style="font-size:24px;font-weight:700;color:#888">2026</span>
-                  </div>
-                  <div style="flex:1;padding-left:24px;border-left:3px solid #ddd">
-                    <h4 style="font-size:16px;font-weight:600;color:#333;margin-bottom:6px">콘텐츠 참여도 증대</h4>
-                    <p style="font-size:14px;color:#777;line-height:1.5">Second Impact — 정기 메일링 서비스를 통한 큐레이션 콘텐츠 전달</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="roadmap-item" style="opacity:0;transform:translateX(-30px);animation:slideIn 0.6s ease forwards;animation-delay:0.6s">
-                <div style="display:flex;align-items:center;margin-bottom:32px">
-                  <div style="min-width:80px">
-                    <span style="font-size:24px;font-weight:700;color:#888">2027</span>
-                  </div>
-                  <div style="flex:1;padding-left:24px;border-left:3px solid #ddd">
-                    <h4 style="font-size:16px;font-weight:600;color:#333;margin-bottom:6px">사업 확장 기반 마련</h4>
-                    <p style="font-size:14px;color:#777;line-height:1.5">Third Impact — 오피스 개소 및 프로젝트 협업 허브 구축</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="roadmap-item" style="opacity:0;transform:translateX(-30px);animation:slideIn 0.6s ease forwards;animation-delay:0.8s">
-                <div style="display:flex;align-items:center;margin-bottom:32px">
-                  <div style="min-width:80px">
-                    <span style="font-size:24px;font-weight:700;color:#888">2028</span>
-                  </div>
-                  <div style="flex:1;padding-left:24px;border-left:3px solid #ddd">
-                    <h4 style="font-size:16px;font-weight:600;color:#333;margin-bottom:6px">운영 효율 극대화</h4>
-                    <p style="font-size:14px;color:#777;line-height:1.5">Fourth Impact — AI 기반 콘텐츠 제작 및 분석 시스템 구축</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="roadmap-item" style="opacity:0;transform:translateX(-30px);animation:slideIn 0.6s ease forwards;animation-delay:1s">
-                <div style="display:flex;align-items:center;margin-bottom:32px">
-                  <div style="min-width:80px">
-                    <span style="font-size:24px;font-weight:700;color:#888">2029</span>
-                  </div>
-                  <div style="flex:1;padding-left:24px;border-left:3px solid #ddd">
-                    <h4 style="font-size:16px;font-weight:600;color:#333;margin-bottom:6px">미션 확장</h4>
-                    <p style="font-size:14px;color:#777;line-height:1.5">Fifth Impact — Factalk 런칭, Dream·Design·Do 미션 확장</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <p style="margin-top:32px;font-size:16px;color:#333;font-weight:700;padding:16px 20px;background:linear-gradient(to right, rgba(255,107,53,0.1), transparent);border-left:4px solid #ff6b35">
-              → <span style="background:linear-gradient(to top, #ff6b35 35%, transparent 35%);padding:2px 0">기술과 사람을 연결하는 지속가능한 영향력 창출</span>
-            </p>
-          </div>
-        </div>
-
-        <h3 style="margin-top:48px;font-size:24px">IMPACT 공식 계정</h3>
-        <p>광고 문의: <a href="mailto:welcome@impactceo.art" style="color:#ff6b35;font-weight:700">welcome@impactceo.art</a></p>
-        <p>뉴스레터: <a href="mailto:press@impactceo.art" style="color:#ff6b35;font-weight:700">press@impactceo.art</a></p>
-        <p>공식 계정: <a href="mailto:ceo@impactceo.art" style="color:#ff6b35;font-weight:700">ceo@impactceo.art</a></p>
-        <p>Instagram: <a href="https://www.instagram.com/ceo_impact_official" target="_blank" style="color:#ff6b35;font-weight:700">@ceo_impact_official</a></p>
-      </div>
-    </div>
-  </section>
-
-  <section class="post-overlay" id="postOverlay">
-    <div class="post-article" id="postArticle">
-    </div>
-  </section>
-
-  <div class="image-modal" id="imageModal">
-    <button class="image-modal-close" onclick="closeImageModal()">✕</button>
-    <img id="modalImage" src="" alt="확대 이미지">
+  <!-- Category Overlay -->
+  <div class="category-overlay" id="categoryOverlay">
+    <div class="category-top" id="categoryTitle"></div>
+    <div class="category-grid" id="categoryGrid"></div>
+    <div id="categoryPagination"></div>
   </div>
 
+  <!-- Post Overlay -->
+  <div class="post-overlay" id="postOverlay">
+    <article class="post-article" id="postArticle"></article>
+  </div>
+
+  <!-- Search Overlay -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-bar">
+      <input type="search" id="searchInput" placeholder="검색어를 입력하세요..." 
+             oninput="handleSearchInput(this.value)" autofocus>
+      <button class="close-btn" onclick="router.closeSearch()">×</button>
+    </div>
+    <div id="searchResults"></div>
+  </div>
+
+  <!-- About Page -->
+  <div class="about-page" id="aboutPage">
+    <div class="page-header">
+      <h2>ABOUT IMPACT</h2>
+      <button class="btn" onclick="router.closeAbout()">×</button>
+    </div>
+    <div style="max-width:800px;margin:40px auto;line-height:1.8">
+      <h3 style="font-weight:900;font-size:32px;margin:40px 0 20px">Innovation Management Passion Acceleration Creativity Technology</h3>
+      
+      <p style="font-size:18px;color:#666;margin:30px 0">
+        IMPACT는 혁신적인 아이디어와 창의적인 콘텐츠를 통해 새로운 가치를 창출하는 디지털 매거진입니다.
+        기술, 라이프스타일, 문화, 음식 등 다양한 분야의 인사이트를 제공합니다.
+      </p>
+      
+      <div style="margin:60px 0">
+        <h3 style="font-weight:800;font-size:24px;margin:30px 0 20px">OUR MISSION</h3>
+        <p style="font-size:16px;color:#666;line-height:1.8">
+          우리는 독자들에게 영감을 주고, 새로운 관점을 제시하며, 
+          더 나은 내일을 만들어가는 데 기여하고자 합니다.
+        </p>
+      </div>
+      
+      <div style="margin:60px 0">
+        <h3 style="font-weight:800;font-size:24px;margin:30px 0 20px">CONTACT</h3>
+        <div style="font-size:16px;line-height:2">
+          <div>광고 문의: <a href="mailto:welcome@impactceo.art" style="color:#ff6b35">welcome@impactceo.art</a></div>
+          <div>뉴스레터: <a href="mailto:press@impactceo.art" style="color:#ff6b35">press@impactceo.art</a></div>
+          <div>공식 계정: <a href="mailto:ceo@impactceo.art" style="color:#ff6b35">ceo@impactceo.art</a></div>
+        </div>
+      </div>
+      
+      <div style="margin:80px 0 40px">
+        <h3 style="font-weight:800;font-size:24px;margin:30px 0 20px">ROAD MAP</h3>
+        <div class="roadmap-item" style="padding:20px 0;border-bottom:1px solid rgba(0,0,0,0.1)">
+          <h4 style="font-weight:700;font-size:18px;margin:0 0 8px">2024 Q1</h4>
+          <p style="color:#666;font-size:14px;margin:0">IMPACT 매거진 공식 런칭</p>
+        </div>
+        <div class="roadmap-item" style="padding:20px 0;border-bottom:1px solid rgba(0,0,0,0.1)">
+          <h4 style="font-weight:700;font-size:18px;margin:0 0 8px">2024 Q2</h4>
+          <p style="color:#666;font-size:14px;margin:0">모바일 앱 출시 및 뉴스레터 서비스 시작</p>
+        </div>
+        <div class="roadmap-item" style="padding:20px 0;border-bottom:1px solid rgba(0,0,0,0.1)">
+          <h4 style="font-weight:700;font-size:18px;margin:0 0 8px">2024 Q3</h4>
+          <p style="color:#666;font-size:14px;margin:0">글로벌 서비스 확장 및 다국어 지원</p>
+        </div>
+        <div class="roadmap-item" style="padding:20px 0">
+          <h4 style="font-weight:700;font-size:18px;margin:0 0 8px">2024 Q4</h4>
+          <p style="color:#666;font-size:14px;margin:0">AI 기반 개인화 콘텐츠 추천 시스템 도입</p>
+        </div>
+      </div>
+      
+      <div style="margin:60px 0;padding:30px;background:#f6f7f9;border-radius:12px">
+        <p class="copyright-notice" style="text-align:center;color:#666;font-size:14px;margin:0">
+          © 2024 IMPACT CEO. All rights reserved.<br>
+          본 웹사이트의 모든 콘텐츠는 저작권법의 보호를 받습니다.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Editors Overlay -->
+  <div class="editors-overlay" id="editorsOverlay">
+    <div class="page-header">
+      <h2>EDITORS</h2>
+      <button class="btn" onclick="router.closeEditors()">×</button>
+    </div>
+    <div class="editors-grid" id="editorsGrid"></div>
+  </div>
+
+  <!-- Scroll to Top Buttons -->
   <button class="to-top" id="toTopBtn" onclick="scrollToTopButton()">↑</button>
   <button class="post-to-top" id="postToTopBtn" onclick="scrollToTopButton()">↑</button>
 
+  <!-- Footer -->
   <footer class="site-footer">
     <div class="wrap footer-inner">
       <div>
@@ -265,41 +217,13 @@
       <div class="footer-right">
         <div style="font-weight:800;color:#fff;margin-bottom:16px">IMPACT CEO. ALL RIGHTS RESERVED.</div>
         <div class="theme-toggle">
-          <div class="theme-toggle-label">THEME</div>
-          <div class="theme-switch" onclick="toggleTheme()">
-            <div class="theme-switch-text">
-              <span class="light-text">LIGHT</span>
-              <span class="dark-text">DARK</span>
-            </div>
-            <div class="theme-switch-slider"></div>
-          </div>
+          <button class="btn" onclick="toggleTheme()">🌓 테마 변경</button>
         </div>
       </div>
     </div>
   </footer>
-  <template id="cardTpl">
-    <article class="card">
-      <div class="thumb"><img src="" alt=""></div>
-      <div class="card-body">
-        <div class="cat-row"></div>
-        <h3 class="title"></h3>
-        <div class="meta">
-          <img class="author-avatar" src="" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
-          <div>
-            <div class="author-name"></div>
-            <div class="date" style="font-size:12px;color:#777"></div>
-          </div>
-        </div>
-      </div>
-    </article>
-  </template>
-  <template id="editorTpl">
-    <div class="editor-card">
-      <img class="editor-avatar" src="" alt="">
-      <div class="editor-name"></div>
-      <div class="editor-bio"></div>
-    </div>
-  </template>
-<script src="script.js"></script>
+
+  <!-- Load optimized JavaScript -->
+  <script src="js/app.js" defer></script>
 </body>
 </html>
