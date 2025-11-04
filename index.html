@@ -1979,15 +1979,18 @@ function api(path, direct = false) {
 
 // 전체 게시물 수를 직접 계산하는 헬퍼 함수
 async function getTotalPostsCount() {
+  console.log('getTotalPostsCount 호출...');
+  
   try {
     // 방법 1: WordPress API 직접 호출로 개수 확인 (per_page=1로 최소 데이터만)
     const directUrl = `https://${WP_SITE}/wp-json/wp/v2/posts?per_page=1&page=1`;
+    console.log('  → 직접 API 호출:', directUrl);
     const res = await fetch(directUrl);
     
     const totalFromHeader = parseInt(res.headers.get('X-WP-Total') || '0');
     const totalPagesFromHeader = parseInt(res.headers.get('X-WP-TotalPages') || '0');
     
-    console.log('Direct API check - Total:', totalFromHeader, 'TotalPages:', totalPagesFromHeader);
+    console.log('  → 직접 API 응답 헤더 - Total:', totalFromHeader, 'TotalPages:', totalPagesFromHeader);
     
     if(totalFromHeader > 0) {
       return {
@@ -1995,10 +1998,45 @@ async function getTotalPostsCount() {
         totalPages: Math.ceil(totalFromHeader / HOME_PER_PAGE)
       };
     }
+    
+    // 방법 2: 응답 본문 확인
+    const data = await res.json();
+    console.log('  → 응답 본문 확인:', data);
+    
+    if(Array.isArray(data) && data.length > 0) {
+      console.log('  → 최소 1개 이상의 게시물 존재');
+      // 최소한 데이터가 있다는 것은 확인
+      return {
+        total: 1,
+        totalPages: 1
+      };
+    }
   } catch(e) {
-    console.error('Direct API failed:', e);
+    console.error('  → 직접 API 실패:', e);
   }
   
+  try {
+    // 방법 3: Netlify Functions를 통한 호출 (헤더 확인)
+    console.log('  → Netlify Functions 통한 호출 시도...');
+    const proxyUrl = api('posts?per_page=1&page=1');
+    const res2 = await fetch(proxyUrl);
+    
+    const totalFromProxy = parseInt(res2.headers.get('X-WP-Total') || '0');
+    const totalPagesFromProxy = parseInt(res2.headers.get('X-WP-TotalPages') || '0');
+    
+    console.log('  → Proxy 응답 헤더 - Total:', totalFromProxy, 'TotalPages:', totalPagesFromProxy);
+    
+    if(totalFromProxy > 0) {
+      return {
+        total: totalFromProxy,
+        totalPages: Math.ceil(totalFromProxy / HOME_PER_PAGE)
+      };
+    }
+  } catch(e) {
+    console.error('  → Proxy API 실패:', e);
+  }
+  
+  console.log('  → 모든 방법 실패');
   return null;
 }
 function formatDate(dstr) {
@@ -2464,9 +2502,11 @@ async function loadHomeChunk(page = 1) {
       let totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '0');
       let totalPosts = parseInt(res.headers.get('X-WP-Total') || '0');
       
+      console.log('=== Page', page, '로딩 시작 ===');
       console.log('Headers - TotalPages:', totalPages, 'TotalPosts:', totalPosts);
 
       const posts = await res.json();
+      console.log('받은 게시물 수:', posts.length);
       
       // 방법 2: 헤더가 없으면 전체 게시물 수로 계산
       if(totalPages === 0 && totalPosts > 0) {
@@ -2475,43 +2515,83 @@ async function loadHomeChunk(page = 1) {
       }
       
       // 방법 3: 헤더도 없고 totalPosts도 없으면, WordPress API 직접 호출
-      if(totalPages === 0 && page === 1) {
-        console.log('Trying direct WordPress API...');
+      if(totalPages === 0) {
+        console.log('헤더 정보 없음 - 직접 API 호출 시도...');
         const directCount = await getTotalPostsCount();
         
         if(directCount && directCount.totalPages > 0) {
           totalPages = directCount.totalPages;
           state.allPostsCount = directCount.total;
-          console.log('Got from direct API - TotalPages:', totalPages, 'Total:', directCount.total);
+          console.log('직접 API 호출 성공 - TotalPages:', totalPages, 'Total:', directCount.total);
         }
       }
       
-      // 방법 4: 받은 게시물 개수로 추정 (최후의 수단)
+      // 방법 4: state에 저장된 값 사용
+      if(totalPages === 0 && state.homeTotal > 0) {
+        totalPages = state.homeTotal;
+        console.log('이전에 저장된 totalPages 사용:', totalPages);
+      }
+      
+      // 방법 5: 받은 게시물 개수로 추정 (최후의 수단)
       if(totalPages === 0 && Array.isArray(posts)) {
-        // 20개 받았다면 최소 1페이지, 아마 더 있을 것
         if(posts.length === HOME_PER_PAGE) {
-          // 정확한 개수를 모르지만 최소 2페이지는 있다고 가정
-          totalPages = 2;
-          console.log('Estimated from posts length (20 posts = likely 2+ pages)');
+          // 20개 받았다면 최소 현재 페이지 + 1
+          totalPages = page + 1;
+          console.log('게시물 개수로 추정 (20개 = ', page, '페이지 이상):', totalPages);
         } else if(posts.length > 0) {
-          totalPages = 1;
-          console.log('Only one page (less than 20 posts)');
+          // 20개 미만이면 현재가 마지막 페이지
+          totalPages = page;
+          console.log('현재가 마지막 페이지:', totalPages);
+        } else {
+          totalPages = Math.max(1, page - 1);
+          console.log('게시물 없음, 이전 페이지로:', totalPages);
         }
       }
       
       // 최소값 보장
       if(totalPages === 0) totalPages = 1;
       
+      // 현재 페이지가 totalPages보다 크면 조정
+      if(page > totalPages) {
+        console.warn('현재 페이지가 총 페이지보다 큼. 조정 필요');
+        totalPages = page;
+      }
+      
       state.homeTotal = totalPages;
-      console.log('=== FINAL totalPages:', totalPages, '===');
+      console.log('=== 최종 totalPages:', totalPages, '===');
 
       if(!Array.isArray(posts) || posts.length === 0) {
+        console.warn('게시물 없음 - 페이지:', page);
+        
+        // 페이지가 1이 아니면 1페이지로 리다이렉트
+        if(page !== 1) {
+          console.log('1페이지로 리다이렉트');
+          state.isProcessing = false;
+          state.homeLoadPromise = null;
+          return loadHomeChunk(1);
+        }
+        
         loadingEl.textContent = '게시물이 없습니다.';
+        
+        // 게시물이 없어도 페이지네이션은 표시 (비활성화 상태로)
+        renderPagination('homePagination', page, totalPages, (p) => {
+          openLoading('페이지를 불러오는 중...');
+          state.homePage = p;
+          state.homeLoadPromise = null;
+          loadHomeChunk(p).then(() => {
+            resetScrollTop('window');
+            closeLoading();
+          }).catch(() => {
+            closeLoading();
+          });
+        });
+        
         state.isProcessing = false;
         state.homeLoadPromise = null;
         resolve();
         return;
       }
+      
       const uniquePosts = posts.filter((post, index, self) =>
         index === self.findIndex(p => p.id === post.id)
       );
@@ -2528,6 +2608,8 @@ async function loadHomeChunk(page = 1) {
       } else {
         renderDesktopLayout(uniquePosts, container);
       }
+      
+      console.log('페이지네이션 렌더링:', 'page=', page, 'totalPages=', totalPages);
       renderPagination('homePagination', page, totalPages, (p) => {
         // [IMPACT-LOADING] 페이지네이션 클릭 시 로딩 표시
         openLoading('페이지를 불러오는 중...');
@@ -2543,7 +2625,7 @@ async function loadHomeChunk(page = 1) {
       loadingEl.textContent = '';
       resolve();
     } catch(err) {
-      console.error(err);
+      console.error('loadHomeChunk 에러:', err);
       loadingEl.textContent = '로딩 실패. 새로고침을 시도해주세요.';
       reject(err);
     } finally {
@@ -2556,13 +2638,30 @@ async function loadHomeChunk(page = 1) {
 }
 function renderPagination(containerId, currentPage, totalPages, onPageClick) {
   const container = document.getElementById(containerId);
-  if(!container) return;
+  if(!container) {
+    console.error('페이지네이션 컨테이너를 찾을 수 없음:', containerId);
+    return;
+  }
 
   container.innerHTML = '';
   
-  console.log('Pagination:', containerId, 'Page:', currentPage, 'Total:', totalPages);
+  console.log('━━━ renderPagination 호출 ━━━');
+  console.log('Container:', containerId);
+  console.log('Current Page:', currentPage, '(타입:', typeof currentPage, ')');
+  console.log('Total Pages:', totalPages, '(타입:', typeof totalPages, ')');
 
-  if(totalPages <= 0) return;
+  if(totalPages <= 0) {
+    console.warn('totalPages가 0 이하입니다. 페이지네이션 표시 안함.');
+    return;
+  }
+  
+  // 현재 페이지를 숫자로 강제 변환
+  currentPage = parseInt(currentPage) || 1;
+  totalPages = parseInt(totalPages) || 1;
+  
+  // 현재 페이지가 범위를 벗어나면 조정
+  if(currentPage < 1) currentPage = 1;
+  if(currentPage > totalPages) currentPage = totalPages;
 
   // 이전 버튼
   const prevBtn = document.createElement('button');
@@ -2576,11 +2675,23 @@ function renderPagination(containerId, currentPage, totalPages, onPageClick) {
   // 모바일 감지
   const isMobile = window.innerWidth <= 640;
   const maxVisible = isMobile ? 5 : 7;
+  
+  console.log('모바일:', isMobile, '/ 최대 표시:', maxVisible);
 
   // 페이지 번호 계산
   const pages = calculatePageNumbers(currentPage, totalPages, maxVisible);
+  
+  console.log('생성된 페이지 배열:', pages);
 
-  pages.forEach(page => {
+  if(!pages || pages.length === 0) {
+    console.error('페이지 배열이 비어있습니다!');
+    // 최소한 현재 페이지라도 표시
+    pages = [currentPage];
+  }
+
+  pages.forEach((page, index) => {
+    console.log(`  [${index}] 페이지:`, page, '현재:', currentPage, '일치:', page === currentPage);
+    
     if(page === '...') {
       const dots = document.createElement('span');
       dots.textContent = '...';
@@ -2590,6 +2701,7 @@ function renderPagination(containerId, currentPage, totalPages, onPageClick) {
       btn.textContent = page;
       if(page === currentPage) {
         btn.classList.add('active');
+        console.log(`    → ${page}번 버튼에 'active' 클래스 추가됨`);
       }
       btn.onclick = () => onPageClick(page);
       container.appendChild(btn);
@@ -2604,65 +2716,95 @@ function renderPagination(containerId, currentPage, totalPages, onPageClick) {
     nextBtn.onclick = () => onPageClick(currentPage + 1);
   }
   container.appendChild(nextBtn);
+  
+  console.log('━━━ renderPagination 완료 ━━━\n');
 }
 
 function calculatePageNumbers(current, total, maxVisible) {
+  console.log('  calculatePageNumbers:', 'current=', current, 'total=', total, 'maxVisible=', maxVisible);
+  
   const pages = [];
+  
+  // 입력값 검증
+  current = parseInt(current) || 1;
+  total = parseInt(total) || 1;
+  maxVisible = parseInt(maxVisible) || 7;
+  
+  if(current < 1) current = 1;
+  if(current > total) current = total;
 
   // 전체 페이지가 maxVisible 이하면 모두 표시
   if(total <= maxVisible) {
+    console.log('  → 전체 페이지 표시 (total <= maxVisible)');
     for(let i = 1; i <= total; i++) {
       pages.push(i);
     }
+    console.log('  → 결과:', pages);
     return pages;
   }
 
   // 항상 첫 페이지 표시
   pages.push(1);
+  console.log('  → 1 추가');
 
   // 현재 페이지 기준으로 표시할 범위 계산
   const sidesCount = maxVisible - 3; // 첫 페이지, 마지막 페이지, 현재 페이지를 제외한 개수
   const leftSide = Math.floor(sidesCount / 2);
   const rightSide = Math.ceil(sidesCount / 2);
+  
+  console.log('  → sidesCount:', sidesCount, 'leftSide:', leftSide, 'rightSide:', rightSide);
 
   // 현재 페이지가 왼쪽에 치우쳐 있는 경우
   if(current <= leftSide + 2) {
+    console.log('  → 왼쪽 치우침 (current <= ', leftSide + 2, ')');
     // 1, 2, 3, 4, 5 ... last 형태
     for(let i = 2; i < Math.min(maxVisible - 1, total); i++) {
       pages.push(i);
+      console.log('    → ', i, '추가');
     }
     
     if(total > maxVisible - 1) {
       pages.push('...');
+      console.log('    → ... 추가');
     }
   }
   // 현재 페이지가 오른쪽에 치우쳐 있는 경우
   else if(current >= total - rightSide - 1) {
+    console.log('  → 오른쪽 치우침 (current >= ', total - rightSide - 1, ')');
     // 1 ... 16, 17, 18, 19, 20 형태
     pages.push('...');
+    console.log('    → ... 추가');
     
     for(let i = Math.max(total - maxVisible + 3, 2); i < total; i++) {
       pages.push(i);
+      console.log('    → ', i, '추가');
     }
   }
   // 현재 페이지가 중간에 있는 경우
   else {
+    console.log('  → 중간 위치');
     // 1 ... 8, 9, 10 ... 20 형태
     pages.push('...');
+    console.log('    → ... 추가');
     
     for(let i = current - leftSide; i <= current + rightSide; i++) {
       if(i > 1 && i < total) {
         pages.push(i);
+        console.log('    → ', i, '추가');
       }
     }
     
     pages.push('...');
+    console.log('    → ... 추가');
   }
 
   // 항상 마지막 페이지 표시
   if(total > 1) {
     pages.push(total);
+    console.log('  → ', total, '(마지막) 추가');
   }
+  
+  console.log('  → 최종 결과:', pages);
 
   return pages;
 }
