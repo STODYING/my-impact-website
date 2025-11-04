@@ -2609,50 +2609,59 @@ function renderPagination(containerId, currentPage, totalPages, onPageClick) {
 function calculatePageNumbers(current, total, maxVisible) {
   const pages = [];
 
+  // 전체 페이지가 maxVisible 이하면 모두 표시
   if(total <= maxVisible) {
-    // 전체 페이지가 표시 가능한 범위 이내
     for(let i = 1; i <= total; i++) {
       pages.push(i);
     }
-  } else {
-    // 첫 페이지는 항상 표시
-    pages.push(1);
+    return pages;
+  }
 
-    const leftSiblings = Math.floor((maxVisible - 3) / 2);
-    const rightSiblings = Math.ceil((maxVisible - 3) / 2);
+  // 항상 첫 페이지 표시
+  pages.push(1);
 
-    let startPage = Math.max(2, current - leftSiblings);
-    let endPage = Math.min(total - 1, current + rightSiblings);
+  // 현재 페이지 기준으로 표시할 범위 계산
+  const sidesCount = maxVisible - 3; // 첫 페이지, 마지막 페이지, 현재 페이지를 제외한 개수
+  const leftSide = Math.floor(sidesCount / 2);
+  const rightSide = Math.ceil(sidesCount / 2);
 
-    // 현재 페이지가 왼쪽 끝에 가까울 때
-    if(current <= leftSiblings + 2) {
-      endPage = Math.min(maxVisible - 2, total - 1);
-    }
-
-    // 현재 페이지가 오른쪽 끝에 가까울 때
-    if(current >= total - rightSiblings - 1) {
-      startPage = Math.max(2, total - maxVisible + 3);
-    }
-
-    // 왼쪽 ellipsis
-    if(startPage > 2) {
-      pages.push('...');
-    }
-
-    // 중간 페이지들
-    for(let i = startPage; i <= endPage; i++) {
+  // 현재 페이지가 왼쪽에 치우쳐 있는 경우
+  if(current <= leftSide + 2) {
+    // 1, 2, 3, 4, 5 ... last 형태
+    for(let i = 2; i < Math.min(maxVisible - 1, total); i++) {
       pages.push(i);
     }
-
-    // 오른쪽 ellipsis
-    if(endPage < total - 1) {
+    
+    if(total > maxVisible - 1) {
       pages.push('...');
     }
-
-    // 마지막 페이지는 항상 표시
-    if(total > 1) {
-      pages.push(total);
+  }
+  // 현재 페이지가 오른쪽에 치우쳐 있는 경우
+  else if(current >= total - rightSide - 1) {
+    // 1 ... 16, 17, 18, 19, 20 형태
+    pages.push('...');
+    
+    for(let i = Math.max(total - maxVisible + 3, 2); i < total; i++) {
+      pages.push(i);
     }
+  }
+  // 현재 페이지가 중간에 있는 경우
+  else {
+    // 1 ... 8, 9, 10 ... 20 형태
+    pages.push('...');
+    
+    for(let i = current - leftSide; i <= current + rightSide; i++) {
+      if(i > 1 && i < total) {
+        pages.push(i);
+      }
+    }
+    
+    pages.push('...');
+  }
+
+  // 항상 마지막 페이지 표시
+  if(total > 1) {
+    pages.push(total);
   }
 
   return pages;
