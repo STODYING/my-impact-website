@@ -1857,14 +1857,15 @@
 <script>
 const WP_SITE = "impactceo0.wordpress.com";
 const HOME_PER_PAGE = 20;
-const CATEGORIES = {
-  "tech": 318,
-  "eat": 123073,
-  "style": 2286,
-  "culture": 1098,
-  "life": 124,
-  "editors-pick": 259543
-};
+
+// 카테고리 ID는 동적으로 로드됩니다
+let CATEGORY_MAP = {};
+let CATEGORIES = {};
+
+// WordPress.com 퍼블릭 API 헬퍼 함수
+function wp(path) {
+  return `https://public-api.wordpress.com/wp/v2/sites/${WP_SITE}/${path}`;
+}
 const NAV_ORDER = ["TECH","EAT","STYLE","CULTURE","LIFE","EDITORS' PICK"];
 const state = {
   homePage: 1,
@@ -1964,17 +1965,43 @@ function nextFrame() {
   return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 }
 
-// WordPress API 호출을 위한 두 가지 방법
-function api(path, direct = false) {
-  const p = path.includes('_embed') ? path : (path + (path.includes('?') ? '&' : '?') + '_embed');
+// 카테고리 맵 초기화 함수
+async function ensureCategoryMap() {
+  if (Object.keys(CATEGORY_MAP).length > 0) return;
   
-  // direct=true면 WordPress API 직접 호출 (CORS 허용 시)
-  if(direct) {
-    return `https://${WP_SITE}/wp-json/wp/v2/${p}`;
+  try {
+    const res = await fetch(wp('categories?per_page=100'));
+    if (!res.ok) throw new Error('Failed to load categories');
+    const cats = await res.json();
+    
+    CATEGORY_MAP = cats.reduce((m, c) => {
+      m[c.slug.toLowerCase()] = c.id;
+      return m;
+    }, {});
+    
+    // 기존 CATEGORIES 객체도 업데이트
+    CATEGORIES = {
+      "tech": CATEGORY_MAP['tech'] || CATEGORY_MAP['technology'] || 318,
+      "eat": CATEGORY_MAP['eat'] || 123073,
+      "style": CATEGORY_MAP['style'] || 2286,
+      "culture": CATEGORY_MAP['culture'] || 1098,
+      "life": CATEGORY_MAP['life'] || 124,
+      "editors-pick": CATEGORY_MAP['editors-pick'] || 259543
+    };
+    
+    console.log('카테고리 맵 로드 완료:', CATEGORY_MAP);
+  } catch(e) {
+    console.error('카테고리 로드 실패:', e);
+    // 폴백: 하드코딩된 값 사용
+    CATEGORIES = {
+      "tech": 318,
+      "eat": 123073,
+      "style": 2286,
+      "culture": 1098,
+      "life": 124,
+      "editors-pick": 259543
+    };
   }
-  
-  // 기본: Netlify Functions를 통한 프록시
-  return `/.netlify/functions/wpProxy?path=${encodeURIComponent(p)}`;
 }
 
 // 전체 게시물 수를 직접 계산하는 헬퍼 함수
@@ -1982,10 +2009,9 @@ async function getTotalPostsCount() {
   console.log('getTotalPostsCount 호출...');
   
   try {
-    // 방법 1: WordPress API 직접 호출로 개수 확인 (per_page=1로 최소 데이터만)
-    const directUrl = `https://${WP_SITE}/wp-json/wp/v2/posts?per_page=1&page=1`;
-    console.log('  → 직접 API 호출:', directUrl);
-    const res = await fetch(directUrl);
+    // WordPress.com 퍼블릭 API로 호출
+    const res = await fetch(wp('posts?per_page=1&page=1&_embed'));
+    console.log('  → 퍼블릭 API 호출:', wp('posts?per_page=1&page=1&_embed'));
     
     const totalFromHeader = parseInt(res.headers.get('X-WP-Total') || '0');
     const totalPagesFromHeader = parseInt(res.headers.get('X-WP-TotalPages') || '0');
@@ -2015,26 +2041,7 @@ async function getTotalPostsCount() {
     console.error('  → 직접 API 실패:', e);
   }
   
-  try {
-    // 방법 3: Netlify Functions를 통한 호출 (헤더 확인)
-    console.log('  → Netlify Functions 통한 호출 시도...');
-    const proxyUrl = api('posts?per_page=1&page=1');
-    const res2 = await fetch(proxyUrl);
-    
-    const totalFromProxy = parseInt(res2.headers.get('X-WP-Total') || '0');
-    const totalPagesFromProxy = parseInt(res2.headers.get('X-WP-TotalPages') || '0');
-    
-    console.log('  → Proxy 응답 헤더 - Total:', totalFromProxy, 'TotalPages:', totalPagesFromProxy);
-    
-    if(totalFromProxy > 0) {
-      return {
-        total: totalFromProxy,
-        totalPages: Math.ceil(totalFromProxy / HOME_PER_PAGE)
-      };
-    }
-  } catch(e) {
-    console.error('  → Proxy API 실패:', e);
-  }
+
   
   console.log('  → 모든 방법 실패');
   return null;
@@ -2243,6 +2250,8 @@ function createCardNode(post) {
   let thumbUrl = '';
   try {
     thumbUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+    // 이미지 최적화: 폭 1200px로 제한
+    if (thumbUrl) thumbUrl += '?w=1200';
   } catch(e) { thumbUrl = ''; }
   imgEl.src = thumbUrl || placeholderDataURI(1200,800,'No Image');
   imgEl.loading = 'lazy'; // Lazy loading 추가
@@ -2308,6 +2317,7 @@ function renderMobileLayout(posts, container) {
       largeContainer.className = 'magazine-large';
 
       let heroUrl = largePost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+      if (heroUrl) heroUrl += '?w=1200';
       largeContainer.innerHTML = `
         <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero">
         <div class="hero-overlay">
@@ -2384,6 +2394,7 @@ function renderDesktopLayout(posts, container) {
       largeDiv.className = 'magazine-large';
 
       let heroUrl = largePost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+      if (heroUrl) heroUrl += '?w=1200';
       largeDiv.innerHTML = `
         <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero" loading="lazy">
         <div class="hero-overlay">
@@ -2443,6 +2454,7 @@ function renderDesktopLayout(posts, container) {
         largeDiv.className = 'magazine-large';
 
         let heroUrl = largePost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+        if (heroUrl) heroUrl += '?w=1200';
         largeDiv.innerHTML = `
           <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero" loading="lazy">
           <div class="hero-overlay">
@@ -2495,7 +2507,8 @@ async function loadHomeChunk(page = 1) {
   loadingEl.textContent = '로딩 중...';
   state.homeLoadPromise = new Promise(async (resolve, reject) => {
     try {
-      const res = await fetch(api(`posts?per_page=${HOME_PER_PAGE}&page=${page}`));
+      await ensureCategoryMap();
+      const res = await fetch(wp(`posts?per_page=${HOME_PER_PAGE}&page=${page}&_embed`));
       if(!res.ok) throw new Error('Failed to load');
 
       // 방법 1: 헤더에서 읽기 시도
@@ -2850,6 +2863,7 @@ async function loadCategory(slug, page = 1) {
   document.getElementById('categoryLoading').textContent = '로딩 중...';
   
   try {
+    await ensureCategoryMap();
     const catId = CATEGORIES[slug];
     if(!catId) {
       document.getElementById('categoryLoading').textContent = '알 수 없는 카테고리입니다.';
@@ -2858,7 +2872,7 @@ async function loadCategory(slug, page = 1) {
       return;
     }
 
-    const res = await fetch(api(`posts?categories=${catId}&per_page=20&page=${page}`));
+    const res = await fetch(wp(`posts?categories=${catId}&per_page=20&page=${page}&_embed`));
     if(!res.ok) throw new Error('Failed');
 
     let totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '0');
@@ -2916,7 +2930,7 @@ async function loadEditors() {
   if(state.editorsLoaded) return;
   document.getElementById('editorsLoading').textContent = '로딩 중...';
   try {
-    const res = await fetch(api(`users?per_page=100`));
+    const res = await fetch(wp(`users?per_page=100&_embed`));
     if(!res.ok) throw new Error('editors api fail ' + res.status);
     const users = await res.json();
     state.editorsList = Array.isArray(users) ? users : [];
@@ -2953,7 +2967,7 @@ async function loadRelatedPosts(categories, currentPostId) {
 
   try {
     const catId = categories[0].id;
-    const res = await fetch(api(`posts?categories=${catId}&per_page=8&exclude=${currentPostId}`));
+    const res = await fetch(wp(`posts?categories=${catId}&per_page=8&exclude=${currentPostId}&_embed`));
     if(!res.ok) return [];
     const posts = await res.json();
 
@@ -3072,7 +3086,7 @@ async function openPostOverlayById(id, updateURL = true) {
   `;
 
   try {
-    const res = await fetch(api(`posts/${id}?_embed`));
+    const res = await fetch(wp(`posts/${id}?_embed`));
     if(!res.ok) throw new Error('post fetch failed ' + res.status);
     const post = await res.json();
 
@@ -3117,7 +3131,8 @@ async function renderPostOverlay(post) {
   const categories = (post._embedded && post._embedded['wp:term'] && post._embedded['wp:term'][0]) ? post._embedded['wp:term'][0].map(t=>t.name).join(', ') : '-';
   const dateStr = formatDate(post.date);
   const contentHTML = post.content && post.content.rendered ? post.content.rendered : (post.excerpt && post.excerpt.rendered ? post.excerpt.rendered : '');
-  const featuredUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+  let featuredUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+  if (featuredUrl) featuredUrl += '?w=1200';
   article.innerHTML = `
     <div class="post-hero-section">
       <div class="post-header">
@@ -3514,7 +3529,7 @@ const router = {
     }
     
     try {
-      const res = await fetch(api(`posts?author=${user.id}&per_page=50`));
+      const res = await fetch(wp(`posts?author=${user.id}&per_page=50&_embed`));
       const posts = await res.json();
       if(Array.isArray(posts)) {
         posts.forEach(p => {
@@ -3609,7 +3624,7 @@ async function performSearch(query, mode) {
     loadingEl.textContent = '검색 중...';
 
     try {
-      const res = await fetch(api(`posts?search=${encodeURIComponent(query)}&per_page=20`));
+      const res = await fetch(wp(`posts?search=${encodeURIComponent(query)}&per_page=20&_embed`));
       const posts = await res.json();
 
       loadingEl.textContent = '';
