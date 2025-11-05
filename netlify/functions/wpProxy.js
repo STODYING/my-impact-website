@@ -25,14 +25,36 @@ export async function handler(event, context) {
 
     const data = await res.text();
 
+    // ✅ WordPress API의 중요한 헤더들을 클라이언트로 전달
+    const responseHeaders = {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*", // CORS 허용
+      "Access-Control-Expose-Headers": "X-WP-Total, X-WP-TotalPages", // 헤더 노출 허용
+    };
+
+    // WordPress API 응답 헤더에서 중요한 정보 추출 및 전달
+    const wpTotal = res.headers.get("X-WP-Total");
+    const wpTotalPages = res.headers.get("X-WP-TotalPages");
+    
+    if (wpTotal) {
+      responseHeaders["X-WP-Total"] = wpTotal;
+    }
+    if (wpTotalPages) {
+      responseHeaders["X-WP-TotalPages"] = wpTotalPages;
+    }
+
     return {
       statusCode: res.status,
-      headers: { "Content-Type": "application/json" },
+      headers: responseHeaders,
       body: data,
     };
   } catch (err) {
     return {
       statusCode: 500,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
       body: JSON.stringify({ error: err.message }),
     };
   }
