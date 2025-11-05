@@ -1856,7 +1856,7 @@
   </template>
 <script>
 const WP_SITE = "impactceo0.wordpress.com";
-const HOME_PER_PAGE = 20;
+const HOME_PER_PAGE = 100;
 const CATEGORIES = {
   "tech": 318,
   "eat": 123073,
@@ -2831,7 +2831,7 @@ async function loadCategory(slug, page = 1) {
       return;
     }
 
-    const res = await fetch(api(`posts?categories=${catId}&per_page=20&page=${page}`));
+    const res = await fetch(api(`posts?categories=${catId}&per_page=100&page=${page}`));
     if(!res.ok) throw new Error('Failed');
 
     let totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '0');
@@ -2843,7 +2843,7 @@ async function loadCategory(slug, page = 1) {
     
     // 헤더가 없으면 전체 게시물 수로 계산
     if(totalPages === 0 && totalPosts > 0) {
-      totalPages = Math.ceil(totalPosts / 20);
+      totalPages = Math.ceil(totalPosts / 100);
       console.log('Category - Calculated totalPages:', totalPages);
     }
     
@@ -3487,7 +3487,7 @@ const router = {
     }
     
     try {
-      const res = await fetch(api(`posts?author=${user.id}&per_page=50`));
+      const res = await fetch(api(`posts?author=${user.id}&per_page=100`));
       const posts = await res.json();
       if(Array.isArray(posts)) {
         posts.forEach(p => {
@@ -3582,7 +3582,7 @@ async function performSearch(query, mode) {
     loadingEl.textContent = '검색 중...';
 
     try {
-      const res = await fetch(api(`posts?search=${encodeURIComponent(query)}&per_page=20`));
+      const res = await fetch(api(`posts?search=${encodeURIComponent(query)}&per_page=100`));
       const posts = await res.json();
 
       loadingEl.textContent = '';
