@@ -1088,9 +1088,9 @@
     flex-wrap: wrap;
   }
   .pagination button {
-    background-color: #1a1a1a;
-    color: #ccc;
-    border: 1px solid #333;
+    background-color: transparent;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
     padding: 10px 16px;
     border-radius: 6px;
     cursor: pointer;
@@ -1102,14 +1102,13 @@
     user-select: none;
   }
   .pagination button:hover:not(:disabled):not(.active) {
-    background-color: #2a2a2a;
-    color: #fff;
-    border-color: #444;
+    background-color: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.3);
   }
   .pagination button.active {
-    background-color: #ff6600;
+    background: linear-gradient(135deg, #ff6b35, #ff8c5a);
     color: #fff;
-    border-color: #ff6600;
+    border: none;
     font-weight: 700;
     cursor: default;
   }
@@ -1120,7 +1119,7 @@
   .pagination span {
     background-color: transparent;
     border-color: transparent;
-    color: #ccc;
+    color: #fff;
     font-size: 15px;
     font-weight: 500;
     padding: 0 8px;
@@ -1129,19 +1128,18 @@
   
   /* 라이트 모드용 페이지네이션 */
   body:not(.dark-mode) .pagination button {
-    background-color: #fff;
-    color: #333;
-    border-color: #ddd;
+    background-color: transparent;
+    color: #111;
+    border-color: rgba(0,0,0,0.15);
   }
   body:not(.dark-mode) .pagination button:hover:not(:disabled):not(.active) {
-    background-color: #f5f5f5;
-    color: #111;
-    border-color: #ccc;
+    background-color: rgba(0,0,0,0.05);
+    border-color: rgba(0,0,0,0.25);
   }
   body:not(.dark-mode) .pagination button.active {
-    background-color: #ff6600;
+    background: linear-gradient(135deg, #ff6b35, #ff8c5a);
     color: #fff;
-    border-color: #ff6600;
+    border: none;
   }
   body:not(.dark-mode) .pagination span {
     color: #666;
@@ -1597,7 +1595,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn icon-btn" id="topSearchBtn" onclick="openNavlessSearch()">🔍</button>
+        <button class="btn icon-btn" id="topSearchBtn" onclick="openNavlessSearch()" style="filter: grayscale(1);">🔍</button>
         <button class="btn icon-btn" onclick="ui.toggleNav()">☰</button>
       </div>
     </div>
@@ -1623,7 +1621,7 @@
     <button class="nav-close" onclick="ui.toggleNav(true)">✕</button>
     <div style="display:flex;flex-direction:column;gap:12px;">
       <div class="nav-search">
-        <span style="font-size:18px">🔍</span>
+        <span style="font-size:18px;filter:grayscale(1);">🔍</span>
         <input type="search" id="globalNavSearch" placeholder="검색어 입력">
       </div>
       <ul class="nav-list" id="navList"></ul>
@@ -2035,6 +2033,20 @@ function pickCategoryClass(nameOrSlug) {
 function stripTags(str='') {
   return str.replace(/<\/?[^>]+(>|$)/g, "");
 }
+function createSlug(text) {
+  if(!text) return 'untitled';
+  // HTML 태그 제거
+  text = stripTags(text);
+  // 한글, 영문, 숫자를 제외한 문자 제거 및 공백을 하이픈으로
+  text = text.trim()
+    .toLowerCase()
+    .replace(/[^\uAC00-\uD7A3a-z0-9\s-]/g, '') // 한글, 영문, 숫자, 공백, 하이픈만 허용
+    .replace(/\s+/g, '-') // 공백을 하이픈으로
+    .replace(/-+/g, '-') // 연속된 하이픈을 하나로
+    .replace(/^-|-$/g, ''); // 앞뒤 하이픈 제거
+  // URL 인코딩 (한글 지원)
+  return encodeURIComponent(text) || 'untitled';
+}
 function scrollToTop() {
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
@@ -2281,7 +2293,7 @@ function renderMobileLayout(posts, container) {
 
       let heroUrl = largePost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
       largeContainer.innerHTML = `
-        <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero">
+        <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero" loading="lazy">
         <div class="hero-overlay">
           <h2 class="hero-title">${largePost.title?.rendered || '제목 없음'}</h2>
           <div style="display:flex;align-items:center;gap:10px">
@@ -2804,7 +2816,7 @@ async function loadCategory(slug, page = 1) {
 
   document.getElementById('categoryOverlayTitle').textContent = slug.toUpperCase();
 
-  const newUrl = `${window.location.origin}${window.location.pathname}?category=${slug}`;
+  const newUrl = `${window.location.origin}/.art/category/${slug}`;
   history.pushState({page:'category', slug:slug}, '', newUrl);
 
   const descriptions = {
@@ -2995,8 +3007,10 @@ async function openPostOverlayById(id, updateURL = true) {
       previousState.page = 'editors';
     }
 
-    const newUrl = `${window.location.origin}${window.location.pathname}?post=${id}`;
-    history.pushState({page: 'post', id: id, previous: previousState}, '', newUrl);
+    // 게시물 제목으로 슬러그 생성
+    const postSlug = createSlug(state.postsCache[id]?.title?.rendered || `post-${id}`);
+    const newUrl = `${window.location.origin}/.art/${postSlug}`;
+    history.pushState({page: 'post', id: id, slug: postSlug, previous: previousState}, '', newUrl);
   }
 
   const overlay = document.getElementById('postOverlay');
@@ -3269,7 +3283,7 @@ const router = {
     openLoading('카테고리를 불러오는 중...');
     loadCategory(slug, 1);
     if(updateURL) {
-      const newUrl = `${window.location.origin}${window.location.pathname}?category=${slug}`;
+      const newUrl = `${window.location.origin}/.art/category/${slug}`;
       history.pushState({page:'category', slug:slug}, '', newUrl);
     }
   },
@@ -3311,7 +3325,7 @@ const router = {
     closeLoading();
     
     if(updateURL) {
-      const newUrl = `${window.location.origin}${window.location.pathname}?page=editors`;
+      const newUrl = `${window.location.origin}/.art/editors`;
       history.pushState({page:'editors'}, '', newUrl);
     }
   },
@@ -3351,7 +3365,7 @@ const router = {
     closeLoading();
     
     if(updateURL) {
-      const newUrl = `${window.location.origin}${window.location.pathname}?page=about`;
+      const newUrl = `${window.location.origin}/.art/about`;
       history.pushState({page:'about'}, '', newUrl);
     }
   },
@@ -3386,11 +3400,11 @@ const router = {
       const prev = currentState.previous;
 
       if(prev.page === 'category' && prev.category) {
-        const newUrl = `${window.location.origin}${window.location.pathname}?category=${prev.category}`;
+        const newUrl = `${window.location.origin}/.art/category/${prev.category}`;
         history.pushState({page: 'category', slug: prev.category}, '', newUrl);
         router.openCategory(prev.category, false);
       } else if(prev.page === 'editor' && prev.editor) {
-        const newUrl = `${window.location.origin}${window.location.pathname}?editor=${prev.editor}`;
+        const newUrl = `${window.location.origin}/.art/editor/${prev.editor}`;
         history.pushState({page: 'editor', id: prev.editor}, '', newUrl);
         router.openEditors(false);
         setTimeout(async () => {
@@ -3403,7 +3417,7 @@ const router = {
           }
         }, 100);
       } else if(prev.page === 'search') {
-        const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
+        const newUrl = `${window.location.origin}/.art/search`;
         history.pushState({page: 'search'}, '', newUrl);
         openNavlessSearch(false);
         if(prev.searchTerm) {
@@ -3416,11 +3430,11 @@ const router = {
           }, 100);
         }
       } else if(prev.page === 'about') {
-        const newUrl = `${window.location.origin}${window.location.pathname}?page=about`;
+        const newUrl = `${window.location.origin}/.art/about`;
         history.pushState({page: 'about'}, '', newUrl);
         router.openAbout(false);
       } else if(prev.page === 'editors') {
-        const newUrl = `${window.location.origin}${window.location.pathname}?page=editors`;
+        const newUrl = `${window.location.origin}/.art/editors`;
         history.pushState({page: 'editors'}, '', newUrl);
         router.openEditors(false);
       } else {
@@ -3498,7 +3512,7 @@ const router = {
       document.getElementById('editorPostsLoading').textContent = '';
 
       if(updateURL) {
-        const newUrl = `${window.location.origin}${window.location.pathname}?editor=${user.id}`;
+        const newUrl = `${window.location.origin}/.art/editor/${user.id}`;
         history.pushState({page:'editor', id:user.id}, '', newUrl);
       }
       
@@ -3533,7 +3547,7 @@ async function openNavlessSearch(updateURL = true) {
   
   document.getElementById('searchInput').focus();
   if(updateURL) {
-    const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
+    const newUrl = `${window.location.origin}/.art/search`;
     history.pushState({page:'search'}, '', newUrl);
   }
 }
@@ -3632,6 +3646,61 @@ async function openSearchWithQuery(query) {
   performSearch(query, 'fullSearch');
 }
 function checkURLAndLoadPost() {
+  // 새로운 URL 구조: /.art/...
+  const pathname = window.location.pathname;
+  
+  // /.art/게시물제목 형식 체크
+  if(pathname.startsWith('/.art/') && pathname !== '/.art/about' && pathname !== '/.art/editors' && pathname !== '/.art/search' && !pathname.startsWith('/.art/category/') && !pathname.startsWith('/.art/editor/')) {
+    // 게시물 슬러그에서 게시물 찾기 (캐시에서)
+    // 현재는 ID로 검색하는 방식이므로, 쿼리 파라미터 지원 유지
+  }
+  
+  // /.art/category/카테고리명
+  if(pathname.startsWith('/.art/category/')) {
+    const categorySlug = pathname.replace('/.art/category/', '');
+    if(categorySlug) {
+      router.openCategory(categorySlug, false);
+      return true;
+    }
+  }
+  
+  // /.art/editor/ID
+  if(pathname.startsWith('/.art/editor/')) {
+    const editorId = parseInt(pathname.replace('/.art/editor/', ''));
+    if(!isNaN(editorId)) {
+      router.openEditors(false);
+      setTimeout(async () => {
+        if(state.editorsList.length === 0) {
+          await loadEditors();
+        }
+        const editor = state.editorsList.find(e => e.id === editorId);
+        if(editor) {
+          router.openEditorProfile(editor, false);
+        }
+      }, 300);
+      return true;
+    }
+  }
+  
+  // /.art/about
+  if(pathname === '/.art/about') {
+    router.openAbout(false);
+    return true;
+  }
+  
+  // /.art/editors
+  if(pathname === '/.art/editors') {
+    router.openEditors(false);
+    return true;
+  }
+  
+  // /.art/search
+  if(pathname === '/.art/search') {
+    openNavlessSearch(false);
+    return true;
+  }
+  
+  // 구 URL 파라미터 방식 지원 (하위 호환성)
   const urlParams = new URLSearchParams(window.location.search);
   const postParam = urlParams.get('post');
   const categoryParam = urlParams.get('category');
@@ -3719,6 +3788,94 @@ function checkURLAndLoadPost() {
   return false;
 }
 window.addEventListener('popstate', (e) => {
+  // 새로운 URL 구조 체크
+  const pathname = window.location.pathname;
+  
+  // /.art/category/카테고리명
+  if(pathname.startsWith('/.art/category/')) {
+    const categorySlug = pathname.replace('/.art/category/', '');
+    if(categorySlug) {
+      document.querySelectorAll('.post-overlay, .search-overlay, .about-page, .editors-overlay').forEach(el => {
+        el.classList.remove('active');
+      });
+      document.body.style.overflow = '';
+      document.getElementById('progressBar').classList.remove('active');
+      document.getElementById('postHeaderBar').classList.remove('show');
+      document.getElementById('postToTopBtn').classList.remove('show');
+      router.openCategory(categorySlug, false);
+      return;
+    }
+  }
+  
+  // /.art/editor/ID
+  if(pathname.startsWith('/.art/editor/')) {
+    const editorId = parseInt(pathname.replace('/.art/editor/', ''));
+    if(!isNaN(editorId)) {
+      document.querySelectorAll('.post-overlay, .search-overlay, .about-page, .category-overlay').forEach(el => {
+        el.classList.remove('active');
+      });
+      document.body.style.overflow = '';
+      document.getElementById('progressBar').classList.remove('active');
+      document.getElementById('postHeaderBar').classList.remove('show');
+      document.getElementById('postToTopBtn').classList.remove('show');
+
+      if(!document.getElementById('editorsOverlay').classList.contains('active')) {
+        router.openEditors(false);
+      }
+
+      setTimeout(async () => {
+        if(state.editorsList.length === 0) {
+          await loadEditors();
+        }
+        const editor = state.editorsList.find(e => e.id === editorId);
+        if(editor) {
+          router.openEditorProfile(editor, false);
+        }
+      }, 100);
+      return;
+    }
+  }
+  
+  // /.art/about
+  if(pathname === '/.art/about') {
+    document.querySelectorAll('.post-overlay, .search-overlay, .editors-overlay, .category-overlay').forEach(el => {
+      el.classList.remove('active');
+    });
+    document.body.style.overflow = '';
+    document.getElementById('progressBar').classList.remove('active');
+    document.getElementById('postHeaderBar').classList.remove('show');
+    document.getElementById('postToTopBtn').classList.remove('show');
+    router.openAbout(false);
+    return;
+  }
+  
+  // /.art/editors
+  if(pathname === '/.art/editors') {
+    document.querySelectorAll('.post-overlay, .search-overlay, .about-page, .category-overlay').forEach(el => {
+      el.classList.remove('active');
+    });
+    document.body.style.overflow = '';
+    document.getElementById('progressBar').classList.remove('active');
+    document.getElementById('postHeaderBar').classList.remove('show');
+    document.getElementById('postToTopBtn').classList.remove('show');
+    router.openEditors(false);
+    return;
+  }
+  
+  // /.art/search
+  if(pathname === '/.art/search') {
+    document.querySelectorAll('.post-overlay, .about-page, .editors-overlay, .category-overlay').forEach(el => {
+      el.classList.remove('active');
+    });
+    document.body.style.overflow = '';
+    document.getElementById('progressBar').classList.remove('active');
+    document.getElementById('postHeaderBar').classList.remove('show');
+    document.getElementById('postToTopBtn').classList.remove('show');
+    openNavlessSearch(false);
+    return;
+  }
+  
+  // 구 URL 파라미터 방식 지원 (하위 호환성)
   const urlParams = new URLSearchParams(window.location.search);
   const postParam = urlParams.get('post');
   const categoryParam = urlParams.get('category');
