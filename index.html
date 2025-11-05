@@ -1964,67 +1964,28 @@ function nextFrame() {
   return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 }
 
-// WordPress API 호출을 위한 두 가지 방법
-function api(path, direct = false) {
+// Netlify Functions를 통한 WordPress API 호출
+function api(path) {
   const p = path.includes('_embed') ? path : (path + (path.includes('?') ? '&' : '?') + '_embed');
   
-  // direct=true면 WordPress API 직접 호출 (CORS 허용 시)
-  if(direct) {
-    return `https://${WP_SITE}/wp-json/wp/v2/${p}`;
-  }
-  
-  // 기본: Netlify Functions를 통한 프록시
+  // Netlify Functions를 통한 프록시만 사용 (CORS 문제 해결)
   return `/.netlify/functions/wpProxy?path=${encodeURIComponent(p)}`;
 }
 
-// 전체 게시물 수를 직접 계산하는 헬퍼 함수
+// Netlify Functions를 통해 전체 게시물 수를 가져오는 헬퍼 함수
 async function getTotalPostsCount() {
-  console.log('getTotalPostsCount 호출...');
+  console.log('getTotalPostsCount 호출 (Netlify Functions 사용)...');
   
   try {
-    // 방법 1: WordPress API 직접 호출로 개수 확인 (per_page=1로 최소 데이터만)
-    const directUrl = `https://${WP_SITE}/wp-json/wp/v2/posts?per_page=1&page=1`;
-    console.log('  → 직접 API 호출:', directUrl);
-    const res = await fetch(directUrl);
-    
-    const totalFromHeader = parseInt(res.headers.get('X-WP-Total') || '0');
-    const totalPagesFromHeader = parseInt(res.headers.get('X-WP-TotalPages') || '0');
-    
-    console.log('  → 직접 API 응답 헤더 - Total:', totalFromHeader, 'TotalPages:', totalPagesFromHeader);
-    
-    if(totalFromHeader > 0) {
-      return {
-        total: totalFromHeader,
-        totalPages: Math.ceil(totalFromHeader / HOME_PER_PAGE)
-      };
-    }
-    
-    // 방법 2: 응답 본문 확인
-    const data = await res.json();
-    console.log('  → 응답 본문 확인:', data);
-    
-    if(Array.isArray(data) && data.length > 0) {
-      console.log('  → 최소 1개 이상의 게시물 존재');
-      // 최소한 데이터가 있다는 것은 확인
-      return {
-        total: 1,
-        totalPages: 1
-      };
-    }
-  } catch(e) {
-    console.error('  → 직접 API 실패:', e);
-  }
-  
-  try {
-    // 방법 3: Netlify Functions를 통한 호출 (헤더 확인)
-    console.log('  → Netlify Functions 통한 호출 시도...');
+    // Netlify Functions를 통한 호출 (per_page=1로 최소 데이터만)
     const proxyUrl = api('posts?per_page=1&page=1');
-    const res2 = await fetch(proxyUrl);
+    console.log('  → Netlify Functions 호출:', proxyUrl);
+    const res = await fetch(proxyUrl);
     
-    const totalFromProxy = parseInt(res2.headers.get('X-WP-Total') || '0');
-    const totalPagesFromProxy = parseInt(res2.headers.get('X-WP-TotalPages') || '0');
+    const totalFromProxy = parseInt(res.headers.get('X-WP-Total') || '0');
+    const totalPagesFromProxy = parseInt(res.headers.get('X-WP-TotalPages') || '0');
     
-    console.log('  → Proxy 응답 헤더 - Total:', totalFromProxy, 'TotalPages:', totalPagesFromProxy);
+    console.log('  → 응답 헤더 - Total:', totalFromProxy, 'TotalPages:', totalPagesFromProxy);
     
     if(totalFromProxy > 0) {
       return {
@@ -2032,11 +1993,23 @@ async function getTotalPostsCount() {
         totalPages: Math.ceil(totalFromProxy / HOME_PER_PAGE)
       };
     }
+    
+    // 헤더가 없으면 응답 본문 확인
+    const data = await res.json();
+    console.log('  → 응답 본문 확인:', data);
+    
+    if(Array.isArray(data) && data.length > 0) {
+      console.log('  → 최소 1개 이상의 게시물 존재');
+      return {
+        total: 1,
+        totalPages: 1
+      };
+    }
   } catch(e) {
-    console.error('  → Proxy API 실패:', e);
+    console.error('  → Netlify Functions 호출 실패:', e);
   }
   
-  console.log('  → 모든 방법 실패');
+  console.log('  → 게시물 수 가져오기 실패');
   return null;
 }
 function formatDate(dstr) {
@@ -2514,15 +2487,15 @@ async function loadHomeChunk(page = 1) {
         console.log('Calculated totalPages from totalPosts:', totalPages);
       }
       
-      // 방법 3: 헤더도 없고 totalPosts도 없으면, WordPress API 직접 호출
+      // 방법 3: 헤더도 없고 totalPosts도 없으면, Netlify Functions로 재시도
       if(totalPages === 0) {
-        console.log('헤더 정보 없음 - 직접 API 호출 시도...');
-        const directCount = await getTotalPostsCount();
+        console.log('헤더 정보 없음 - Netlify Functions로 재시도...');
+        const count = await getTotalPostsCount();
         
-        if(directCount && directCount.totalPages > 0) {
-          totalPages = directCount.totalPages;
-          state.allPostsCount = directCount.total;
-          console.log('직접 API 호출 성공 - TotalPages:', totalPages, 'Total:', directCount.total);
+        if(count && count.totalPages > 0) {
+          totalPages = count.totalPages;
+          state.allPostsCount = count.total;
+          console.log('Netlify Functions 호출 성공 - TotalPages:', totalPages, 'Total:', count.total);
         }
       }
       
