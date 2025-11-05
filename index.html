@@ -1972,12 +1972,35 @@ function api(path) {
   return `/.netlify/functions/wpProxy?path=${encodeURIComponent(p)}`;
 }
 
-// Netlify Functions를 통해 전체 게시물 수를 가져오는 헬퍼 함수
+// 전체 게시물 수를 가져오는 헬퍼 함수
 async function getTotalPostsCount() {
-  console.log('getTotalPostsCount 호출 (Netlify Functions 사용)...');
+  console.log('getTotalPostsCount 호출...');
   
   try {
-    // Netlify Functions를 통한 호출 (per_page=1로 최소 데이터만)
+    // 방법 1: WordPress API 직접 호출 (CORS 허용된 경우)
+    const directUrl = `https://${WP_SITE}/wp-json/wp/v2/posts?per_page=1&page=1`;
+    console.log('  → WordPress API 직접 호출:', directUrl);
+    
+    try {
+      const directRes = await fetch(directUrl);
+      if(directRes.ok) {
+        const totalFromDirect = parseInt(directRes.headers.get('X-WP-Total') || '0');
+        const totalPagesFromDirect = parseInt(directRes.headers.get('X-WP-TotalPages') || '0');
+        
+        console.log('  → 직접 호출 성공 - Total:', totalFromDirect, 'TotalPages:', totalPagesFromDirect);
+        
+        if(totalFromDirect > 0) {
+          return {
+            total: totalFromDirect,
+            totalPages: Math.ceil(totalFromDirect / HOME_PER_PAGE)
+          };
+        }
+      }
+    } catch(corsError) {
+      console.log('  → 직접 호출 실패 (CORS 또는 네트워크 오류), Netlify Functions로 재시도');
+    }
+    
+    // 방법 2: Netlify Functions를 통한 호출
     const proxyUrl = api('posts?per_page=1&page=1');
     console.log('  → Netlify Functions 호출:', proxyUrl);
     const res = await fetch(proxyUrl);
@@ -1994,23 +2017,53 @@ async function getTotalPostsCount() {
       };
     }
     
-    // 헤더가 없으면 응답 본문 확인
-    const data = await res.json();
-    console.log('  → 응답 본문 확인:', data);
+    // 방법 3: 헤더가 없으면 여러 페이지를 순차적으로 조회하여 전체 개수 파악
+    console.log('  → 헤더 없음. 순차 조회로 전체 개수 파악 시도...');
+    let testPage = 1;
+    let foundEmpty = false;
     
-    if(Array.isArray(data) && data.length > 0) {
-      console.log('  → 최소 1개 이상의 게시물 존재');
-      return {
-        total: 1,
-        totalPages: 1
-      };
+    while(testPage <= 10 && !foundEmpty) { // 최대 10페이지까지만 테스트
+      const testRes = await fetch(api(`posts?per_page=100&page=${testPage}`));
+      if(testRes.ok) {
+        const testData = await testRes.json();
+        if(!Array.isArray(testData) || testData.length === 0) {
+          foundEmpty = true;
+          const estimatedTotal = (testPage - 1) * 100;
+          console.log(`  → ${testPage}페이지가 비어있음. 추정 총 게시물: ~${estimatedTotal}개`);
+          return {
+            total: estimatedTotal,
+            totalPages: testPage - 1
+          };
+        } else if(testData.length < 100) {
+          // 100개 미만이면 마지막 페이지
+          const estimatedTotal = (testPage - 1) * 100 + testData.length;
+          console.log(`  → ${testPage}페이지가 마지막 (${testData.length}개). 추정 총 게시물: ${estimatedTotal}개`);
+          return {
+            total: estimatedTotal,
+            totalPages: testPage
+          };
+        }
+        testPage++;
+      } else {
+        break;
+      }
     }
+    
+    // 방법 4: 최소값 반환
+    console.log('  → 최소값으로 설정');
+    return {
+      total: 100,
+      totalPages: Math.max(testPage - 1, 1)
+    };
   } catch(e) {
-    console.error('  → Netlify Functions 호출 실패:', e);
+    console.error('  → 게시물 수 가져오기 실패:', e);
   }
   
-  console.log('  → 게시물 수 가져오기 실패');
-  return null;
+  console.log('  → 기본값 반환');
+  return {
+    total: 0,
+    totalPages: 1
+  };
 }
 function formatDate(dstr) {
   try {
@@ -2508,11 +2561,11 @@ async function loadHomeChunk(page = 1) {
       // 방법 5: 받은 게시물 개수로 추정 (최후의 수단)
       if(totalPages === 0 && Array.isArray(posts)) {
         if(posts.length === HOME_PER_PAGE) {
-          // 20개 받았다면 최소 현재 페이지 + 1
+          // 100개 받았다면 최소 현재 페이지 + 1
           totalPages = page + 1;
-          console.log('게시물 개수로 추정 (20개 = ', page, '페이지 이상):', totalPages);
+          console.log(`게시물 개수로 추정 (${HOME_PER_PAGE}개 = ${page}페이지 이상):`, totalPages);
         } else if(posts.length > 0) {
-          // 20개 미만이면 현재가 마지막 페이지
+          // 100개 미만이면 현재가 마지막 페이지
           totalPages = page;
           console.log('현재가 마지막 페이지:', totalPages);
         } else {
@@ -2841,10 +2894,55 @@ async function loadCategory(slug, page = 1) {
     
     const posts = await res.json();
     
-    // 헤더가 없으면 전체 게시물 수로 계산
+    // 방법 1: 헤더가 없으면 전체 게시물 수로 계산
     if(totalPages === 0 && totalPosts > 0) {
       totalPages = Math.ceil(totalPosts / 100);
       console.log('Category - Calculated totalPages:', totalPages);
+    }
+    
+    // 방법 2: 헤더 정보가 전혀 없으면 순차 조회로 파악
+    if(totalPages === 0) {
+      console.log('Category - 헤더 없음. 순차 조회로 전체 개수 파악 시도...');
+      let testPage = 1;
+      let foundEmpty = false;
+      
+      while(testPage <= 10 && !foundEmpty) {
+        const testRes = await fetch(api(`posts?categories=${catId}&per_page=100&page=${testPage}`));
+        if(testRes.ok) {
+          const testData = await testRes.json();
+          if(!Array.isArray(testData) || testData.length === 0) {
+            foundEmpty = true;
+            totalPages = Math.max(testPage - 1, 1);
+            console.log(`Category - ${testPage}페이지가 비어있음. totalPages: ${totalPages}`);
+          } else if(testData.length < 100) {
+            totalPages = testPage;
+            console.log(`Category - ${testPage}페이지가 마지막 (${testData.length}개). totalPages: ${totalPages}`);
+            break;
+          }
+          testPage++;
+        } else {
+          break;
+        }
+      }
+      
+      // 여전히 0이면 최소값 보장
+      if(totalPages === 0) {
+        totalPages = Math.max(testPage - 1, 1);
+      }
+    }
+    
+    // 방법 3: 받은 게시물 개수로 추정
+    if(totalPages === 0 && Array.isArray(posts)) {
+      if(posts.length === 100) {
+        totalPages = page + 1;
+        console.log('Category - 100개 받음. 최소', totalPages, '페이지 이상');
+      } else if(posts.length > 0) {
+        totalPages = page;
+        console.log('Category - 현재가 마지막 페이지:', totalPages);
+      } else {
+        totalPages = Math.max(1, page - 1);
+        console.log('Category - 게시물 없음');
+      }
     }
     
     // 최소값 보장
