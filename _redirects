@@ -1,0 +1,3 @@
+# Netlify SPA 리다이렉트 설정
+# 모든 경로를 index.html로 리다이렉트 (200 상태 코드 유지)
+/*    /index.html    200
