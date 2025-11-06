@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # 실제 파일이나 디렉토리가 존재하지 않으면
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  
+  # 모든 요청을 index.html로 리다이렉트
+  RewriteRule . /index.html [L]
+</IfModule>
