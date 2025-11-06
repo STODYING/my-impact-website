@@ -24,7 +24,7 @@
   <!-- Canonical URL for SEO -->
   <link rel="canonical" href="https://page.gensparksite.com/" id="canonicalUrl">
 
-  <script defer src="https://www.googletagmanager.com/gtag/js?id=G-D0DVTWYNGN"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-D0DVTWYNGN"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
@@ -41,8 +41,7 @@
   <meta name="apple-mobile-web-app-title" content="IMPACT">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet"></noscript>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <style>
   *, *::before, *::after { box-sizing: border-box; }
   html, body { height: 100%; }
@@ -1678,7 +1677,7 @@
   </aside>
   <main class="home" id="home">
     <div id="rowsContainer"></div>
-    <div id="homeLoading" style="text-align:center;color:#666;padding:36px 0;font-size:16px;font-weight:500;">페이지를 불러오는 중...</div>
+    <div id="homeLoading" style="text-align:center;color:#666;padding:36px 0">로딩 중...</div>
     <div class="pagination" id="homePagination"></div>
   </main>
   <section class="category-overlay" id="categoryOverlay">
@@ -2573,7 +2572,6 @@ function renderDesktopLayout(posts, container) {
 async function loadHomeChunk(page = 1) {
   if(state.isProcessing || state.homeLoadPromise) return state.homeLoadPromise;
 
-  console.log('로딩 시작');
   state.isProcessing = true;
 
   const loadingEl = document.getElementById('homeLoading');
@@ -4094,10 +4092,10 @@ document.getElementById('imageModal').addEventListener('click', (e) => {
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('로딩 시작');
   renderNavList();
 
   const loadingEl = document.getElementById('homeLoading');
+  loadingEl.textContent = '페이지를 불러오는 중...';
 
   // 수정됨: 새로고침 시 항상 메인 콘텐츠를 미리 로드
   // 메인 홈 콘텐츠를 백그라운드로 로드
@@ -4110,27 +4108,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
-  // 비동기로 변경하여 초기 렌더링 차단 방지
-  checkURLAndLoadPost().then(hasSpecificPage => {
-    if(!hasSpecificPage) {
-      // 메인 페이지인 경우 즉시 로드
-      loadHomeChunk(1)
-        .then(() => {
-          console.log('Home loaded successfully');
-        })
-        .catch((err) => {
-          console.error('Home loading failed:', err);
-          loadingEl.textContent = '페이지를 불러오지 못했습니다. 새로고침을 시도해주세요.';
-        });
-    } else {
-      // 수정됨: 서브 페이지에서 시작한 경우도 백그라운드로 메인 콘텐츠 로드
-      loadingEl.textContent = '';
-      // 약간의 디레이 후 백그라운드로 메인 콘텐츠 로드
-      setTimeout(() => {
-        loadHomeInBackground();
-      }, 1000);
-    }
-  });
+  const hasSpecificPage = checkURLAndLoadPost();
+
+  if(!hasSpecificPage) {
+    // 메인 페이지인 경우 즉시 로드
+    loadHomeChunk(1)
+      .then(() => {
+        console.log('Home loaded successfully');
+      })
+      .catch((err) => {
+        console.error('Home loading failed:', err);
+        loadingEl.textContent = '페이지를 불러오지 못했습니다. 새로고침을 시도해주세요.';
+      });
+  } else {
+    // 수정됨: 서브 페이지에서 시작한 경우도 백그라운드로 메인 콘텐츠 로드
+    loadingEl.textContent = '';
+    // 약간의 디레이 후 백그라운드로 메인 콘텐츠 로드
+    setTimeout(() => {
+      loadHomeInBackground();
+    }, 1000);
+  }
 });
 let resizeTimeout;
 window.addEventListener('resize', () => {
