@@ -4,7 +4,21 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>IMPACT – MAKE A IMPACT</title>
-  <meta name="description" content="Innovation Management Passion Acceleration Creativity Technology">
+  <meta name="description" content="Innovation Management Passion Acceleration Creativity Technology" id="metaDescription">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" id="ogType">
+  <meta property="og:url" content="https://page.gensparksite.com/" id="ogUrl">
+  <meta property="og:title" content="IMPACT – MAKE A IMPACT" id="ogTitle">
+  <meta property="og:description" content="Innovation Management Passion Acceleration Creativity Technology" id="ogDescription">
+  <meta property="og:image" content="https://page.gensparksite.com/logo.png" id="ogImage">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" id="twitterCard">
+  <meta property="twitter:url" content="https://page.gensparksite.com/" id="twitterUrl">
+  <meta property="twitter:title" content="IMPACT – MAKE A IMPACT" id="twitterTitle">
+  <meta property="twitter:description" content="Innovation Management Passion Acceleration Creativity Technology" id="twitterDescription">
+  <meta property="twitter:image" content="https://page.gensparksite.com/logo.png" id="twitterImage">
   <meta name="naver-site-verification" content="75a4e73cbf2b7f3acb2c71fac1ea821a9c13ae85" />
 
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-D0DVTWYNGN"></script>
@@ -1088,9 +1102,9 @@
     flex-wrap: wrap;
   }
   .pagination button {
-    background-color: #1a1a1a;
-    color: #ccc;
-    border: 1px solid #333;
+    background-color: transparent;
+    color: #fff;
+    border: none;
     padding: 10px 16px;
     border-radius: 6px;
     cursor: pointer;
@@ -1102,14 +1116,12 @@
     user-select: none;
   }
   .pagination button:hover:not(:disabled):not(.active) {
-    background-color: #2a2a2a;
+    background-color: rgba(255,255,255,0.1);
     color: #fff;
-    border-color: #444;
   }
   .pagination button.active {
-    background-color: #ff6600;
-    color: #fff;
-    border-color: #ff6600;
+    background-color: transparent;
+    color: #ff6600;
     font-weight: 700;
     cursor: default;
   }
@@ -1129,19 +1141,20 @@
   
   /* 라이트 모드용 페이지네이션 */
   body:not(.dark-mode) .pagination button {
-    background-color: #fff;
-    color: #333;
-    border-color: #ddd;
+    background-color: transparent;
+    color: #000;
+    border-color: transparent;
   }
   body:not(.dark-mode) .pagination button:hover:not(:disabled):not(.active) {
     background-color: #f5f5f5;
-    color: #111;
-    border-color: #ccc;
+    color: #000;
+    border-color: transparent;
   }
   body:not(.dark-mode) .pagination button.active {
-    background-color: #ff6600;
-    color: #fff;
-    border-color: #ff6600;
+    background-color: transparent;
+    color: #ff6600;
+    border-color: transparent;
+    font-weight: 700;
   }
   body:not(.dark-mode) .pagination span {
     color: #666;
@@ -2034,6 +2047,55 @@ function pickCategoryClass(nameOrSlug) {
 }
 function stripTags(str='') {
   return str.replace(/<\/?[^>]+(>|$)/g, "");
+}
+
+// OG 메타태그 업데이트 함수
+function updateMetaTags(data) {
+  const defaults = {
+    title: 'IMPACT – MAKE A IMPACT',
+    description: 'Innovation Management Passion Acceleration Creativity Technology',
+    image: `${window.location.origin}/logo.png`,
+    url: window.location.href,
+    type: 'website'
+  };
+  
+  const metaData = { ...defaults, ...data };
+  
+  // Document title
+  document.title = metaData.title;
+  
+  // Description
+  const metaDesc = document.getElementById('metaDescription');
+  if(metaDesc) metaDesc.setAttribute('content', metaData.description);
+  
+  // Open Graph
+  const ogType = document.getElementById('ogType');
+  if(ogType) ogType.setAttribute('content', metaData.type);
+  
+  const ogUrl = document.getElementById('ogUrl');
+  if(ogUrl) ogUrl.setAttribute('content', metaData.url);
+  
+  const ogTitle = document.getElementById('ogTitle');
+  if(ogTitle) ogTitle.setAttribute('content', metaData.title);
+  
+  const ogDescription = document.getElementById('ogDescription');
+  if(ogDescription) ogDescription.setAttribute('content', metaData.description);
+  
+  const ogImage = document.getElementById('ogImage');
+  if(ogImage) ogImage.setAttribute('content', metaData.image);
+  
+  // Twitter
+  const twitterUrl = document.getElementById('twitterUrl');
+  if(twitterUrl) twitterUrl.setAttribute('content', metaData.url);
+  
+  const twitterTitle = document.getElementById('twitterTitle');
+  if(twitterTitle) twitterTitle.setAttribute('content', metaData.title);
+  
+  const twitterDescription = document.getElementById('twitterDescription');
+  if(twitterDescription) twitterDescription.setAttribute('content', metaData.description);
+  
+  const twitterImage = document.getElementById('twitterImage');
+  if(twitterImage) twitterImage.setAttribute('content', metaData.image);
 }
 function scrollToTop() {
   window.scrollTo({top: 0, behavior: 'smooth'});
@@ -2995,8 +3057,15 @@ async function openPostOverlayById(id, updateURL = true) {
       previousState.page = 'editors';
     }
 
-    const newUrl = `${window.location.origin}${window.location.pathname}?post=${id}`;
-    history.pushState({page: 'post', id: id, previous: previousState}, '', newUrl);
+    // 게시물 정보를 먼저 가져와서 slug 사용
+    let postSlug = id;
+    const cached = state.postsCache[id];
+    if(cached && cached.slug) {
+      postSlug = cached.slug;
+    }
+    
+    const newUrl = `${window.location.origin}/post/${postSlug}`;
+    history.pushState({page: 'post', id: id, slug: postSlug, previous: previousState}, '', newUrl);
   }
 
   const overlay = document.getElementById('postOverlay');
@@ -3090,6 +3159,16 @@ async function renderPostOverlay(post) {
   const dateStr = formatDate(post.date);
   const contentHTML = post.content && post.content.rendered ? post.content.rendered : (post.excerpt && post.excerpt.rendered ? post.excerpt.rendered : '');
   const featuredUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+  
+  // OG 메타태그 업데이트
+  const excerpt = post.excerpt && post.excerpt.rendered ? stripTags(post.excerpt.rendered).substring(0, 160) : stripTags(title);
+  updateMetaTags({
+    title: stripTags(title) + ' - IMPACT',
+    description: excerpt,
+    image: featuredUrl || `${window.location.origin}/logo.png`,
+    url: `${window.location.origin}/post/${post.slug}`,
+    type: 'article'
+  });
   article.innerHTML = `
     <div class="post-hero-section">
       <div class="post-header">
@@ -3269,15 +3348,32 @@ const router = {
     openLoading('카테고리를 불러오는 중...');
     loadCategory(slug, 1);
     if(updateURL) {
-      const newUrl = `${window.location.origin}${window.location.pathname}?category=${slug}`;
+      const newUrl = `${window.location.origin}/category/${slug}`;
       history.pushState({page:'category', slug:slug}, '', newUrl);
+      
+      // 카테고리 메타태그 업데이트
+      const categoryNames = {
+        'tech': 'TECH',
+        'eat': 'EAT',
+        'style': 'STYLE',
+        'culture': 'CULTURE',
+        'life': 'LIFE',
+        'editors-pick': "EDITORS' PICK"
+      };
+      updateMetaTags({
+        title: `${categoryNames[slug] || slug.toUpperCase()} - IMPACT`,
+        url: newUrl
+      });
     }
   },
   closeCategory: async () => {
     document.getElementById('categoryOverlay').classList.remove('active');
     document.body.style.overflow = '';
-    const newUrl = `${window.location.origin}${window.location.pathname}`;
+    const newUrl = `${window.location.origin}/`;
     history.pushState({page:'home'}, '', newUrl);
+    
+    // 메타태그 복원
+    updateMetaTags({});
     
     // 수정됨: 메인 홈이 로드되지 않았다면 즉시 로드 및 로딩 표시
     const container = document.getElementById('rowsContainer');
@@ -3311,15 +3407,23 @@ const router = {
     closeLoading();
     
     if(updateURL) {
-      const newUrl = `${window.location.origin}${window.location.pathname}?page=editors`;
+      const newUrl = `${window.location.origin}/editors`;
       history.pushState({page:'editors'}, '', newUrl);
+      updateMetaTags({
+        title: 'EDITORS - IMPACT',
+        description: 'IMPACT에 참여하는 에디터 목록과 각 에디터의 작성 글을 확인할 수 있습니다.',
+        url: newUrl
+      });
     }
   },
   closeEditors: async () => {
     document.getElementById('editorsOverlay').classList.remove('active');
     document.body.style.overflow = '';
-    const newUrl = `${window.location.origin}${window.location.pathname}`;
+    const newUrl = `${window.location.origin}/`;
     history.pushState({page:'home'}, '', newUrl);
+    
+    // 메타태그 복원
+    updateMetaTags({});
     
     // 수정됨: 메인 홈이 로드되지 않았다면 즉시 로드 및 로딩 표시
     const container = document.getElementById('rowsContainer');
@@ -3351,15 +3455,23 @@ const router = {
     closeLoading();
     
     if(updateURL) {
-      const newUrl = `${window.location.origin}${window.location.pathname}?page=about`;
+      const newUrl = `${window.location.origin}/about`;
       history.pushState({page:'about'}, '', newUrl);
+      updateMetaTags({
+        title: 'ABOUT - IMPACT',
+        description: 'IMPACT에 대해 알아보고 우리의 비전과 목표를 확인하세요.',
+        url: newUrl
+      });
     }
   },
   closeAbout: async () => {
     document.getElementById('aboutPage').classList.remove('active');
     document.body.style.overflow = '';
-    const newUrl = `${window.location.origin}${window.location.pathname}`;
+    const newUrl = `${window.location.origin}/`;
     history.pushState({page:'home'}, '', newUrl);
+    
+    // 메타태그 복원
+    updateMetaTags({});
     
     // 수정됨: 메인 홈이 로드되지 않았다면 즉시 로드 및 로딩 표시
     const container = document.getElementById('rowsContainer');
@@ -3631,8 +3743,64 @@ async function openSearchWithQuery(query) {
 
   performSearch(query, 'fullSearch');
 }
-function checkURLAndLoadPost() {
+async function checkURLAndLoadPost() {
+  const pathname = window.location.pathname;
   const urlParams = new URLSearchParams(window.location.search);
+  
+  // 새로운 URL 패턴: /post/slug 또는 /post/id
+  if(pathname.startsWith('/post/')) {
+    const postSlugOrId = pathname.replace('/post/', '');
+    
+    // 숫자면 ID로 처리
+    if(!isNaN(parseInt(postSlugOrId))) {
+      openPostOverlayById(parseInt(postSlugOrId), false);
+      return true;
+    }
+    
+    // 문자열이면 slug로 처리 - API에서 게시물 검색
+    try {
+      const res = await fetch(api(`posts?slug=${postSlugOrId}&_embed`));
+      if(res.ok) {
+        const posts = await res.json();
+        if(posts && posts.length > 0) {
+          const post = posts[0];
+          state.postsCache[post.id] = post;
+          openPostOverlayById(post.id, false);
+          return true;
+        }
+      }
+    } catch(e) {
+      console.error('게시물 slug 로드 실패:', e);
+    }
+    return true;
+  }
+  
+  // 새로운 URL 패턴: /category/slug
+  if(pathname.startsWith('/category/')) {
+    const categorySlug = pathname.replace('/category/', '');
+    router.openCategory(categorySlug, false);
+    return true;
+  }
+  
+  // 새로운 URL 패턴: /editors
+  if(pathname === '/editors') {
+    router.openEditors(false);
+    return true;
+  }
+  
+  // 새로운 URL 패턴: /about
+  if(pathname === '/about') {
+    router.openAbout(false);
+    return true;
+  }
+  
+  // 새로운 URL 패턴: /search
+  if(pathname === '/search') {
+    openNavlessSearch(false);
+    return true;
+  }
+
+  // 이전 query parameter 방식도 지원 (하위 호환성)
   const postParam = urlParams.get('post');
   const categoryParam = urlParams.get('category');
   const editorParam = urlParams.get('editor');
@@ -3679,12 +3847,13 @@ function checkURLAndLoadPost() {
     return true;
   }
 
+  // 이전 hash 방식도 지원 (하위 호환성)
   const hash = window.location.hash;
 
   if(hash.startsWith('#post-')) {
     const postId = hash.replace('#post-', '');
     if(postId && !isNaN(parseInt(postId))) {
-      const newUrl = `${window.location.origin}${window.location.pathname}?post=${postId}`;
+      const newUrl = `${window.location.origin}/post/${postId}`;
       history.replaceState({page: 'post', id: parseInt(postId)}, '', newUrl);
       setTimeout(() => {
         openPostOverlayById(parseInt(postId), false);
@@ -3694,23 +3863,23 @@ function checkURLAndLoadPost() {
   } else if(hash.startsWith('#editor-')) {
     const editorId = hash.replace('#editor-', '');
     if(editorId && !isNaN(parseInt(editorId))) {
-      const newUrl = `${window.location.origin}${window.location.pathname}?editor=${editorId}`;
+      const newUrl = `${window.location.origin}/editor/${editorId}`;
       history.replaceState({page: 'editor', id: parseInt(editorId)}, '', newUrl);
       router.openEditorProfile(parseInt(editorId), false);
       return true;
     }
   } else if(hash === '#editors') {
-    const newUrl = `${window.location.origin}${window.location.pathname}?page=editors`;
+    const newUrl = `${window.location.origin}/editors`;
     history.replaceState({page: 'editors'}, '', newUrl);
     router.openEditors(false);
     return true;
   } else if(hash === '#about') {
-    const newUrl = `${window.location.origin}${window.location.pathname}?page=about`;
+    const newUrl = `${window.location.origin}/about`;
     history.replaceState({page: 'about'}, '', newUrl);
     router.openAbout(false);
     return true;
   } else if(hash === '#search') {
-    const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
+    const newUrl = `${window.location.origin}/search`;
     history.replaceState({page: 'search'}, '', newUrl);
     openNavlessSearch(false);
     return true;
@@ -3718,7 +3887,15 @@ function checkURLAndLoadPost() {
 
   return false;
 }
-window.addEventListener('popstate', (e) => {
+window.addEventListener('popstate', async (e) => {
+  const pathname = window.location.pathname;
+  
+  // 먼저 새로운 URL 패턴 체크
+  if(await checkURLAndLoadPost()) {
+    return;
+  }
+  
+  // 이전 query parameter 방식도 지원
   const urlParams = new URLSearchParams(window.location.search);
   const postParam = urlParams.get('post');
   const categoryParam = urlParams.get('category');
