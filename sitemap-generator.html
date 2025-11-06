@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sitemap Generator - IMPACT</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      background: #f5f5f5;
+      color: #333;
+    }
+    h1 {
+      color: #ff6b35;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    button {
+      background: linear-gradient(135deg, #ff6b35, #ff8c5a);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    #status {
+      margin: 20px 0;
+      padding: 15px;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+    .info { background: #e3f2fd; color: #1565c0; }
+    .success { background: #e8f5e9; color: #2e7d32; }
+    .error { background: #ffebee; color: #c62828; }
+    #output {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      max-height: 500px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .hidden { display: none; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .stat-box {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      color: #ff6b35;
+    }
+    .stat-label {
+      font-size: 14px;
+      color: #666;
+      margin-top: 5px;
+    }
+    .copy-btn {
+      background: #4caf50;
+      margin-top: 10px;
+    }
+    .download-btn {
+      background: #2196f3;
+      margin-top: 10px;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🗺️ Sitemap Generator</h1>
+  <p class="subtitle">WordPress API에서 모든 게시물을 가져와 sitemap.xml을 생성합니다.</p>
+  
+  <div class="card">
+    <h2>Sitemap 생성</h2>
+    <p>버튼을 클릭하여 최신 게시물이 포함된 sitemap.xml을 생성하세요.</p>
+    <button id="generateBtn" onclick="generateSitemap()">Sitemap 생성하기</button>
+    
+    <div id="status" class="hidden"></div>
+    
+    <div id="statsContainer" class="hidden">
+      <div class="stats">
+        <div class="stat-box">
+          <div class="stat-number" id="totalPosts">0</div>
+          <div class="stat-label">게시물 수</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number" id="totalUrls">0</div>
+          <div class="stat-label">총 URL 수</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number" id="fileSize">0 KB</div>
+          <div class="stat-label">파일 크기</div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="outputContainer" class="hidden">
+      <h3>생성된 Sitemap XML</h3>
+      <div id="output"></div>
+      <button class="copy-btn" onclick="copySitemap()">📋 복사하기</button>
+      <button class="download-btn" onclick="downloadSitemap()">💾 다운로드</button>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h2>📝 사용 방법</h2>
+    <ol>
+      <li><strong>Sitemap 생성:</strong> 위 버튼을 클릭하여 최신 sitemap을 생성합니다.</li>
+      <li><strong>파일 저장:</strong> 생성된 XML을 복사하거나 다운로드하여 <code>sitemap.xml</code> 파일로 저장합니다.</li>
+      <li><strong>Google Search Console:</strong> <a href="https://search.google.com/search-console" target="_blank">Google Search Console</a>에서 사이트를 등록하고 sitemap URL을 제출합니다.</li>
+      <li><strong>Naver Search Advisor:</strong> <a href="https://searchadvisor.naver.com/" target="_blank">네이버 서치어드바이저</a>에서도 동일하게 등록합니다.</li>
+    </ol>
+  </div>
+
+  <script>
+    const API_BASE = 'https://impactceo.art/wp-json/wp/v2';
+    let generatedXml = '';
+
+    function setStatus(message, type = 'info') {
+      const statusEl = document.getElementById('status');
+      statusEl.className = type;
+      statusEl.textContent = message;
+      statusEl.classList.remove('hidden');
+    }
+
+    function formatDate(dateStr) {
+      const date = new Date(dateStr);
+      return date.toISOString().split('T')[0];
+    }
+
+    async function fetchAllPosts() {
+      let allPosts = [];
+      let page = 1;
+      const perPage = 100;
+      
+      while (true) {
+        try {
+          const response = await fetch(`${API_BASE}/posts?per_page=${perPage}&page=${page}&_fields=id,slug,modified`);
+          
+          if (!response.ok) {
+            if (response.status === 400) {
+              // 더 이상 페이지가 없음
+              break;
+            }
+            throw new Error(`API 오류: ${response.status}`);
+          }
+          
+          const posts = await response.json();
+          
+          if (posts.length === 0) break;
+          
+          allPosts = allPosts.concat(posts);
+          
+          setStatus(`게시물 로딩 중... (${allPosts.length}개)`, 'info');
+          
+          page++;
+          
+          // 안전장치: 최대 50페이지
+          if (page > 50) break;
+          
+        } catch (error) {
+          console.error('게시물 가져오기 오류:', error);
+          break;
+        }
+      }
+      
+      return allPosts;
+    }
+
+    async function generateSitemap() {
+      const btn = document.getElementById('generateBtn');
+      btn.disabled = true;
+      setStatus('게시물을 불러오는 중...', 'info');
+      
+      try {
+        const posts = await fetchAllPosts();
+        
+        if (posts.length === 0) {
+          setStatus('게시물을 찾을 수 없습니다.', 'error');
+          btn.disabled = false;
+          return;
+        }
+        
+        setStatus(`${posts.length}개의 게시물을 찾았습니다. Sitemap 생성 중...`, 'info');
+        
+        // XML 생성
+        let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  
+  <!-- 홈페이지 -->
+  <url>
+    <loc>https://page.gensparksite.com/</loc>
+    <lastmod>${formatDate(new Date())}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- About 페이지 -->
+  <url>
+    <loc>https://page.gensparksite.com/about</loc>
+    <lastmod>${formatDate(new Date())}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Editors 페이지 -->
+  <url>
+    <loc>https://page.gensparksite.com/editors</loc>
+    <lastmod>${formatDate(new Date())}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- 검색 페이지 -->
+  <url>
+    <loc>https://page.gensparksite.com/search</loc>
+    <lastmod>${formatDate(new Date())}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- 카테고리 페이지들 -->
+  <url>
+    <loc>https://page.gensparksite.com/category/tech</loc>
+    <lastmod>${formatDate(new Date())}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://page.gensparksite.com/category/eat</loc>
+    <lastmod>${formatDate(new Date())}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://page.gensparksite.com/category/style</loc>
+    <lastmod>${formatDate(new Date())}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://page.gensparksite.com/category/culture</loc>
+    <lastmod>${formatDate(new Date())}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://page.gensparksite.com/category/life</loc>
+    <lastmod>${formatDate(new Date())}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://page.gensparksite.com/category/editors-pick</loc>
+    <lastmod>${formatDate(new Date())}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- 개별 게시물들 -->
+`;
+        
+        // 각 게시물 추가
+        posts.forEach(post => {
+          xml += `  <url>
+    <loc>https://page.gensparksite.com/post/${post.slug}</loc>
+    <lastmod>${formatDate(post.modified)}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+`;
+        });
+        
+        xml += `</urlset>`;
+        
+        generatedXml = xml;
+        
+        // 출력
+        document.getElementById('output').textContent = xml;
+        document.getElementById('outputContainer').classList.remove('hidden');
+        
+        // 통계
+        const totalUrls = posts.length + 11; // 게시물 + 고정 페이지들
+        const fileSize = (new Blob([xml]).size / 1024).toFixed(2);
+        
+        document.getElementById('totalPosts').textContent = posts.length;
+        document.getElementById('totalUrls').textContent = totalUrls;
+        document.getElementById('fileSize').textContent = fileSize + ' KB';
+        document.getElementById('statsContainer').classList.remove('hidden');
+        
+        setStatus(`✅ Sitemap이 성공적으로 생성되었습니다! (${totalUrls}개 URL, ${fileSize} KB)`, 'success');
+        
+      } catch (error) {
+        console.error('Sitemap 생성 오류:', error);
+        setStatus('❌ Sitemap 생성 중 오류가 발생했습니다: ' + error.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function copySitemap() {
+      const output = document.getElementById('output');
+      const text = output.textContent;
+      
+      navigator.clipboard.writeText(text).then(() => {
+        alert('✅ Sitemap이 클립보드에 복사되었습니다!');
+      }).catch(err => {
+        console.error('복사 실패:', err);
+        alert('❌ 복사에 실패했습니다. 수동으로 선택하여 복사해주세요.');
+      });
+    }
+
+    function downloadSitemap() {
+      const blob = new Blob([generatedXml], { type: 'application/xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sitemap.xml';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
