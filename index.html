@@ -1602,7 +1602,7 @@
     <div class="header-inner wrap">
       <div class="brand">
         <div class="logo" id="logoBtn" onclick="goToHome()">
-          <img src="logo.png" alt="IMPACT logo" style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
+          <img src="/logo.png" alt="IMPACT logo" style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
           <div class="logo-text">
             <div class="main-text">IMPACT</div>
             <small>MAKE A IMPACT</small>
@@ -1620,7 +1620,7 @@
     <div class="header-inner wrap">
       <div class="brand">
         <div class="logo" onclick="goToHome()">
-          <img src="logo.png" alt="IMPACT logo" style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
+          <img src="/logo.png" alt="IMPACT logo" style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
           <div class="logo-text">
             <div class="main-text">IMPACT</div>
             <small>MAKE A IMPACT</small>
@@ -2130,8 +2130,8 @@ function goToHome() {
     document.getElementById('postHeaderBar').classList.remove('show');
     document.getElementById('postToTopBtn').classList.remove('show');
     
-    // 메인 페이지로 URL 변경
-    const newUrl = `${window.location.origin}${window.location.pathname}`;
+    // 메인 페이지로 URL 변경 (항상 루트 경로로)
+    const newUrl = `${window.location.origin}/`;
     history.pushState({page:'home'}, '', newUrl);
     
     // 부드럽게 위로 스크롤
@@ -2159,8 +2159,8 @@ function goToHome() {
   
   document.body.style.overflow = '';
 
-  // URL을 홈으로 변경
-  const newUrl = `${window.location.origin}${window.location.pathname}`;
+  // URL을 홈으로 변경 (항상 루트 경로로)
+  const newUrl = `${window.location.origin}/`;
   history.pushState({page:'home'}, '', newUrl);
 
   // 부드럽게 위로 스크롤 (오버레이가 있었든 없었든 항상 실행)
