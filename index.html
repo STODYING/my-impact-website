@@ -20,6 +20,9 @@
   <meta property="twitter:description" content="Innovation Management Passion Acceleration Creativity Technology" id="twitterDescription">
   <meta property="twitter:image" content="https://page.gensparksite.com/logo.png" id="twitterImage">
   <meta name="naver-site-verification" content="75a4e73cbf2b7f3acb2c71fac1ea821a9c13ae85" />
+  
+  <!-- Canonical URL for SEO -->
+  <link rel="canonical" href="https://page.gensparksite.com/" id="canonicalUrl">
 
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-D0DVTWYNGN"></script>
   <script>
@@ -418,6 +421,15 @@
     justify-content: center;
     font-size: 18px;
   }
+  .icon-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: #111;
+    transition: fill 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  body.dark-mode .icon-btn svg {
+    fill: #e8e8e8;
+  }
   .nav-overlay {
     position: fixed;
     top: 0;
@@ -482,6 +494,15 @@
     border-radius: 50px;
     padding: 8px 16px;
     margin-bottom: 20px;
+  }
+  .nav-search svg {
+    width: 18px;
+    height: 18px;
+    fill: #111;
+    transition: fill 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  body.dark-mode .nav-search svg {
+    fill: #e8e8e8;
   }
   .nav-search input {
     flex: 1;
@@ -1610,7 +1631,11 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn icon-btn" id="topSearchBtn" onclick="openNavlessSearch()">🔍</button>
+        <button class="btn icon-btn" id="topSearchBtn" onclick="openNavlessSearch()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+          </svg>
+        </button>
         <button class="btn icon-btn" onclick="ui.toggleNav()">☰</button>
       </div>
     </div>
@@ -1636,7 +1661,9 @@
     <button class="nav-close" onclick="ui.toggleNav(true)">✕</button>
     <div style="display:flex;flex-direction:column;gap:12px;">
       <div class="nav-search">
-        <span style="font-size:18px">🔍</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+        </svg>
         <input type="search" id="globalNavSearch" placeholder="검색어 입력">
       </div>
       <ul class="nav-list" id="navList"></ul>
@@ -2096,7 +2123,29 @@ function updateMetaTags(data) {
   
   const twitterImage = document.getElementById('twitterImage');
   if(twitterImage) twitterImage.setAttribute('content', metaData.image);
+  
+  // Canonical URL
+  const canonicalUrl = document.getElementById('canonicalUrl');
+  if(canonicalUrl) canonicalUrl.setAttribute('href', metaData.url);
 }
+
+// JSON-LD 구조화된 데이터 업데이트 함수 (SEO 최적화)
+function updateStructuredData(data) {
+  // 기존 JSON-LD 제거
+  const existingScript = document.querySelector('script[type="application/ld+json"]');
+  if(existingScript) {
+    existingScript.remove();
+  }
+  
+  // 새 JSON-LD 추가 (데이터가 있을 때만)
+  if(data) {
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify(data);
+    document.head.appendChild(script);
+  }
+}
+
 function scrollToTop() {
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
@@ -3169,6 +3218,34 @@ async function renderPostOverlay(post) {
     url: `${window.location.origin}/post/${post.slug}`,
     type: 'article'
   });
+  
+  // JSON-LD 구조화된 데이터 추가 (SEO 향상)
+  updateStructuredData({
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    'headline': stripTags(title),
+    'description': excerpt,
+    'image': featuredUrl || `${window.location.origin}/logo.png`,
+    'datePublished': post.date,
+    'dateModified': post.modified || post.date,
+    'author': {
+      '@type': 'Person',
+      'name': authorName,
+      'url': `${window.location.origin}/editor/${authorData.id}`
+    },
+    'publisher': {
+      '@type': 'Organization',
+      'name': 'IMPACT',
+      'logo': {
+        '@type': 'ImageObject',
+        'url': `${window.location.origin}/logo.png`
+      }
+    },
+    'mainEntityOfPage': {
+      '@type': 'WebPage',
+      '@id': `${window.location.origin}/post/${post.slug}`
+    }
+  });
   article.innerHTML = `
     <div class="post-hero-section">
       <div class="post-header">
@@ -3374,6 +3451,7 @@ const router = {
     
     // 메타태그 복원
     updateMetaTags({});
+    updateStructuredData(null);
     
     // 수정됨: 메인 홈이 로드되지 않았다면 즉시 로드 및 로딩 표시
     const container = document.getElementById('rowsContainer');
@@ -3417,13 +3495,17 @@ const router = {
     }
   },
   closeEditors: async () => {
-    document.getElementById('editorsOverlay').classList.remove('active');
+    const editorsOverlay = document.getElementById('editorsOverlay');
+    editorsOverlay.classList.remove('active');
+    // 에디터 오버레이 스크롤 위치 초기화
+    editorsOverlay.scrollTop = 0;
     document.body.style.overflow = '';
     const newUrl = `${window.location.origin}/`;
     history.pushState({page:'home'}, '', newUrl);
     
     // 메타태그 복원
     updateMetaTags({});
+    updateStructuredData(null);
     
     // 수정됨: 메인 홈이 로드되지 않았다면 즉시 로드 및 로딩 표시
     const container = document.getElementById('rowsContainer');
@@ -3465,13 +3547,17 @@ const router = {
     }
   },
   closeAbout: async () => {
-    document.getElementById('aboutPage').classList.remove('active');
+    const aboutPage = document.getElementById('aboutPage');
+    aboutPage.classList.remove('active');
+    // 어바웃 페이지 스크롤 위치 초기화
+    aboutPage.scrollTop = 0;
     document.body.style.overflow = '';
     const newUrl = `${window.location.origin}/`;
     history.pushState({page:'home'}, '', newUrl);
     
     // 메타태그 복원
     updateMetaTags({});
+    updateStructuredData(null);
     
     // 수정됨: 메인 홈이 로드되지 않았다면 즉시 로드 및 로딩 표시
     const container = document.getElementById('rowsContainer');
