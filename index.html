@@ -1927,6 +1927,7 @@ const state = {
 let __loadingTimer = null;
 let __loadingDelayTimer = null;
 let __loadingStartTime = null;
+let __loadingShown = false;
 
 function openLoading(label = '불러오는 중...', delay = 300) {
   const el = document.getElementById('pageTransition');
@@ -1938,11 +1939,16 @@ function openLoading(label = '불러오는 중...', delay = 300) {
   
   // 시작 시간 기록
   __loadingStartTime = Date.now();
+  __loadingShown = false;
   
   // delay 밀리초 후에만 로딩 표시 (기본 300ms)
   __loadingDelayTimer = setTimeout(() => {
+    // 로딩이 이미 닫혔으면 표시하지 않음
+    if (__loadingStartTime === null) return;
+    
     el.textContent = label;
     el.classList.add('active');
+    __loadingShown = true;
     
     // 안전장치: 표시된 후 3초 뒤 강제 해제
     __loadingTimer = setTimeout(() => closeLoading(), 3000);
@@ -1953,12 +1959,27 @@ function closeLoading() {
   const el = document.getElementById('pageTransition');
   if (!el) return;
   
-  // 지연 타이머가 아직 실행 안됐으면 취소
+  // 지연 타이머가 아직 실행 안됐으면 취소 (로딩을 아예 표시하지 않음)
   clearTimeout(__loadingDelayTimer);
   clearTimeout(__loadingTimer);
   
-  // 로딩이 실제로 표시됐으면 숨김
-  el.classList.remove('active');
+  // 로딩이 실제로 표시됐으면 최소 표시 시간(500ms) 보장 후 숨김
+  if (__loadingShown) {
+    const elapsed = Date.now() - (__loadingStartTime || 0);
+    const minDisplayTime = 500; // 최소 500ms 표시
+    
+    if (elapsed < minDisplayTime) {
+      // 최소 시간이 안됐으면 남은 시간만큼 대기 후 숨김
+      setTimeout(() => {
+        el.classList.remove('active');
+        __loadingShown = false;
+      }, minDisplayTime - elapsed);
+    } else {
+      // 최소 시간이 지났으면 즉시 숨김
+      el.classList.remove('active');
+      __loadingShown = false;
+    }
+  }
   
   __loadingDelayTimer = null;
   __loadingTimer = null;
@@ -3073,10 +3094,16 @@ async function openPostOverlayById(id, updateURL = true) {
   if(!id || state.isProcessing) return;
   state.isProcessing = true;
 
-  // [IMPACT-LOADING] 출발 즉시 로딩 오버레이 표시
-  openLoading('게시물을 불러오는 중...');
-
   state.currentPostId = id;
+  
+  // 캐시 확인: 캐시에 있으면 로딩 표시 안함
+  const cached = state.postsCache[id];
+  const isCached = cached && cached.content && cached.content.rendered;
+  
+  // [IMPACT-LOADING] 캐시되지 않은 경우에만 로딩 오버레이 표시
+  if (!isCached) {
+    openLoading('게시물을 불러오는 중...');
+  }
 
   if(updateURL) {
     const currentUrl = window.location.href;
@@ -3108,7 +3135,6 @@ async function openPostOverlayById(id, updateURL = true) {
 
     // 게시물 정보를 먼저 가져와서 slug 사용
     let postSlug = id;
-    const cached = state.postsCache[id];
     if(cached && cached.slug) {
       postSlug = cached.slug;
     }
@@ -3126,16 +3152,15 @@ async function openPostOverlayById(id, updateURL = true) {
   // 수정됨: 오버레이 열기 전에 먼저 스크롤을 최상단으로 리셋
   overlay.scrollTop = 0;
 
-  const cached = state.postsCache[id];
-  if(cached && cached.content && cached.content.rendered) {
+  if(isCached) {
     await renderPostOverlay(cached);
-    // [IMPACT-LOADING] 렌더 완료 후 스크롤 리셋 및 로딩 해제
+    // [IMPACT-LOADING] 캐시된 게시물은 로딩 표시 없이 즉시 렌더
     // 수정됨: 캐시된 게시물도 항상 최상단부터 표시
     const postOverlay = document.getElementById('postOverlay');
     postOverlay.scrollTop = 0;
     resetScrollTop('post');
     await nextFrame();
-    closeLoading();
+    // 캐시된 경우 closeLoading 호출하지 않음 (애초에 표시 안했으므로)
     state.isProcessing = false;
     return;
   }
