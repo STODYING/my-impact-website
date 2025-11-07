@@ -1927,9 +1927,8 @@ const state = {
 let __loadingTimer = null;
 let __loadingDelayTimer = null;
 let __loadingStartTime = null;
-let __loadingClosed = false;
 
-function openLoading(label = '불러오는 중...', delay = 300) {
+function openLoading(label = '불러오는 중...', delay = 5000) {
   const el = document.getElementById('pageTransition');
   if (!el) return;
   
@@ -1937,30 +1936,22 @@ function openLoading(label = '불러오는 중...', delay = 300) {
   clearTimeout(__loadingDelayTimer);
   clearTimeout(__loadingTimer);
   
-  // 플래그 리셋
-  __loadingClosed = false;
   // 시작 시간 기록
   __loadingStartTime = Date.now();
   
-  // delay 밀리초 후에만 로딩 표시 (기본 300ms)
+  // delay 밀리초 후에만 로딩 표시 (기본 5000ms = 5초)
   __loadingDelayTimer = setTimeout(() => {
-    // closeLoading이 이미 호출되었으면 로딩 UI를 표시하지 않음
-    if (!__loadingClosed) {
-      el.textContent = label;
-      el.classList.add('active');
-      
-      // 안전장치: 표시된 후 3초 뒤 강제 해제
-      __loadingTimer = setTimeout(() => closeLoading(), 3000);
-    }
+    el.textContent = label;
+    el.classList.add('active');
+    
+    // 안전장치: 표시된 후 10초 뒤 강제 해제
+    __loadingTimer = setTimeout(() => closeLoading(), 10000);
   }, delay);
 }
 
 function closeLoading() {
   const el = document.getElementById('pageTransition');
   if (!el) return;
-  
-  // 플래그 설정: 이미 닫혔음을 표시
-  __loadingClosed = true;
   
   // 지연 타이머가 아직 실행 안됐으면 취소
   clearTimeout(__loadingDelayTimer);
@@ -2377,8 +2368,8 @@ function createCardNode(post) {
     e.stopPropagation();
 
     if(state.isProcessing) return;
-    // [IMPACT-LOADING] 클릭 즉시 로딩 표시
-    openLoading('게시물을 불러오는 중...', 100); // delay 짧게
+    // [IMPACT-LOADING] 로딩 표시 (5초 이상 걸릴 때만)
+    openLoading('게시물을 불러오는 중...');
     clearTimeout(clickTimeout);
     clickTimeout = setTimeout(() => {
       openPostOverlayById(post.id);
