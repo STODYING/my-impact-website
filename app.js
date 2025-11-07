@@ -1,5 +1,3 @@
-// IMPACT Website - Main JavaScript
-// ============================================
 const WP_SITE = "impactceo0.wordpress.com";
 const HOME_PER_PAGE = 20;
 const CATEGORIES = {
@@ -2268,4 +2266,3 @@ document.addEventListener('keydown', (e) => {
     }
   }
 });
-
