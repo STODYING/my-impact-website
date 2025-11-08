@@ -4032,9 +4032,8 @@ const router = {
           }
         }, 100);
       } else if(prev.page === 'search') {
-        // 검색 페이지로 돌아가기 - History를 사용하지 않고 직접 처리
+        // 검색 페이지로 돌아가기
         const newUrl = `${window.location.origin}/search`;
-        // replaceState 대신 pushState를 사용하지 않음 (브라우저가 이미 처리)
         window.history.replaceState({page: 'search', searchTerm: prev.searchTerm}, '', newUrl);
         
         // 검색 오버레이 다시 활성화
@@ -4042,17 +4041,24 @@ const router = {
         searchOverlay.classList.add('active');
         document.body.style.overflow = 'hidden';
         
-        // 검색어 복원
+        // 검색어와 스크롤 위치 복원
         if(prev.searchTerm) {
           const searchInput = document.getElementById('searchInput');
           if(searchInput) {
             searchInput.value = prev.searchTerm;
-            // 검색 결과가 이미 있는지 확인
-            const searchResults = document.getElementById('searchResults');
-            if(!searchResults.children.length) {
-              performSearch(prev.searchTerm, 'fullSearch');
-            }
           }
+        }
+        
+        // 세션 스토리지에서 스크롤 위치 복원
+        try {
+          const scrollPos = sessionStorage.getItem('searchScrollPosition');
+          if(scrollPos) {
+            setTimeout(() => {
+              searchOverlay.scrollTop = parseInt(scrollPos);
+            }, 100);
+          }
+        } catch(e) {
+          console.error('sessionStorage error:', e);
         }
       } else if(prev.page === 'about') {
         const newUrl = `${window.location.origin}${window.location.pathname}?page=about`;
@@ -4226,31 +4232,10 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
     performSearch(query, 'fullSearch');
   }, 500);
 });
-async function performSearch(query, mode = 'overlay') {
-  // 빈 검색어 처리
-  if(!query || query.trim() === '') {
-    document.getElementById('searchResults').innerHTML = '';
-    document.getElementById('searchLoading').textContent = '';
-    try {
-      sessionStorage.removeItem('lastSearchQuery');
-    } catch(e) {
-      console.error('sessionStorage access failed:', e);
-    }
-    return;
-  }
-
-  const resultsEl = document.getElementById('searchResults');
-  const loadingEl = document.getElementById('searchLoading');
-  
-  // 검색어를 세션 스토리지에 저장
-  try {
-    sessionStorage.setItem('lastSearchQuery', query);
-  } catch(e) {
-    console.error('sessionStorage access failed:', e);
-  }
-
+async function performSearch(query, mode) {
   if(mode === 'fullSearch') {
-    // API 검색 모드 (검색 페이지에서 사용)
+    const resultsEl = document.getElementById('searchResults');
+    const loadingEl = document.getElementById('searchLoading');
     resultsEl.innerHTML = '';
     loadingEl.textContent = '검색 중...';
 
@@ -4265,225 +4250,114 @@ async function performSearch(query, mode = 'overlay') {
           index === self.findIndex(p => p.id === post.id)
         );
 
-        // 검색 결과 개수 표시 - About 페이지처럼 화려한 스타일
+        // 검색 결과 개수 표시 - 심플한 스타일
         const isDarkMode = document.body.classList.contains('dark-mode');
         loadingEl.innerHTML = `
-          <div style="text-align:center;margin:48px 0;">
-            <div style="display:inline-block;position:relative;">
-              <span style="font-size:42px;font-weight:900;color:${isDarkMode ? '#fff' : '#000'};letter-spacing:-0.5px;">
-                <span style="
-                  display:inline-block;
-                  background:linear-gradient(135deg,#ff6b35,#ff8c42);
-                  color:#fff;
-                  padding:8px 20px;
-                  border-radius:12px;
-                  margin-right:8px;
-                  box-shadow:0 4px 16px rgba(255,107,53,0.3);
-                  transform:translateY(-2px);
-                  animation:pulse 2s infinite;
-                ">${uniquePosts.length}</span>
-                <span style="display:inline-block;transform:translateY(2px);">개의 검색 결과</span>
-              </span>
-              <div style="
-                position:absolute;
-                bottom:-8px;
-                left:50%;
-                transform:translateX(-50%);
-                width:120px;
-                height:3px;
-                background:linear-gradient(90deg,transparent,#ff6b35,transparent);
-                border-radius:2px;
-              "></div>
-            </div>
+          <div style="text-align:center;margin:24px 0;">
+            <span style="font-size:18px;color:${isDarkMode ? '#e8e8e8' : '#666'};">
+              <span style="color:#ff6b35;font-weight:700;">${uniquePosts.length}</span>개의 검색 결과가 나왔습니다
+            </span>
           </div>
-          <style>
-            @keyframes pulse {
-              0%, 100% { transform: translateY(-2px) scale(1); }
-              50% { transform: translateY(-2px) scale(1.05); }
-            }
-          </style>
         `;
         
-        renderSearchResults(uniquePosts, resultsEl);
+        // 페이지네이션 설정
+        const itemsPerPage = 12;
+        const totalPages = Math.ceil(uniquePosts.length / itemsPerPage);
+        let currentPage = 1;
         
-        // 검색 결과를 캐시에 저장
-        uniquePosts.forEach(p => {
-          state.postsCache[p.id] = p;
-        });
+        // 검색 결과 렌더링 함수
+        const renderPage = (page) => {
+          resultsEl.innerHTML = '';
+          const start = (page - 1) * itemsPerPage;
+          const end = Math.min(start + itemsPerPage, uniquePosts.length);
+          
+          for(let i = start; i < end; i++) {
+            state.postsCache[uniquePosts[i].id] = uniquePosts[i];
+            const card = createCardNode(uniquePosts[i]);
+            resultsEl.appendChild(card);
+          }
+          
+          // 페이지네이션 버튼 추가 (홈과 동일한 스타일)
+          if(totalPages > 1) {
+            const paginationDiv = document.createElement('div');
+            paginationDiv.className = 'pagination';
+            
+            // 이전 버튼
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = '«';
+            prevBtn.disabled = page === 1;
+            if(page > 1) {
+              prevBtn.onclick = () => {
+                currentPage = page - 1;
+                renderPage(currentPage);
+                document.getElementById('searchOverlay').scrollTop = 0;
+              };
+            }
+            paginationDiv.appendChild(prevBtn);
+            
+            // 모바일 감지
+            const isMobile = window.innerWidth <= 640;
+            const maxVisible = isMobile ? 5 : 7;
+            
+            // 페이지 번호 계산 (calculatePageNumbers 함수 사용)
+            const pages = calculatePageNumbers(page, totalPages, maxVisible);
+            
+            pages.forEach((pageNum) => {
+              if(pageNum === '...') {
+                const dots = document.createElement('span');
+                dots.textContent = '...';
+                paginationDiv.appendChild(dots);
+              } else {
+                const btn = document.createElement('button');
+                btn.textContent = pageNum;
+                if(pageNum === page) {
+                  btn.classList.add('active');
+                  btn.disabled = true;
+                } else {
+                  btn.onclick = () => {
+                    currentPage = pageNum;
+                    renderPage(currentPage);
+                    document.getElementById('searchOverlay').scrollTop = 0;
+                  };
+                }
+                paginationDiv.appendChild(btn);
+              }
+            });
+            
+            // 다음 버튼
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = '»';
+            nextBtn.disabled = page === totalPages;
+            if(page < totalPages) {
+              nextBtn.onclick = () => {
+                currentPage = page + 1;
+                renderPage(currentPage);
+                document.getElementById('searchOverlay').scrollTop = 0;
+              };
+            }
+            paginationDiv.appendChild(nextBtn);
+            
+            resultsEl.appendChild(paginationDiv);
+          }
+        };
+        
+        // 첫 페이지 렌더링
+        renderPage(currentPage);
       } else {
-        const textColor = isDarkMode ? '#fff' : '#000';
+        const textColor = document.body.classList.contains('dark-mode') ? '#fff' : '#000';
         loadingEl.innerHTML = `<div style="text-align:center;margin:32px 0;"><span style="font-size:18px;font-weight:600;color:${textColor};">검색 결과가 없습니다.</span></div>`;
       }
       
+      // [IMPACT-LOADING] 검색 완료 후 로딩 해제
       await nextFrame();
       closeLoading();
     } catch(e) {
       console.error(e);
       loadingEl.innerHTML = `<span style="color:#e74c3c">검색 실패</span>`;
+      // [IMPACT-LOADING] 에러 시에도 로딩 해제
       closeLoading();
     }
-  } else {
-    // 캐시 검색 모드 (실시간 검색에서 사용)
-    loadingEl.textContent = '검색 중...';
-    
-    const searchTerm = query.toLowerCase().trim();
-    const results = [];
-    const seen = new Set();
-    
-    // 캐시된 게시물에서 검색
-    Object.values(state.postsCache).forEach(post => {
-      if(seen.has(post.id)) return;
-      
-      const title = (post.title?.rendered || '').toLowerCase();
-      const content = stripTags(post.content?.rendered || '').toLowerCase();
-      const excerpt = stripTags(post.excerpt?.rendered || '').toLowerCase();
-      const authorName = (post._embedded?.author?.[0]?.name || '').toLowerCase();
-      
-      if (title.includes(searchTerm) || 
-          content.includes(searchTerm) || 
-          excerpt.includes(searchTerm) || 
-          authorName.includes(searchTerm)) {
-        seen.add(post.id);
-        results.push(post);
-      }
-    });
-    
-    resultsEl.innerHTML = '';
-    
-    if(results.length === 0) {
-      const textColor = document.body.classList.contains('dark-mode') ? '#fff' : '#000';
-      loadingEl.innerHTML = `<div style="text-align:center;margin:32px 0;"><span style="font-size:18px;font-weight:600;color:${textColor};">"${query}"에 대한 검색 결과가 없습니다.</span></div>`;
-    } else {
-      // 검색 결과 개수 표시
-      const isDarkMode = document.body.classList.contains('dark-mode');
-      const textColor = isDarkMode ? '#fff' : '#000';
-      loadingEl.innerHTML = `<div style="text-align:center;margin:32px 0;"><span style="font-size:28px;font-weight:800;color:${textColor};"><span style="background:#ff6b35;color:#fff;padding:4px 12px;border-radius:6px;margin-right:4px;">${results.length}</span>개의 검색 결과</span></div>`;
-      
-      renderSearchResults(results, resultsEl);
-    }
   }
-}
-
-// 검색 결과 렌더링 함수 (페이지네이션 포함)
-function renderSearchResults(posts, container) {
-  const itemsPerPage = 12;
-  const totalPages = Math.ceil(posts.length / itemsPerPage);
-  let currentPage = 1;
-  
-  const renderPage = (page) => {
-    container.innerHTML = '';
-    const start = (page - 1) * itemsPerPage;
-    const end = Math.min(start + itemsPerPage, posts.length);
-    
-    for(let i = start; i < end; i++) {
-      const card = createCardNode(posts[i]);
-      container.appendChild(card);
-    }
-    
-    // 페이지네이션 버튼
-    if(totalPages > 1) {
-      const paginationDiv = document.createElement('div');
-      paginationDiv.style.cssText = 'display:flex;justify-content:center;align-items:center;gap:8px;margin-top:40px;margin-bottom:20px;flex-wrap:wrap';
-      
-      // 이전 버튼
-      if(page > 1) {
-        const prevBtn = document.createElement('button');
-        prevBtn.textContent = '← 이전';
-        prevBtn.className = 'btn';
-        prevBtn.style.cssText = 'padding:10px 20px;cursor:pointer';
-        prevBtn.onclick = () => {
-          currentPage = page - 1;
-          renderPage(currentPage);
-          document.getElementById('searchOverlay').scrollTop = 0;
-        };
-        paginationDiv.appendChild(prevBtn);
-      }
-      
-      // 페이지 번호
-      const isMobile = window.innerWidth <= 680;
-      const maxButtons = isMobile ? 5 : 7;
-      
-      let startPage = Math.max(1, page - Math.floor(maxButtons / 2));
-      let endPage = Math.min(totalPages, startPage + maxButtons - 1);
-      
-      if(endPage - startPage < maxButtons - 1) {
-        startPage = Math.max(1, endPage - maxButtons + 1);
-      }
-      
-      if(startPage > 1) {
-        const firstBtn = document.createElement('button');
-        firstBtn.textContent = '1';
-        firstBtn.className = 'btn';
-        firstBtn.style.cssText = 'padding:10px 16px;cursor:pointer;min-width:40px';
-        firstBtn.onclick = () => {
-          currentPage = 1;
-          renderPage(currentPage);
-          document.getElementById('searchOverlay').scrollTop = 0;
-        };
-        paginationDiv.appendChild(firstBtn);
-        
-        if(startPage > 2) {
-          const dots = document.createElement('span');
-          dots.textContent = '...';
-          dots.style.cssText = 'padding:0 8px;color:#666';
-          paginationDiv.appendChild(dots);
-        }
-      }
-      
-      for(let i = startPage; i <= endPage; i++) {
-        const pageBtn = document.createElement('button');
-        pageBtn.textContent = i;
-        pageBtn.className = 'btn';
-        pageBtn.style.cssText = `padding:10px 16px;cursor:pointer;min-width:40px;${i === page ? 'background:#ff6b35;color:#fff;border-color:#ff6b35' : ''}`;
-        if(i !== page) {
-          pageBtn.onclick = () => {
-            currentPage = i;
-            renderPage(currentPage);
-            document.getElementById('searchOverlay').scrollTop = 0;
-          };
-        }
-        paginationDiv.appendChild(pageBtn);
-      }
-      
-      if(endPage < totalPages) {
-        if(endPage < totalPages - 1) {
-          const dots = document.createElement('span');
-          dots.textContent = '...';
-          dots.style.cssText = 'padding:0 8px;color:#666';
-          paginationDiv.appendChild(dots);
-        }
-        
-        const lastBtn = document.createElement('button');
-        lastBtn.textContent = totalPages;
-        lastBtn.className = 'btn';
-        lastBtn.style.cssText = 'padding:10px 16px;cursor:pointer;min-width:40px';
-        lastBtn.onclick = () => {
-          currentPage = totalPages;
-          renderPage(currentPage);
-          document.getElementById('searchOverlay').scrollTop = 0;
-        };
-        paginationDiv.appendChild(lastBtn);
-      }
-      
-      // 다음 버튼
-      if(page < totalPages) {
-        const nextBtn = document.createElement('button');
-        nextBtn.textContent = '다음 →';
-        nextBtn.className = 'btn';
-        nextBtn.style.cssText = 'padding:10px 20px;cursor:pointer';
-        nextBtn.onclick = () => {
-          currentPage = page + 1;
-          renderPage(currentPage);
-          document.getElementById('searchOverlay').scrollTop = 0;
-        };
-        paginationDiv.appendChild(nextBtn);
-      }
-      
-      container.appendChild(paginationDiv);
-    }
-  };
-  
-  renderPage(currentPage);
 }
 async function openSearchWithQuery(query) {
   // [IMPACT-LOADING] 즉시 로딩 표시
@@ -4515,7 +4389,7 @@ async function checkURLAndLoadPost() {
     
     // 숫자면 ID로 처리
     if(!isNaN(parseInt(postSlugOrId))) {
-      await openPostOverlayById(parseInt(postSlugOrId), false);
+      openPostOverlayById(parseInt(postSlugOrId), false);
       return true;
     }
     
@@ -4527,7 +4401,7 @@ async function checkURLAndLoadPost() {
         if(posts && posts.length > 0) {
           const post = posts[0];
           state.postsCache[post.id] = post;
-          await openPostOverlayById(post.id, false);
+          openPostOverlayById(post.id, false);
           return true;
         }
       }
@@ -4571,7 +4445,7 @@ async function checkURLAndLoadPost() {
   if(postParam) {
     const postId = parseInt(postParam);
     if(!isNaN(postId)) {
-      await openPostOverlayById(postId, false);
+      openPostOverlayById(postId, false);
       return true;
     }
   }
@@ -4898,6 +4772,156 @@ document.addEventListener('keydown', (e) => {
 });
 
 // 검색 기능 개선: 중복 제거 및 키워드 매칭 정확도 향상
+function performSearch(query, source = 'overlay') {
+  if(!query || query.trim() === '') {
+    document.getElementById('searchResults').innerHTML = '';
+    document.getElementById('searchLoading').textContent = '';
+    // 빈 검색어는 세션 스토리지에서 제거
+    try {
+      sessionStorage.removeItem('lastSearchQuery');
+    } catch(e) {
+      console.error('sessionStorage access failed:', e);
+    }
+    return;
+  }
+  
+  const loadingEl = document.getElementById('searchLoading');
+  loadingEl.textContent = '검색 중...';
+  
+  const searchTerm = query.toLowerCase().trim();
+  
+  // 검색어를 세션 스토리지에 저장
+  try {
+    sessionStorage.setItem('lastSearchQuery', query);
+  } catch(e) {
+    console.error('sessionStorage access failed:', e);
+  }
+  
+  const results = [];
+  const seen = new Set(); // 중복 방지
+  
+  // 모든 캐시된 게시물에서 검색
+  Object.values(state.postsCache).forEach(post => {
+    // 중복 체크
+    if(seen.has(post.id)) return;
+    
+    const title = (post.title?.rendered || '').toLowerCase();
+    const content = stripTags(post.content?.rendered || '').toLowerCase();
+    const excerpt = stripTags(post.excerpt?.rendered || '').toLowerCase();
+    const authorName = (post._embedded?.author?.[0]?.name || '').toLowerCase();
+    
+    // 키워드가 제목, 내용, 발췌문, 에디터 이름에 포함되는 경우만
+    if (title.includes(searchTerm) || 
+        content.includes(searchTerm) || 
+        excerpt.includes(searchTerm) || 
+        authorName.includes(searchTerm)) {
+      seen.add(post.id);
+      results.push(post);
+    }
+  });
+  
+  // 검색 결과 표시
+  const resultsContainer = document.getElementById('searchResults');
+  resultsContainer.innerHTML = '';
+  
+  if(results.length === 0) {
+    const textColor = document.body.classList.contains('dark-mode') ? '#fff' : '#000';
+    loadingEl.innerHTML = `<div style="text-align:center;margin:32px 0;"><span style="font-size:18px;font-weight:600;color:${textColor};">"${query}"에 대한 검색 결과가 없습니다.</span></div>`;
+  } else {
+    // 페이지네이션 설정
+    const itemsPerPage = 12;
+    const totalPages = Math.ceil(results.length / itemsPerPage);
+    let currentPage = 1;
+    
+    // 검색 결과 개수 표시 - 심플한 스타일
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    loadingEl.innerHTML = `
+      <div style="text-align:center;margin:24px 0;">
+        <span style="font-size:18px;color:${isDarkMode ? '#e8e8e8' : '#666'};">
+          <span style="color:#ff6b35;font-weight:700;">${results.length}</span>개의 검색 결과가 나왔습니다
+        </span>
+      </div>
+    `;
+    
+    // 검색 결과 렌더링 함수
+    const renderPage = (page) => {
+      resultsContainer.innerHTML = '';
+      const start = (page - 1) * itemsPerPage;
+      const end = Math.min(start + itemsPerPage, results.length);
+      
+      for(let i = start; i < end; i++) {
+        const card = createCardNode(results[i]);
+        resultsContainer.appendChild(card);
+      }
+      
+      // 페이지네이션 버튼 추가 (홈과 동일한 스타일)
+      if(totalPages > 1) {
+        const paginationDiv = document.createElement('div');
+        paginationDiv.className = 'pagination';
+        
+        // 이전 버튼
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = '«';
+        prevBtn.disabled = page === 1;
+        if(page > 1) {
+          prevBtn.onclick = () => {
+            currentPage = page - 1;
+            renderPage(currentPage);
+            document.getElementById('searchOverlay').scrollTop = 0;
+          };
+        }
+        paginationDiv.appendChild(prevBtn);
+        
+        // 모바일 감지
+        const isMobile = window.innerWidth <= 640;
+        const maxVisible = isMobile ? 5 : 7;
+        
+        // 페이지 번호 계산
+        const pages = calculatePageNumbers(page, totalPages, maxVisible);
+        
+        pages.forEach((pageNum) => {
+          if(pageNum === '...') {
+            const dots = document.createElement('span');
+            dots.textContent = '...';
+            paginationDiv.appendChild(dots);
+          } else {
+            const btn = document.createElement('button');
+            btn.textContent = pageNum;
+            if(pageNum === page) {
+              btn.classList.add('active');
+              btn.disabled = true;
+            } else {
+              btn.onclick = () => {
+                currentPage = pageNum;
+                renderPage(currentPage);
+                document.getElementById('searchOverlay').scrollTop = 0;
+              };
+            }
+            paginationDiv.appendChild(btn);
+          }
+        });
+        
+        // 다음 버튼
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = '»';
+        nextBtn.disabled = page === totalPages;
+        if(page < totalPages) {
+          nextBtn.onclick = () => {
+            currentPage = page + 1;
+            renderPage(currentPage);
+            document.getElementById('searchOverlay').scrollTop = 0;
+          };
+        }
+        paginationDiv.appendChild(nextBtn);
+        
+        resultsContainer.appendChild(paginationDiv);
+      }
+    };
+    
+    // 첫 페이지 렌더링
+    renderPage(currentPage);
+  }
+}
 
 // 공유 기능 함수들
 function shareToFacebook() {
