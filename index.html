@@ -3767,7 +3767,7 @@ const router = {
           }
         }, 100);
       } else if(prev.page === 'search') {
-        const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
+        const newUrl = `${window.location.origin}/search`;
         history.pushState({page: 'search'}, '', newUrl);
         openNavlessSearch(false);
         if(prev.searchTerm) {
@@ -3902,7 +3902,7 @@ async function openNavlessSearch(updateURL = true) {
   
   document.getElementById('searchInput').focus();
   if(updateURL) {
-    const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
+    const newUrl = `${window.location.origin}/search`;
     history.pushState({page:'search'}, '', newUrl);
   }
 }
@@ -3911,6 +3911,14 @@ async function closeSearch() {
   document.body.style.overflow = '';
   document.getElementById('searchResults').innerHTML = '';
   document.getElementById('searchInput').value = '';
+  
+  // 세션 스토리지 정리
+  try {
+    sessionStorage.removeItem('lastSearchQuery');
+  } catch(e) {
+    console.error('sessionStorage access failed:', e);
+  }
+  
   const newUrl = `${window.location.origin}${window.location.pathname}`;
   history.pushState({page:'home'}, '', newUrl);
   
@@ -4187,14 +4195,10 @@ window.addEventListener('popstate', async (e) => {
   if(editorParam) {
     const editorId = parseInt(editorParam);
     if(!isNaN(editorId)) {
-      // ⭐ 수정: 게시물 오버레이를 명시적으로 닫기
-      const postOverlay = document.getElementById('postOverlay');
-      postOverlay.classList.remove('active');
-      
-      document.querySelectorAll('.search-overlay, .about-page, .category-overlay').forEach(el => {
+      document.querySelectorAll('.post-overlay, .search-overlay, .about-page, .category-overlay').forEach(el => {
         el.classList.remove('active');
       });
-      document.body.style.overflow = 'hidden'; // ⭐ 수정: 에디터 오버레이를 위해 overflow hidden 유지
+      document.body.style.overflow = '';
       document.getElementById('progressBar').classList.remove('active');
       document.getElementById('postHeaderBar').classList.remove('show');
       document.getElementById('postToTopBtn').classList.remove('show');
@@ -4217,29 +4221,26 @@ window.addEventListener('popstate', async (e) => {
   }
 
   if(pageParam === 'editors') {
-    // ⭐ 수정: 게시물 오버레이를 명시적으로 닫기
-    const postOverlay = document.getElementById('postOverlay');
-    postOverlay.classList.remove('active');
-    
-    document.querySelectorAll('.search-overlay, .about-page, .category-overlay').forEach(el => {
+    // 모든 오버레이 닫기
+    document.querySelectorAll('.post-overlay, .search-overlay, .about-page, .category-overlay').forEach(el => {
       el.classList.remove('active');
     });
-    document.body.style.overflow = 'hidden'; // ⭐ 수정: 에디터 오버레이를 위해 overflow hidden 유지
+    document.body.style.overflow = '';
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
     document.getElementById('postToTopBtn').classList.remove('show');
 
-    router.openEditors(false);
+    // 에디터 오버레이 강제 활성화
+    const editorsOverlay = document.getElementById('editorsOverlay');
+    if(!editorsOverlay.classList.contains('active')) {
+      router.openEditors(false);
+    }
     return;
   } else if(pageParam === 'about') {
-    // ⭐ 수정: 게시물 오버레이를 명시적으로 닫기
-    const postOverlay = document.getElementById('postOverlay');
-    postOverlay.classList.remove('active');
-    
-    document.querySelectorAll('.search-overlay, .editors-overlay, .category-overlay').forEach(el => {
+    document.querySelectorAll('.post-overlay, .search-overlay, .editors-overlay, .category-overlay').forEach(el => {
       el.classList.remove('active');
     });
-    document.body.style.overflow = 'hidden'; // ⭐ 수정: about 오버레이를 위해 overflow hidden 유지
+    document.body.style.overflow = '';
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
     document.getElementById('postToTopBtn').classList.remove('show');
@@ -4247,26 +4248,36 @@ window.addEventListener('popstate', async (e) => {
     router.openAbout(false);
     return;
   } else if(pageParam === 'search') {
-    // ⭐ 수정: 게시물 오버레이를 명시적으로 닫기
-    const postOverlay = document.getElementById('postOverlay');
-    postOverlay.classList.remove('active');
-    
-    document.querySelectorAll('.about-page, .editors-overlay, .category-overlay').forEach(el => {
+    // 모든 오버레이 닫기
+    document.querySelectorAll('.post-overlay, .about-page, .editors-overlay, .category-overlay').forEach(el => {
       el.classList.remove('active');
     });
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
     document.getElementById('postToTopBtn').classList.remove('show');
 
-    // 검색 오버레이 복원
+    // 검색 오버레이 강제 활성화
     const searchOverlay = document.getElementById('searchOverlay');
-    if(!searchOverlay.classList.contains('active')) {
-      openNavlessSearch(false);
-    } else {
-      // 이미 활성화된 경우 검색 결과 유지 및 body overflow hidden 설정
-      searchOverlay.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
+    searchOverlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // 세션 스토리지에서 검색어 복원
+    setTimeout(() => {
+      const searchInput = document.getElementById('searchInput');
+      if(searchInput) {
+        try {
+          const lastQuery = sessionStorage.getItem('lastSearchQuery');
+          if(lastQuery) {
+            searchInput.value = lastQuery;
+            performSearch(lastQuery, 'fullSearch');
+          }
+        } catch(e) {
+          console.error('sessionStorage access failed:', e);
+        }
+        searchInput.focus();
+      }
+    }, 100);
+    
     return;
   }
 
@@ -4364,6 +4375,12 @@ function performSearch(query, source = 'overlay') {
   if(!query || query.trim() === '') {
     document.getElementById('searchResults').innerHTML = '';
     document.getElementById('searchLoading').textContent = '';
+    // 빈 검색어는 세션 스토리지에서 제거
+    try {
+      sessionStorage.removeItem('lastSearchQuery');
+    } catch(e) {
+      console.error('sessionStorage access failed:', e);
+    }
     return;
   }
   
@@ -4371,6 +4388,14 @@ function performSearch(query, source = 'overlay') {
   loadingEl.textContent = '검색 중...';
   
   const searchTerm = query.toLowerCase().trim();
+  
+  // 검색어를 세션 스토리지에 저장
+  try {
+    sessionStorage.setItem('lastSearchQuery', query);
+  } catch(e) {
+    console.error('sessionStorage access failed:', e);
+  }
+  
   const results = [];
   const seen = new Set(); // 중복 방지
   
