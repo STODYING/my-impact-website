@@ -1740,7 +1740,7 @@
           <input type="search" id="searchInput" placeholder="검색어를 입력하세요" autofocus>
           <button class="close-btn" onclick="closeSearch()">✕</button>
         </div>
-        <div id="searchLoading" style="text-align:left;color:#666;padding:12px 0;font-size:14px;min-height:24px"></div>
+        <div id="searchLoading" style="text-align:center;color:#666;padding:20px 0;font-size:20px;font-weight:700;min-height:24px"></div>
       </div>
       <div id="searchResults" class="category-grid"></div>
     </div>
@@ -4243,15 +4243,8 @@ window.addEventListener('popstate', async (e) => {
     document.getElementById('postHeaderBar').classList.remove('show');
     document.getElementById('postToTopBtn').classList.remove('show');
 
-    // 검색 오버레이 복원
-    const searchOverlay = document.getElementById('searchOverlay');
-    if(!searchOverlay.classList.contains('active')) {
-      openNavlessSearch(false);
-    } else {
-      // 이미 활성화된 경우 검색 결과 유지 및 body overflow hidden 설정
-      searchOverlay.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
+    // 검색 오버레이 복원 - 항상 openNavlessSearch 호출하여 올바르게 표시
+    openNavlessSearch(false);
     return;
   }
 
