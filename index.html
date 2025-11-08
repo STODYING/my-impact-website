@@ -1740,9 +1740,9 @@
           <input type="search" id="searchInput" placeholder="검색어를 입력하세요" autofocus>
           <button class="close-btn" onclick="closeSearch()">✕</button>
         </div>
+        <div id="searchLoading" style="text-align:left;color:#666;padding:12px 0;font-size:14px;min-height:24px"></div>
       </div>
       <div id="searchResults" class="category-grid"></div>
-      <div id="searchLoading" style="text-align:center;color:#666;padding:28px 0"></div>
     </div>
   </section>
   <section class="about-page" id="aboutPage">
@@ -3960,6 +3960,8 @@ async function performSearch(query, mode) {
           index === self.findIndex(p => p.id === post.id)
         );
 
+        loadingEl.innerHTML = `<strong style="font-weight:700;color:#ff6b35">${uniquePosts.length}</strong>개의 검색 결과`;
+        
         uniquePosts.forEach(p => {
           state.postsCache[p.id] = p;
           const card = createCardNode(p);
@@ -4233,6 +4235,7 @@ window.addEventListener('popstate', async (e) => {
     router.openAbout(false);
     return;
   } else if(pageParam === 'search') {
+    // 게시물 오버레이 닫기
     document.querySelectorAll('.post-overlay, .about-page, .editors-overlay, .category-overlay').forEach(el => {
       el.classList.remove('active');
     });
@@ -4245,7 +4248,8 @@ window.addEventListener('popstate', async (e) => {
     if(!searchOverlay.classList.contains('active')) {
       openNavlessSearch(false);
     } else {
-      // 이미 활성화된 경우 검색 결과 유지
+      // 이미 활성화된 경우 검색 결과 유지 및 body overflow hidden 설정
+      searchOverlay.classList.add('active');
       document.body.style.overflow = 'hidden';
     }
     return;
@@ -4382,7 +4386,7 @@ function performSearch(query, source = 'overlay') {
   if(results.length === 0) {
     loadingEl.textContent = `"${query}"에 대한 검색 결과가 없습니다.`;
   } else {
-    loadingEl.textContent = `${results.length}개의 검색 결과`;
+    loadingEl.innerHTML = `<strong style="font-weight:700;color:#ff6b35">${results.length}</strong>개의 검색 결과`;
     results.forEach(post => {
       const card = createCardNode(post);
       resultsContainer.appendChild(card);
