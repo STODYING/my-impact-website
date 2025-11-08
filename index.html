@@ -4291,7 +4291,7 @@ async function performSearch(query, mode) {
         // 검색 결과 개수 표시 - 심플한 스타일
         const isDarkMode = document.body.classList.contains('dark-mode');
         loadingEl.innerHTML = `
-          <div style="text-align:center;margin:24px 0;">
+          <div style="display:flex;justify-content:center;align-items:center;margin:24px 0;">
             <span style="font-size:18px;color:${isDarkMode ? '#e8e8e8' : '#666'};">
               <span style="color:#ff6b35;font-weight:700;">${uniquePosts.length}</span>개의 검색 결과가 나왔습니다
             </span>
