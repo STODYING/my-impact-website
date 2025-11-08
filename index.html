@@ -8,14 +8,14 @@
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" id="ogType">
-  <meta property="og:url" content="https://page.gensparksite.com/" id="ogUrl">
+  <meta property="og:url" content="https:///impactceo.art/" id="ogUrl">
   <meta property="og:title" content="IMPACT – MAKE A IMPACT" id="ogTitle">
   <meta property="og:description" content="Innovation Management Passion Acceleration Creativity Technology" id="ogDescription">
-  <meta property="og:image" content="https://page.gensparksite.com/logo.png" id="ogImage">
+  <meta property="og:image" content="https://impactceo.art/logo.png" id="ogImage">
   
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image" id="twitterCard">
-  <meta property="twitter:url" content="https://page.gensparksite.com/" id="twitterUrl">
+  <meta property="twitter:url" content="https://impactceo.art/" id="twitterUrl">
   <meta property="twitter:title" content="IMPACT – MAKE A IMPACT" id="twitterTitle">
   <meta property="twitter:description" content="Innovation Management Passion Acceleration Creativity Technology" id="twitterDescription">
   <meta property="twitter:image" content="https://page.gensparksite.com/logo.png" id="twitterImage">
@@ -1658,7 +1658,7 @@
     border: 1px solid rgba(0,0,0,0.06);
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     gap: 16px;
   }
 
@@ -1682,7 +1682,7 @@
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .share-btn {
@@ -3593,7 +3593,7 @@ async function renderPostOverlay(post) {
       max-width: 800px;
       margin: 48px auto;
       padding: 32px 24px;
-      text-align: center;
+      text-align: left;
     ">
       <h3 class="share-title" style="
         font-size: 20px;
@@ -3603,7 +3603,7 @@ async function renderPostOverlay(post) {
       ">아티클 공유</h3>
       <div class="share-buttons" style="
         display: flex;
-        justify-content: center;
+        justify-content: flex-start;
         gap: 12px;
         flex-wrap: wrap;
       ">
@@ -4525,6 +4525,20 @@ async function checkURLAndLoadPost() {
 }
 window.addEventListener('popstate', async (e) => {
   const pathname = window.location.pathname;
+  const postOverlay = document.getElementById('postOverlay');
+  
+  // 게시물에서 뒤로가기 - 게시물이 열려있으면 닫고 이전 상태 복원
+  if(postOverlay.classList.contains('active')) {
+    postOverlay.classList.remove('active');
+    document.body.style.overflow = '';
+    document.getElementById('progressBar').classList.remove('active');
+    document.getElementById('postHeaderBar').classList.remove('show');
+    document.getElementById('postToTopBtn').classList.remove('show');
+    
+    // 이전 상태가 존재하는 경우 복원하지 않고 그냥 종료
+    // (URL이 이미 변경되었으므로 다시 처리됨)
+    return;
+  }
   
   // 먼저 새로운 URL 패턴 체크
   if(await checkURLAndLoadPost()) {
@@ -4631,11 +4645,12 @@ window.addEventListener('popstate', async (e) => {
   } else if(pageParam === 'search' || pathname === '/search') {
     // 게시물 오버레이가 활성화되어 있으면 먼저 닫기
     const postOverlay = document.getElementById('postOverlay');
-    if(postOverlay.classList.contains('active')) {
-      postOverlay.classList.remove('active');
-      document.getElementById('progressBar').classList.remove('active');
-      document.getElementById('postHeaderBar').classList.remove('show');
-      document.getElementById('postToTopBtn').classList.remove('show');
+    const wasFromPost = postOverlay.classList.contains('active');
+    
+    if(wasFromPost) {
+      // 게시물에서 돌아온 경우 새로고침으로 검색 상태 복원
+      window.location.reload();
+      return;
     }
     
     // 다른 오버레이 닫기
