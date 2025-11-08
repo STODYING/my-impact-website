@@ -3369,6 +3369,43 @@ function closeImageModal() {
   }
 }
 
+// slug로 게시물 ID를 찾는 함수
+async function getPostIdBySlug(slug) {
+  try {
+    const res = await fetch(api(`posts?slug=${encodeURIComponent(slug)}&_embed`));
+    if(!res.ok) return null;
+    const posts = await res.json();
+    if(Array.isArray(posts) && posts.length > 0) {
+      // 캐시에 저장
+      state.postsCache[posts[0].id] = posts[0];
+      return posts[0].id;
+    }
+    return null;
+  } catch(e) {
+    console.error('getPostIdBySlug 에러:', e);
+    return null;
+  }
+}
+
+// slug 또는 ID로 게시물 열기
+async function openPostOverlayBySlug(slugOrId, updateURL = true) {
+  // 숫자인 경우 ID로 처리
+  if(/^\d+$/.test(slugOrId)) {
+    return await openPostOverlayById(parseInt(slugOrId), updateURL);
+  }
+  
+  // slug인 경우 ID를 찾아서 처리
+  const postId = await getPostIdBySlug(slugOrId);
+  if(postId) {
+    return await openPostOverlayById(postId, updateURL);
+  } else {
+    console.error('게시물을 찾을 수 없습니다:', slugOrId);
+    alert('게시물을 찾을 수 없습니다.');
+    // 홈으로 리다이렉트
+    window.location.href = '/';
+  }
+}
+
 async function openPostOverlayById(id, updateURL = true) {
   if(!id || state.isProcessing) return;
   state.isProcessing = true;
@@ -5054,6 +5091,119 @@ if(globalNavSearch) {
       }
     }
   });
+}
+
+// popstate 이벤트 핸들러 (뒤로가기/앞으로가기 처리)
+window.addEventListener('popstate', async (e) => {
+  const path = window.location.pathname;
+  
+  // /post/게시물슬러그 형식 체크
+  if(path.startsWith('/post/')) {
+    const slug = path.replace('/post/', '');
+    if(slug) {
+      await openPostOverlayBySlug(slug, false);
+      return;
+    }
+  }
+  
+  // /category/카테고리명 형식 체크
+  if(path.startsWith('/category/')) {
+    const slug = path.replace('/category/', '');
+    if(slug && CATEGORIES[slug]) {
+      router.openCategory(slug, false);
+      return;
+    }
+  }
+  
+  // /search 체크
+  if(path === '/search') {
+    await openNavlessSearch(false);
+    return;
+  }
+  
+  // /about 체크
+  if(path === '/about') {
+    await router.openAbout(false);
+    return;
+  }
+  
+  // /editors 체크
+  if(path === '/editors') {
+    await router.openEditors(false);
+    return;
+  }
+  
+  // 기타 경로는 홈으로 처리
+  const overlay = document.getElementById('postOverlay');
+  const categoryOverlay = document.getElementById('categoryOverlay');
+  const searchOverlay = document.getElementById('searchOverlay');
+  const aboutPage = document.getElementById('aboutPage');
+  const editorsOverlay = document.getElementById('editorsOverlay');
+  
+  overlay.classList.remove('active');
+  categoryOverlay.classList.remove('active');
+  searchOverlay.classList.remove('active');
+  aboutPage.classList.remove('active');
+  editorsOverlay.classList.remove('active');
+  document.body.style.overflow = '';
+  
+  // 홈 콘텐츠가 없으면 로드
+  const container = document.getElementById('rowsContainer');
+  if(!container || container.children.length === 0) {
+    await loadHomeChunk(1);
+  }
+});
+
+// 페이지 초기 로드 시 URL 체크 및 라우팅
+async function handleInitialRoute() {
+  const path = window.location.pathname;
+  
+  // /post/게시물슬러그 형식 체크
+  if(path.startsWith('/post/')) {
+    const slug = path.replace('/post/', '');
+    if(slug) {
+      await openPostOverlayBySlug(slug, false);
+      return;
+    }
+  }
+  
+  // /category/카테고리명 형식 체크
+  if(path.startsWith('/category/')) {
+    const slug = path.replace('/category/', '');
+    if(slug && CATEGORIES[slug]) {
+      router.openCategory(slug, false);
+      return;
+    }
+  }
+  
+  // /search 체크
+  if(path === '/search') {
+    await openNavlessSearch(false);
+    return;
+  }
+  
+  // /about 체크
+  if(path === '/about') {
+    await router.openAbout(false);
+    return;
+  }
+  
+  // /editors 체크
+  if(path === '/editors') {
+    await router.openEditors(false);
+    return;
+  }
+  
+  // 기본: 홈 로드
+  renderNavList();
+  loadHomeChunk(1);
+}
+
+// 페이지 로드 완료 시 초기 라우팅 실행
+if(document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', handleInitialRoute);
+} else {
+  handleInitialRoute();
 }
 </script>
 </body>
