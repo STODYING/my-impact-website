@@ -1740,7 +1740,7 @@
           <input type="search" id="searchInput" placeholder="검색어를 입력하세요" autofocus>
           <button class="close-btn" onclick="closeSearch()">✕</button>
         </div>
-        <div id="searchLoading" style="text-align:center;color:#666;padding:20px 0;font-size:20px;font-weight:700;min-height:24px"></div>
+        <div id="searchLoading" style="text-align:left;color:#666;padding:12px 0;font-size:14px;min-height:24px"></div>
       </div>
       <div id="searchResults" class="category-grid"></div>
     </div>
@@ -3767,7 +3767,7 @@ const router = {
           }
         }, 100);
       } else if(prev.page === 'search') {
-        const newUrl = `${window.location.origin}/search`;
+        const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
         history.pushState({page: 'search'}, '', newUrl);
         openNavlessSearch(false);
         if(prev.searchTerm) {
@@ -3902,7 +3902,7 @@ async function openNavlessSearch(updateURL = true) {
   
   document.getElementById('searchInput').focus();
   if(updateURL) {
-    const newUrl = `${window.location.origin}/search`;
+    const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
     history.pushState({page:'search'}, '', newUrl);
   }
 }
@@ -4187,10 +4187,14 @@ window.addEventListener('popstate', async (e) => {
   if(editorParam) {
     const editorId = parseInt(editorParam);
     if(!isNaN(editorId)) {
-      document.querySelectorAll('.post-overlay, .search-overlay, .about-page, .category-overlay').forEach(el => {
+      // ⭐ 수정: 게시물 오버레이를 명시적으로 닫기
+      const postOverlay = document.getElementById('postOverlay');
+      postOverlay.classList.remove('active');
+      
+      document.querySelectorAll('.search-overlay, .about-page, .category-overlay').forEach(el => {
         el.classList.remove('active');
       });
-      document.body.style.overflow = '';
+      document.body.style.overflow = 'hidden'; // ⭐ 수정: 에디터 오버레이를 위해 overflow hidden 유지
       document.getElementById('progressBar').classList.remove('active');
       document.getElementById('postHeaderBar').classList.remove('show');
       document.getElementById('postToTopBtn').classList.remove('show');
@@ -4213,10 +4217,14 @@ window.addEventListener('popstate', async (e) => {
   }
 
   if(pageParam === 'editors') {
-    document.querySelectorAll('.post-overlay, .search-overlay, .about-page, .category-overlay').forEach(el => {
+    // ⭐ 수정: 게시물 오버레이를 명시적으로 닫기
+    const postOverlay = document.getElementById('postOverlay');
+    postOverlay.classList.remove('active');
+    
+    document.querySelectorAll('.search-overlay, .about-page, .category-overlay').forEach(el => {
       el.classList.remove('active');
     });
-    document.body.style.overflow = '';
+    document.body.style.overflow = 'hidden'; // ⭐ 수정: 에디터 오버레이를 위해 overflow hidden 유지
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
     document.getElementById('postToTopBtn').classList.remove('show');
@@ -4224,10 +4232,14 @@ window.addEventListener('popstate', async (e) => {
     router.openEditors(false);
     return;
   } else if(pageParam === 'about') {
-    document.querySelectorAll('.post-overlay, .search-overlay, .editors-overlay, .category-overlay').forEach(el => {
+    // ⭐ 수정: 게시물 오버레이를 명시적으로 닫기
+    const postOverlay = document.getElementById('postOverlay');
+    postOverlay.classList.remove('active');
+    
+    document.querySelectorAll('.search-overlay, .editors-overlay, .category-overlay').forEach(el => {
       el.classList.remove('active');
     });
-    document.body.style.overflow = '';
+    document.body.style.overflow = 'hidden'; // ⭐ 수정: about 오버레이를 위해 overflow hidden 유지
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
     document.getElementById('postToTopBtn').classList.remove('show');
@@ -4235,16 +4247,26 @@ window.addEventListener('popstate', async (e) => {
     router.openAbout(false);
     return;
   } else if(pageParam === 'search') {
-    // 게시물 오버레이 닫기
-    document.querySelectorAll('.post-overlay, .about-page, .editors-overlay, .category-overlay').forEach(el => {
+    // ⭐ 수정: 게시물 오버레이를 명시적으로 닫기
+    const postOverlay = document.getElementById('postOverlay');
+    postOverlay.classList.remove('active');
+    
+    document.querySelectorAll('.about-page, .editors-overlay, .category-overlay').forEach(el => {
       el.classList.remove('active');
     });
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
     document.getElementById('postToTopBtn').classList.remove('show');
 
-    // 검색 오버레이 복원 - 항상 openNavlessSearch 호출하여 올바르게 표시
-    openNavlessSearch(false);
+    // 검색 오버레이 복원
+    const searchOverlay = document.getElementById('searchOverlay');
+    if(!searchOverlay.classList.contains('active')) {
+      openNavlessSearch(false);
+    } else {
+      // 이미 활성화된 경우 검색 결과 유지 및 body overflow hidden 설정
+      searchOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
     return;
   }
 
