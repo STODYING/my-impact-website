@@ -5,7 +5,7 @@ User-agent: *
 Allow: /
 
 # 사이트맵 위치
-Sitemap: https://page.gensparksite.com/sitemap.xml
+Sitemap: https://impactceo.art/sitemap.xml
 
 # 크롤링 속도 제한 (선택사항)
 Crawl-delay: 1
