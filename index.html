@@ -1653,9 +1653,9 @@
     max-width: 800px;
     margin: 48px auto;
     padding: 24px;
-    background: #f9f9f9;
+    background: transparent;
     border-radius: 12px;
-    border: 1px solid rgba(0,0,0,0.06);
+    border: none;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -1663,8 +1663,8 @@
   }
 
   body.dark-mode .share-section {
-    background: #1a1a1a;
-    border-color: rgba(255,255,255,0.12);
+    background: transparent;
+    border-color: transparent;
   }
 
   .share-title {
@@ -1889,6 +1889,7 @@
         <div id="searchLoading" style="text-align:center;padding:20px 0;font-size:24px;font-weight:700;min-height:60px"></div>
       </div>
       <div id="searchResults" class="category-grid"></div>
+      <div id="searchPagination" style="width:100%;display:flex;justify-content:center;"></div>
     </div>
   </section>
   <section class="about-page" id="aboutPage">
@@ -4885,19 +4886,26 @@ function performSearch(query, source = 'overlay') {
     const totalPages = Math.ceil(results.length / itemsPerPage);
     let currentPage = 1;
     
-    // 검색 결과 개수 표시 - 심플한 스타일
+    // 검색 결과 개수 표시 - 이미지 예시처럼 스타일링
     const isDarkMode = document.body.classList.contains('dark-mode');
     loadingEl.innerHTML = `
-      <div style="text-align:center;margin:24px 0;">
-        <span style="font-size:18px;color:${isDarkMode ? '#e8e8e8' : '#666'};">
-          <span style="color:#ff6b35;font-weight:700;">${results.length}</span>개의 검색 결과가 나왔습니다
-        </span>
+      <div style="text-align:left;margin:24px 0;padding:16px 0;">
+        <div style="display:inline-block;">
+          <span style="background:#ff6b35;color:#fff;font-weight:800;font-size:18px;padding:4px 8px;border-radius:4px;">${query}</span>
+          <span style="color:${isDarkMode ? '#e8e8e8' : '#111'};font-weight:400;font-size:18px;margin-left:8px;">에 대한 검색 결과 :</span>
+          <span style="background:#c3ff00;color:#111;font-weight:800;font-size:18px;padding:4px 8px;border-radius:4px;margin-left:8px;">${results.length}개</span>
+        </div>
       </div>
     `;
     
     // 검색 결과 렌더링 함수
     const renderPage = (page) => {
       resultsContainer.innerHTML = '';
+      const paginationContainer = document.getElementById('searchPagination');
+      if(paginationContainer) {
+        paginationContainer.innerHTML = '';
+      }
+      
       const start = (page - 1) * itemsPerPage;
       const end = Math.min(start + itemsPerPage, results.length);
       
@@ -4906,8 +4914,8 @@ function performSearch(query, source = 'overlay') {
         resultsContainer.appendChild(card);
       }
       
-      // 페이지네이션 버튼 추가 (홈과 동일한 스타일)
-      if(totalPages > 1) {
+      // 페이지네이션 버튼 추가 (별도 컨테이너에)
+      if(totalPages > 1 && paginationContainer) {
         const paginationDiv = document.createElement('div');
         paginationDiv.className = 'pagination';
         
@@ -4966,7 +4974,7 @@ function performSearch(query, source = 'overlay') {
         }
         paginationDiv.appendChild(nextBtn);
         
-        resultsContainer.appendChild(paginationDiv);
+        paginationContainer.appendChild(paginationDiv);
       }
     };
     
