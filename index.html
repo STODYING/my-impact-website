@@ -1648,6 +1648,128 @@
     background: #1a1a1a;
     border-color: rgba(255,255,255,0.12);
   }
+
+  .share-section {
+    max-width: 800px;
+    margin: 48px auto;
+    padding: 24px;
+    background: #f9f9f9;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  body.dark-mode .share-section {
+    background: #1a1a1a;
+    border-color: rgba(255,255,255,0.12);
+  }
+
+  .share-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #111;
+    margin: 0;
+  }
+
+  body.dark-mode .share-title {
+    color: #f5f5f5;
+  }
+
+  .share-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .share-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    color: #fff;
+  }
+
+  .share-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  .share-btn:active {
+    transform: translateY(1px);
+  }
+
+  .share-btn.facebook {
+    background: #1877f2;
+  }
+
+  .share-btn.twitter {
+    background: #1da1f2;
+  }
+
+  .share-btn.kakao {
+    background: #fee500;
+    color: #000;
+  }
+
+  .share-btn.link {
+    background: #666;
+  }
+
+  .share-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+  }
+
+  @media (max-width: 680px) {
+    .share-section {
+      padding: 20px;
+      margin: 32px auto;
+    }
+
+    .share-buttons {
+      width: 100%;
+    }
+
+    .share-btn {
+      flex: 1;
+      min-width: calc(50% - 6px);
+      justify-content: center;
+    }
+  }
+  
+  /* 검색 결과 스타일 개선 */
+  #searchLoading {
+    text-align: center;
+    margin: 24px 0;
+    color: #000;
+  }
+  
+  body.dark-mode #searchLoading {
+    color: #fff;
+  }
+  
+  #searchResults .card h3,
+  #searchResults .card .meta,
+  #searchResults .card p {
+    color: #000;
+  }
+  
+  body.dark-mode #searchResults .card h3,
+  body.dark-mode #searchResults .card .meta,
+  body.dark-mode #searchResults .card p {
+    color: #fff;
+  }
   </style>
 </head>
 <body>
@@ -3454,6 +3576,37 @@ async function renderPostOverlay(post) {
       </div>
     </div>
     <div class="post-content">${contentHTML}</div>
+    
+    <div class="share-section">
+      <h3 class="share-title">이 글을 공유하세요</h3>
+      <div class="share-buttons">
+        <button class="share-btn facebook" onclick="shareToFacebook()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+          </svg>
+          <span>Facebook</span>
+        </button>
+        <button class="share-btn twitter" onclick="shareToTwitter()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+          </svg>
+          <span>Twitter</span>
+        </button>
+        <button class="share-btn kakao" onclick="shareToKakao()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3zm5.907 8.06l1.47-1.424a.472.472 0 0 0-.656-.68l-1.918 1.86V6.472a.472.472 0 0 0-.944 0v2.683a.473.473 0 0 0 0 .222v2.067a.472.472 0 0 0 .944 0V9.78l.366-.354 1.624 2.157a.471.471 0 0 0 .732-.081.473.473 0 0 0-.067-.587l-1.551-2.055zm-5.605-1.68h-.848V8.293a.448.448 0 0 0-.472-.447.448.448 0 0 0-.472.447v3.24a.448.448 0 0 0 .472.448h1.32a.448.448 0 0 0 .472-.447.448.448 0 0 0-.472-.448zm3.623-.08h-1.083v-.86h1.083a.431.431 0 0 0 0-.862h-1.083v-.859h1.083a.431.431 0 0 0 0-.862h-1.535a.448.448 0 0 0-.472.447v3.24a.448.448 0 0 0 .472.448h1.535a.431.431 0 0 0 0-.862zm-6.68.862a.58.58 0 0 0 .432-.12l1.263-1.083.013.022a.53.53 0 0 0 .068.087l.852 1.094a.472.472 0 0 0 .651.117.443.443 0 0 0 .117-.628l-.935-1.202 1.031-.882a.443.443 0 0 0 .052-.623.473.473 0 0 0-.644-.051l-1.485 1.273V6.471a.472.472 0 0 0-.944 0v4.663a.448.448 0 0 0 .472.447.473.473 0 0 0 .057-.004z"/>
+          </svg>
+          <span>Kakao</span>
+        </button>
+        <button class="share-btn link" onclick="copyLink()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+          </svg>
+          <span>링크 복사</span>
+        </button>
+      </div>
+    </div>
+    
     <div class="author-profile-section" 
          role="link" 
          tabindex="0" 
@@ -3993,7 +4146,12 @@ async function performSearch(query, mode) {
         );
 
         // 검색 결과 개수 표시 (중앙 정렬, 큰 글씨, n에 하이라이트)
-        loadingEl.innerHTML = `<span style="font-size:24px;font-weight:700;"><span style="background:#ff6b35;color:#fff;padding:2px 8px;border-radius:4px">${uniquePosts.length}</span>개의 검색 결과</span>`;
+        loadingEl.innerHTML = `<div style="text-align:center;margin:32px 0;"><span style="font-size:28px;font-weight:800;color:#000;"><span style="background:#ff6b35;color:#fff;padding:4px 12px;border-radius:6px;margin-right:4px;">${uniquePosts.length}</span>개의 검색 결과</span></div>`;
+        
+        // 다크모드 대응
+        if(document.body.classList.contains('dark-mode')) {
+          loadingEl.innerHTML = `<div style="text-align:center;margin:32px 0;"><span style="font-size:28px;font-weight:800;color:#fff;"><span style="background:#ff6b35;color:#fff;padding:4px 12px;border-radius:6px;margin-right:4px;">${uniquePosts.length}</span>개의 검색 결과</span></div>`;
+        }
         
         // 페이지네이션 설정
         const itemsPerPage = 12;
@@ -4118,7 +4276,8 @@ async function performSearch(query, mode) {
         // 첫 페이지 렌더링
         renderPage(currentPage);
       } else {
-        loadingEl.innerHTML = `<span style="color:#666">검색 결과가 없습니다.</span>`;
+        const textColor = document.body.classList.contains('dark-mode') ? '#fff' : '#000';
+        loadingEl.innerHTML = `<div style="text-align:center;margin:32px 0;"><span style="font-size:18px;font-weight:600;color:${textColor};">검색 결과가 없습니다.</span></div>`;
       }
       
       // [IMPACT-LOADING] 검색 완료 후 로딩 해제
@@ -4363,6 +4522,12 @@ window.addEventListener('popstate', async (e) => {
   }
 
   if(pageParam === 'editors') {
+    // 게시물 오버레이가 활성화되어 있으면 먼저 닫기
+    const postOverlay = document.getElementById('postOverlay');
+    if(postOverlay.classList.contains('active')) {
+      postOverlay.classList.remove('active');
+    }
+    
     // 모든 오버레이 닫기
     document.querySelectorAll('.post-overlay, .search-overlay, .about-page, .category-overlay').forEach(el => {
       el.classList.remove('active');
@@ -4379,6 +4544,12 @@ window.addEventListener('popstate', async (e) => {
     }
     return;
   } else if(pageParam === 'about') {
+    // 게시물 오버레이가 활성화되어 있으면 먼저 닫기
+    const postOverlay = document.getElementById('postOverlay');
+    if(postOverlay.classList.contains('active')) {
+      postOverlay.classList.remove('active');
+    }
+    
     document.querySelectorAll('.post-overlay, .search-overlay, .editors-overlay, .category-overlay').forEach(el => {
       el.classList.remove('active');
     });
@@ -4390,6 +4561,12 @@ window.addEventListener('popstate', async (e) => {
     router.openAbout(false);
     return;
   } else if(pageParam === 'search') {
+    // 게시물 오버레이가 활성화되어 있으면 먼저 닫기
+    const postOverlay = document.getElementById('postOverlay');
+    if(postOverlay.classList.contains('active')) {
+      postOverlay.classList.remove('active');
+    }
+    
     // 모든 오버레이 닫기
     document.querySelectorAll('.post-overlay, .about-page, .editors-overlay, .category-overlay').forEach(el => {
       el.classList.remove('active');
@@ -4567,7 +4744,8 @@ function performSearch(query, source = 'overlay') {
   resultsContainer.innerHTML = '';
   
   if(results.length === 0) {
-    loadingEl.innerHTML = `<span style="color:#666">"${query}"에 대한 검색 결과가 없습니다.</span>`;
+    const textColor = document.body.classList.contains('dark-mode') ? '#fff' : '#000';
+    loadingEl.innerHTML = `<div style="text-align:center;margin:32px 0;"><span style="font-size:18px;font-weight:600;color:${textColor};">"${query}"에 대한 검색 결과가 없습니다.</span></div>`;
   } else {
     // 페이지네이션 설정
     const itemsPerPage = 12;
@@ -4575,7 +4753,12 @@ function performSearch(query, source = 'overlay') {
     let currentPage = 1;
     
     // 검색 결과 개수 표시 (중앙 정렬, 큰 글씨, n에 하이라이트)
-    loadingEl.innerHTML = `<span style="font-size:24px;font-weight:700;"><span style="background:#ff6b35;color:#fff;padding:2px 8px;border-radius:4px">${results.length}</span>개의 검색 결과</span>`;
+    loadingEl.innerHTML = `<div style="text-align:center;margin:32px 0;"><span style="font-size:28px;font-weight:800;color:#000;"><span style="background:#ff6b35;color:#fff;padding:4px 12px;border-radius:6px;margin-right:4px;">${results.length}</span>개의 검색 결과</span></div>`;
+    
+    // 다크모드 대응
+    if(document.body.classList.contains('dark-mode')) {
+      loadingEl.innerHTML = `<div style="text-align:center;margin:32px 0;"><span style="font-size:28px;font-weight:800;color:#fff;"><span style="background:#ff6b35;color:#fff;padding:4px 12px;border-radius:6px;margin-right:4px;">${results.length}</span>개의 검색 결과</span></div>`;
+    }
     
     // 검색 결과 렌더링 함수
     const renderPage = (page) => {
@@ -4693,6 +4876,73 @@ function performSearch(query, source = 'overlay') {
     
     // 첫 페이지 렌더링
     renderPage(currentPage);
+  }
+}
+
+// 공유 기능 함수들
+function shareToFacebook() {
+  const url = encodeURIComponent(window.location.href);
+  window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=600,height=400');
+}
+
+function shareToTwitter() {
+  const url = encodeURIComponent(window.location.href);
+  const text = encodeURIComponent(document.title);
+  window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', 'width=600,height=400');
+}
+
+function shareToKakao() {
+  const url = window.location.href;
+  const title = document.title;
+  
+  // 카카오톡 공유하기 (웹 URL 복사)
+  if(navigator.share) {
+    navigator.share({
+      title: title,
+      url: url
+    }).catch(err => {
+      console.log('공유 실패:', err);
+      copyLink();
+    });
+  } else {
+    // Web Share API를 지원하지 않으면 링크 복사
+    copyLink();
+  }
+}
+
+function copyLink() {
+  const url = window.location.href;
+  
+  if(navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => {
+      alert('링크가 복사되었습니다!');
+    }).catch(err => {
+      console.error('복사 실패:', err);
+      fallbackCopyLink(url);
+    });
+  } else {
+    fallbackCopyLink(url);
+  }
+}
+
+function fallbackCopyLink(text) {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-999999px';
+  textArea.style.top = '-999999px';
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  
+  try {
+    document.execCommand('copy');
+    textArea.remove();
+    alert('링크가 복사되었습니다!');
+  } catch(err) {
+    console.error('복사 실패:', err);
+    textArea.remove();
+    alert('링크 복사에 실패했습니다. 수동으로 복사해주세요.');
   }
 }
 
