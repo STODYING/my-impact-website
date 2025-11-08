@@ -2200,10 +2200,79 @@ function toggleTheme() {
     // 강제 리플로우 트리거
     void aboutPage.offsetHeight;
     
-    // Our Journey 섹션의 모든 요소에 강제 스타일 재계산
-    const roadmapItems = aboutPage.querySelectorAll('.roadmap-item h4, .roadmap-item p, .roadmap-item span');
-    roadmapItems.forEach(el => {
-      void el.offsetHeight; // 강제 리플로우
+    // Our Journey 섹션의 모든 요소에 강제 스타일을 직접 적용
+    const isDark = document.body.classList.contains('dark-mode');
+    
+    // 일반 텍스트 요소들
+    const textElements = aboutPage.querySelectorAll('p, h3, h4, div');
+    textElements.forEach(el => {
+      const currentColor = el.style.color;
+      if(currentColor && currentColor !== '' && currentColor !== 'rgb(255, 107, 53)' && currentColor !== '#ff6b35' && currentColor !== '#ff8c5a' && !currentColor.includes('gradient')) {
+        if(isDark) {
+          if(currentColor === '#333' || currentColor === 'rgb(51, 51, 51)') {
+            el.style.color = '#e8e8e8';
+          } else if(currentColor === '#444' || currentColor === 'rgb(68, 68, 68)') {
+            el.style.color = '#e8e8e8';
+          } else if(currentColor === '#555' || currentColor === 'rgb(85, 85, 85)') {
+            el.style.color = '#e8e8e8';
+          } else if(currentColor === '#666' || currentColor === 'rgb(102, 102, 102)') {
+            el.style.color = '#e8e8e8';
+          } else if(currentColor === '#777' || currentColor === 'rgb(119, 119, 119)') {
+            el.style.color = '#cccccc';
+          } else if(currentColor === '#888' || currentColor === 'rgb(136, 136, 136)') {
+            el.style.color = '#aaaaaa';
+          } else if(currentColor === '#999' || currentColor === 'rgb(153, 153, 153)') {
+            el.style.color = '#999999';
+          }
+        } else {
+          // 라이트 모드로 복원
+          if(el.dataset.originalColor) {
+            el.style.color = el.dataset.originalColor;
+          }
+        }
+      }
+    });
+    
+    // roadmap-item의 span 요소들 (년도 표시)
+    const roadmapSpans = aboutPage.querySelectorAll('.roadmap-item span');
+    roadmapSpans.forEach(el => {
+      const currentColor = el.style.color;
+      if(currentColor && currentColor !== 'rgb(255, 107, 53)' && currentColor !== '#ff6b35') {
+        if(isDark) {
+          if(!el.dataset.originalColor) {
+            el.dataset.originalColor = currentColor;
+          }
+          el.style.color = '#aaaaaa';
+        } else {
+          if(el.dataset.originalColor) {
+            el.style.color = el.dataset.originalColor;
+            delete el.dataset.originalColor;
+          }
+        }
+      }
+    });
+    
+    // border-top 색상 변경
+    const borderDivs = aboutPage.querySelectorAll('[style*="border-top"]');
+    borderDivs.forEach(el => {
+      if(isDark) {
+        el.style.borderTopColor = 'rgba(255, 255, 255, 0.12)';
+      } else {
+        el.style.borderTopColor = '#e0e0e0';
+      }
+    });
+    
+    // border-left 색상 변경
+    const borderLeftDivs = aboutPage.querySelectorAll('[style*="border-left"]');
+    borderLeftDivs.forEach(el => {
+      const currentBorder = el.style.borderLeft;
+      if(currentBorder && currentBorder.includes('#ddd')) {
+        if(isDark) {
+          el.style.borderLeftColor = 'rgba(255, 255, 255, 0.12)';
+        } else {
+          el.style.borderLeftColor = '#ddd';
+        }
+      }
     });
   }
   
@@ -2369,15 +2438,34 @@ document.getElementById('postOverlay').addEventListener('scroll', () => {
 function renderNavList() {
   const navList = document.getElementById('navList');
   navList.innerHTML = '';
+  
+  // 현재 페이지 경로 확인
+  const currentPath = window.location.pathname;
+  const urlParams = new URLSearchParams(window.location.search);
+  const categoryParam = urlParams.get('category');
+  
   NAV_ORDER.forEach(item => {
     const li = document.createElement('li');
     li.textContent = item;
-    li.addEventListener('click', () => {
-      const slug = item.toLowerCase().replace(/'/g,'').replace(/\s/g,'-');
-      if(CATEGORIES[slug]) {
-        handleNavAction(() => router.openCategory(slug));
-      }
-    });
+    const slug = item.toLowerCase().replace(/'/g,'').replace(/\s/g,'-');
+    
+    // 현재 페이지인지 확인
+    const isCurrentPage = (currentPath === `/category/${slug}`) || (categoryParam === slug);
+    
+    if(isCurrentPage) {
+      // 현재 페이지는 주황색으로 표시하고 클릭 비활성화
+      li.style.color = '#ff6b35';
+      li.style.cursor = 'default';
+      li.style.pointerEvents = 'none';
+    } else {
+      // 다른 페이지는 클릭 가능
+      li.addEventListener('click', () => {
+        if(CATEGORIES[slug]) {
+          handleNavAction(() => router.openCategory(slug));
+        }
+      });
+    }
+    
     navList.appendChild(li);
   });
 }
@@ -3474,6 +3562,10 @@ const ui = {
           document.body.style.overflow = '';
         }
       }
+      // 네비게이션이 열릴 때 현재 페이지 상태를 반영하여 renderNavList 업데이트
+      if(nav.classList.contains('active')) {
+        renderNavList();
+      }
     }
   }
 };
@@ -3499,6 +3591,9 @@ const router = {
         title: `${categoryNames[slug] || slug.toUpperCase()} - IMPACT`,
         url: newUrl
       });
+      
+      // 네비게이션 리스트 업데이트 (현재 페이지 강조 표시)
+      renderNavList();
     }
   },
   closeCategory: async () => {
@@ -3510,6 +3605,9 @@ const router = {
     // 메타태그 복원
     updateMetaTags({});
     updateStructuredData(null);
+    
+    // 네비게이션 리스트 업데이트 (현재 페이지 강조 해제)
+    renderNavList();
     
     // 수정됨: 메인 홈이 로드되지 않았다면 즉시 로드 및 로딩 표시
     const container = document.getElementById('rowsContainer');
@@ -3789,6 +3887,11 @@ async function openNavlessSearch(updateURL = true) {
   
   // 수정됨: 모바일과 데스크탑 모두에서 메인 홈 스크롤 중단
   document.body.style.overflow = 'hidden';
+  
+  // 메인 홈에서 검색창 진입 시 검색창 초기화
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchResults').innerHTML = '';
+  document.getElementById('searchLoading').textContent = '';
   
   // [IMPACT-LOADING] 완료 후 스크롤 리셋 및 로딩 해제
   resetScrollTop('search');
@@ -4131,12 +4234,18 @@ window.addEventListener('popstate', async (e) => {
     document.querySelectorAll('.post-overlay, .about-page, .editors-overlay, .category-overlay').forEach(el => {
       el.classList.remove('active');
     });
-    document.body.style.overflow = '';
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
     document.getElementById('postToTopBtn').classList.remove('show');
 
-    openNavlessSearch(false);
+    // 검색 오버레이 복원
+    const searchOverlay = document.getElementById('searchOverlay');
+    if(!searchOverlay.classList.contains('active')) {
+      openNavlessSearch(false);
+    } else {
+      // 이미 활성화된 경우 검색 결과 유지
+      document.body.style.overflow = 'hidden';
+    }
     return;
   }
 
