@@ -2089,7 +2089,7 @@ let __loadingTimer = null;
 let __loadingDelayTimer = null;
 let __loadingStartTime = null;
 
-function openLoading(label = '불러오는 중...', delay = 300) {
+function openLoading(label = '불러오는 중...', delay = 150) {
   const el = document.getElementById('pageTransition');
   if (!el) return;
   
@@ -2100,13 +2100,13 @@ function openLoading(label = '불러오는 중...', delay = 300) {
   // 시작 시간 기록
   __loadingStartTime = Date.now();
   
-  // delay 밀리초 후에만 로딩 표시 (기본 300ms)
+  // delay 밀리초 후에만 로딩 표시 (기본 150ms로 개선)
   __loadingDelayTimer = setTimeout(() => {
     el.textContent = label;
     el.classList.add('active');
     
-    // 안전장치: 표시된 후 3초 뒤 강제 해제
-    __loadingTimer = setTimeout(() => closeLoading(), 3000);
+    // 안전장치: 표시된 후 5초 뒤 강제 해제
+    __loadingTimer = setTimeout(() => closeLoading(), 5000);
   }, delay);
 }
 
@@ -3638,7 +3638,7 @@ async function renderPostOverlay(post) {
         font-weight: 700;
         margin-bottom: 24px;
         color: #333;
-      ">게시물 공유</h3>
+      ">아티클 공유</h3>
       <div class="share-buttons" style="
         display: flex;
         justify-content: flex-start;
@@ -4170,14 +4170,97 @@ const router = {
     }
     
     try {
-      const res = await fetch(api(`posts?author=${user.id}&per_page=50`));
+      const res = await fetch(api(`posts?author=${user.id}&per_page=100`));
       const posts = await res.json();
-      if(Array.isArray(posts)) {
-        posts.forEach(p => {
-          state.postsCache[p.id] = p;
-          const card = createCardNode(p);
-          grid.appendChild(card);
-        });
+      if(Array.isArray(posts) && posts.length > 0) {
+        const uniquePosts = posts.filter((post, index, self) =>
+          index === self.findIndex(p => p.id === post.id)
+        );
+        
+        // 페이지네이션 설정 (검색 결과와 동일)
+        const itemsPerPage = 12;
+        const totalPages = Math.ceil(uniquePosts.length / itemsPerPage);
+        let currentPage = 1;
+        
+        // 에디터 게시물 렌더링 함수
+        const renderPage = (page) => {
+          grid.innerHTML = '';
+          const start = (page - 1) * itemsPerPage;
+          const end = Math.min(start + itemsPerPage, uniquePosts.length);
+          
+          for(let i = start; i < end; i++) {
+            state.postsCache[uniquePosts[i].id] = uniquePosts[i];
+            const card = createCardNode(uniquePosts[i]);
+            grid.appendChild(card);
+          }
+          
+          // 페이지네이션 버튼 추가 (홈과 동일한 스타일)
+          if(totalPages > 1) {
+            const paginationDiv = document.createElement('div');
+            paginationDiv.className = 'pagination';
+            paginationDiv.id = 'editorPagination';
+            
+            // 이전 버튼
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = '«';
+            prevBtn.disabled = page === 1;
+            if(page > 1) {
+              prevBtn.onclick = () => {
+                currentPage = page - 1;
+                renderPage(currentPage);
+                document.getElementById('editorsOverlay').scrollTop = 0;
+              };
+            }
+            paginationDiv.appendChild(prevBtn);
+            
+            // 모바일 감지
+            const isMobile = window.innerWidth <= 640;
+            const maxVisible = isMobile ? 5 : 7;
+            
+            // 페이지 번호 계산 (calculatePageNumbers 함수 사용)
+            const pages = calculatePageNumbers(page, totalPages, maxVisible);
+            
+            pages.forEach((pageNum) => {
+              if(pageNum === '...') {
+                const dots = document.createElement('span');
+                dots.textContent = '...';
+                paginationDiv.appendChild(dots);
+              } else {
+                const btn = document.createElement('button');
+                btn.textContent = pageNum;
+                if(pageNum === page) {
+                  btn.classList.add('active');
+                  btn.disabled = true;
+                } else {
+                  btn.onclick = () => {
+                    currentPage = pageNum;
+                    renderPage(currentPage);
+                    document.getElementById('editorsOverlay').scrollTop = 0;
+                  };
+                }
+                paginationDiv.appendChild(btn);
+              }
+            });
+            
+            // 다음 버튼
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = '»';
+            nextBtn.disabled = page === totalPages;
+            if(page < totalPages) {
+              nextBtn.onclick = () => {
+                currentPage = page + 1;
+                renderPage(currentPage);
+                document.getElementById('editorsOverlay').scrollTop = 0;
+              };
+            }
+            paginationDiv.appendChild(nextBtn);
+            
+            grid.appendChild(paginationDiv);
+          }
+        };
+        
+        // 첫 페이지 렌더링
+        renderPage(currentPage);
       }
       document.getElementById('editorPostsLoading').textContent = '';
 
@@ -4210,10 +4293,15 @@ async function openNavlessSearch(updateURL = true) {
   // 수정됨: 모바일과 데스크탑 모두에서 메인 홈 스크롤 중단
   document.body.style.overflow = 'hidden';
   
-  // 메인 홈에서 검색창 진입 시 검색창 초기화
+  // 메인 홈에서 검색창 진입 시 검색창 초기화 및 페이지네이션 제거
   document.getElementById('searchInput').value = '';
   document.getElementById('searchResults').innerHTML = '';
   document.getElementById('searchLoading').textContent = '';
+  // 페이지네이션도 완전히 초기화
+  const existingPagination = document.querySelector('#searchResults .pagination');
+  if (existingPagination) {
+    existingPagination.remove();
+  }
   
   // [IMPACT-LOADING] 완료 후 스크롤 리셋 및 로딩 해제
   resetScrollTop('search');
@@ -4288,12 +4376,12 @@ async function performSearch(query, mode) {
           index === self.findIndex(p => p.id === post.id)
         );
 
-        // 검색 결과 개수 표시 - 심플한 스타일
+        // 검색 결과 개수 표시 - 정중앙 배치
         const isDarkMode = document.body.classList.contains('dark-mode');
         loadingEl.innerHTML = `
-          <div style="display:flex;justify-content:center;align-items:center;margin:24px 0;">
+          <div style="display:flex;justify-content:center;align-items:center;margin:32px 0;text-align:center;">
             <span style="font-size:18px;color:${isDarkMode ? '#e8e8e8' : '#666'};">
-              <span style="color:#ff6b35;font-weight:700;">${uniquePosts.length}</span>개의 검색 결과가 나왔습니다
+              <strong style="color:#ff6b35;font-weight:700;">'${query}'</strong>에 대한 검색 결과 : <span style="color:#ff6b35;font-weight:700;">${uniquePosts.length}</span>개
             </span>
           </div>
         `;
