@@ -1102,6 +1102,12 @@
     justify-content: center;
     border-radius: 50%;
     transition: all 0.3s ease;
+    flex-shrink: 0;
+  }
+  @media (max-width: 640px) {
+    .search-bar .close-btn {
+      margin-right: 6px;
+    }
   }
   body.dark-mode .search-bar .close-btn {
     color: #e8e8e8;
@@ -1724,7 +1730,9 @@
     <div class="wrap" style="max-width:1200px">
       <div style="margin-bottom:32px">
         <div class="search-bar">
-          <span style="font-size:20px">🔍</span>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;">
+            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+          </svg>
           <input type="search" id="searchInput" placeholder="검색어를 입력하세요" autofocus>
           <button class="close-btn" onclick="closeSearch()">✕</button>
         </div>
@@ -1928,7 +1936,7 @@ let __loadingTimer = null;
 let __loadingDelayTimer = null;
 let __loadingStartTime = null;
 
-function openLoading(label = '불러오는 중...', delay = 5000) {
+function openLoading(label = '불러오는 중...', delay = 300) {
   const el = document.getElementById('pageTransition');
   if (!el) return;
   
@@ -1939,13 +1947,13 @@ function openLoading(label = '불러오는 중...', delay = 5000) {
   // 시작 시간 기록
   __loadingStartTime = Date.now();
   
-  // delay 밀리초 후에만 로딩 표시 (기본 5000ms = 5초)
+  // delay 밀리초 후에만 로딩 표시 (기본 300ms)
   __loadingDelayTimer = setTimeout(() => {
     el.textContent = label;
     el.classList.add('active');
     
-    // 안전장치: 표시된 후 10초 뒤 강제 해제
-    __loadingTimer = setTimeout(() => closeLoading(), 10000);
+    // 안전장치: 표시된 후 3초 뒤 강제 해제
+    __loadingTimer = setTimeout(() => closeLoading(), 3000);
   }, delay);
 }
 
@@ -2161,6 +2169,19 @@ function toggleTheme() {
   document.body.classList.toggle('dark-mode');
   const isDark = document.body.classList.contains('dark-mode');
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  
+  // About 페이지의 Our Journey 부분 강제 리플로우로 즉시 스타일 반영
+  const aboutPage = document.getElementById('aboutPage');
+  if(aboutPage && aboutPage.classList.contains('active')) {
+    // 강제 리플로우 트리거
+    void aboutPage.offsetHeight;
+    
+    // Our Journey 섹션의 모든 요소에 강제 스타일 재계산
+    const roadmapItems = aboutPage.querySelectorAll('.roadmap-item h4, .roadmap-item p, .roadmap-item span');
+    roadmapItems.forEach(el => {
+      void el.offsetHeight; // 강제 리플로우
+    });
+  }
 }
 
 function goToHome() {
@@ -2178,6 +2199,11 @@ function goToHome() {
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
     document.getElementById('postToTopBtn').classList.remove('show');
+    
+    // 메타태그 즉시 복원 (웨일 브라우저 호환성)
+    document.title = 'IMPACT – MAKE A IMPACT';
+    updateMetaTags({});
+    updateStructuredData(null);
     
     // 메인 페이지로 URL 변경 (항상 루트 경로로)
     const newUrl = `${window.location.origin}/`;
@@ -2207,6 +2233,11 @@ function goToHome() {
   });
   
   document.body.style.overflow = '';
+
+  // 메타태그 즉시 복원 (웨일 브라우저 호환성)
+  document.title = 'IMPACT – MAKE A IMPACT';
+  updateMetaTags({});
+  updateStructuredData(null);
 
   // URL을 홈으로 변경 (항상 루트 경로로)
   const newUrl = `${window.location.origin}/`;
@@ -2368,8 +2399,8 @@ function createCardNode(post) {
     e.stopPropagation();
 
     if(state.isProcessing) return;
-    // [IMPACT-LOADING] 로딩 표시 (5초 이상 걸릴 때만)
-    openLoading('게시물을 불러오는 중...');
+    // [IMPACT-LOADING] 클릭 즉시 로딩 표시
+    openLoading('게시물을 불러오는 중...', 100); // delay 짧게
     clearTimeout(clickTimeout);
     clickTimeout = setTimeout(() => {
       openPostOverlayById(post.id);
@@ -2784,9 +2815,11 @@ function renderPagination(containerId, currentPage, totalPages, onPageClick) {
       btn.textContent = page;
       if(page === currentPage) {
         btn.classList.add('active');
-        console.log(`    → ${page}번 버튼에 'active' 클래스 추가됨`);
+        btn.disabled = true; // 현재 페이지는 비활성화
+        console.log(`    → ${page}번 버튼에 'active' 클래스 추가됨 (비활성화)`);
+      } else {
+        btn.onclick = () => onPageClick(page);
       }
-      btn.onclick = () => onPageClick(page);
       container.appendChild(btn);
     }
   });
@@ -3129,11 +3162,8 @@ async function openPostOverlayById(id, updateURL = true) {
   const cached = state.postsCache[id];
   if(cached && cached.content && cached.content.rendered) {
     await renderPostOverlay(cached);
-    // [IMPACT-LOADING] 렌더 완료 후 스크롤 리셋 및 로딩 해제
-    // 수정됨: 캐시된 게시물도 항상 최상단부터 표시
-    const postOverlay = document.getElementById('postOverlay');
-    postOverlay.scrollTop = 0;
-    resetScrollTop('post');
+    // [IMPACT-LOADING] 렌더 완료 후 로딩 해제
+    // 수정됨: 중복 스크롤 리셋 제거 (이미 오버레이 열 때 리셋됨)
     await nextFrame();
     closeLoading();
     state.isProcessing = false;
@@ -3169,11 +3199,8 @@ async function openPostOverlayById(id, updateURL = true) {
     state.postsCache[id] = post;
 
     await renderPostOverlay(post);
-    // [IMPACT-LOADING] 렌더 완료 후 스크롤 리셋 및 로딩 해제
-    // 수정됨: 새로 로드된 게시물도 항상 최상단부터 표시
-    const postOverlay = document.getElementById('postOverlay');
-    postOverlay.scrollTop = 0;
-    resetScrollTop('post');
+    // [IMPACT-LOADING] 렌더 완료 후 로딩 해제
+    // 수정됨: 중복 스크롤 리셋 제거 (이미 오버레이 열 때 리셋됨)
     await nextFrame();
     closeLoading();
   } catch(e) {
@@ -3494,7 +3521,12 @@ const router = {
       });
     }
   },
-  closeEditors: async () => {
+  closeEditors: async (resetView = true) => {
+    // resetView가 true이면 에디터 목록 뷰로 복귀
+    if(resetView) {
+      document.getElementById('editorProfileSection').style.display = 'none';
+      document.getElementById('editorsGridWrapper').style.display = 'block';
+    }
     const editorsOverlay = document.getElementById('editorsOverlay');
     editorsOverlay.classList.remove('active');
     // 에디터 오버레이 스크롤 위치 초기화
