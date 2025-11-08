@@ -1151,6 +1151,7 @@
     color: #ff6600;
     font-weight: 700;
     cursor: default;
+    pointer-events: none;
   }
   .pagination button:disabled {
     opacity: 0.3;
@@ -1182,6 +1183,7 @@
     color: #ff6600;
     border-color: transparent;
     font-weight: 700;
+    pointer-events: none;
   }
   body:not(.dark-mode) .pagination span {
     color: #666;
@@ -1928,7 +1930,9 @@ const state = {
   currentPostId: null,
   isProcessing: false,
   searchDebounce: null,
-  homeLoadPromise: null
+  homeLoadPromise: null,
+  initialScrollDone: {}, // 각 오버레이별 초기 스크롤 완료 여부
+  scrollListeners: {} // 스크롤 리스너 저장
 };
 
 // [IMPACT-LOADING] A. Loading overlay controller (replaces showPageTransition)
@@ -1974,35 +1978,52 @@ function closeLoading() {
 }
 
 // 스크롤 상단 세팅 헬퍼: 오버레이/페이지 컨테이너 모두 대응
-// 수정됨: 모든 페이지 진입 시 즉시 최상단으로 이동
-function resetScrollTop(target = 'window') {
+// 수정됨: 초기 스크롤만 실행하고 이후 사용자 스크롤 유지
+function resetScrollTop(target = 'window', force = false) {
+  // force가 true이거나 초기 스크롤이 아직 완료되지 않은 경우만 스크롤
   if (target === 'post') {
     const o = document.getElementById('postOverlay');
     if (o) {
-      o.scrollTop = 0; // 즉시 상단으로 이동 (애니메이션 없이)
+      if (force || !state.initialScrollDone['post']) {
+        o.scrollTop = 0; // 즉시 상단으로 이동 (애니메이션 없이)
+        state.initialScrollDone['post'] = true;
+        
+        // 사용자가 스크롤하기 시작하면 초기 스크롤 플래그 유지 (추가 강제 스크롤 방지)
+        if (!state.scrollListeners['post']) {
+          const scrollHandler = () => {
+            state.initialScrollDone['post'] = true;
+          };
+          o.addEventListener('scroll', scrollHandler, { passive: true });
+          state.scrollListeners['post'] = scrollHandler;
+        }
+      }
     }
   } else if (target === 'category') {
     const o = document.getElementById('categoryOverlay');
-    if (o) {
-      o.scrollTop = 0; // 즉시 상단으로 이동
+    if (o && (force || !state.initialScrollDone['category'])) {
+      o.scrollTop = 0;
+      state.initialScrollDone['category'] = true;
     }
   } else if (target === 'editors') {
     const o = document.getElementById('editorsOverlay');
-    if (o) {
-      o.scrollTop = 0; // 즉시 상단으로 이동
+    if (o && (force || !state.initialScrollDone['editors'])) {
+      o.scrollTop = 0;
+      state.initialScrollDone['editors'] = true;
     }
   } else if (target === 'search') {
     const o = document.getElementById('searchOverlay');
-    if (o) {
-      o.scrollTop = 0; // 즉시 상단으로 이동
+    if (o && (force || !state.initialScrollDone['search'])) {
+      o.scrollTop = 0;
+      state.initialScrollDone['search'] = true;
     }
   } else if (target === 'about') {
     const o = document.getElementById('aboutPage');
-    if (o) {
-      o.scrollTop = 0; // 즉시 상단으로 이동
+    if (o && (force || !state.initialScrollDone['about'])) {
+      o.scrollTop = 0;
+      state.initialScrollDone['about'] = true;
     }
   } else {
-    window.scrollTop = 0; // 즉시 상단으로 이동
+    window.scrollTo(0, 0); // 즉시 상단으로 이동 (수정: scrollTop -> scrollTo)
   }
 }
 
@@ -2166,6 +2187,9 @@ function scrollToTopButton() {
   }
 }
 function toggleTheme() {
+  // transition 일시적으로 비활성화
+  document.body.style.transition = 'none';
+  
   document.body.classList.toggle('dark-mode');
   const isDark = document.body.classList.contains('dark-mode');
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
@@ -2182,6 +2206,13 @@ function toggleTheme() {
       void el.offsetHeight; // 강제 리플로우
     });
   }
+  
+  // 다음 프레임에서 transition 복원
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.body.style.transition = '';
+    });
+  });
 }
 
 function goToHome() {
@@ -3610,6 +3641,9 @@ const router = {
     document.getElementById('progressBar').classList.remove('active');
     document.getElementById('postHeaderBar').classList.remove('show');
     document.getElementById('postToTopBtn').classList.remove('show');
+    
+    // 초기 스크롤 플래그 리셋 (다음 게시물 진입을 위해)
+    state.initialScrollDone['post'] = false;
 
     const currentState = history.state;
     if(currentState && currentState.previous) {
@@ -4194,6 +4228,95 @@ document.addEventListener('keydown', (e) => {
     }
   }
 });
+
+// 검색 기능 개선: 중복 제거 및 키워드 매칭 정확도 향상
+function performSearch(query, source = 'overlay') {
+  if(!query || query.trim() === '') {
+    document.getElementById('searchResults').innerHTML = '';
+    document.getElementById('searchLoading').textContent = '';
+    return;
+  }
+  
+  const loadingEl = document.getElementById('searchLoading');
+  loadingEl.textContent = '검색 중...';
+  
+  const searchTerm = query.toLowerCase().trim();
+  const results = [];
+  const seen = new Set(); // 중복 방지
+  
+  // 모든 캐시된 게시물에서 검색
+  Object.values(state.postsCache).forEach(post => {
+    // 중복 체크
+    if(seen.has(post.id)) return;
+    
+    const title = (post.title?.rendered || '').toLowerCase();
+    const content = stripTags(post.content?.rendered || '').toLowerCase();
+    const excerpt = stripTags(post.excerpt?.rendered || '').toLowerCase();
+    const authorName = (post._embedded?.author?.[0]?.name || '').toLowerCase();
+    
+    // 키워드가 제목, 내용, 발췌문, 에디터 이름에 포함되는 경우만
+    if (title.includes(searchTerm) || 
+        content.includes(searchTerm) || 
+        excerpt.includes(searchTerm) || 
+        authorName.includes(searchTerm)) {
+      seen.add(post.id);
+      results.push(post);
+    }
+  });
+  
+  // 검색 결과 표시
+  const resultsContainer = document.getElementById('searchResults');
+  resultsContainer.innerHTML = '';
+  
+  if(results.length === 0) {
+    loadingEl.textContent = `"${query}"에 대한 검색 결과가 없습니다.`;
+  } else {
+    loadingEl.textContent = `${results.length}개의 검색 결과`;
+    results.forEach(post => {
+      const card = createCardNode(post);
+      resultsContainer.appendChild(card);
+    });
+  }
+}
+
+// 검색 입력 이벤트 리스너
+const searchInput = document.getElementById('searchInput');
+if(searchInput) {
+  searchInput.addEventListener('input', (e) => {
+    clearTimeout(state.searchDebounce);
+    state.searchDebounce = setTimeout(() => {
+      performSearch(e.target.value, 'overlay');
+    }, 300);
+  });
+}
+
+const globalNavSearch = document.getElementById('globalNavSearch');
+if(globalNavSearch) {
+  globalNavSearch.addEventListener('input', (e) => {
+    clearTimeout(state.searchDebounce);
+    state.searchDebounce = setTimeout(() => {
+      performSearch(e.target.value, 'nav');
+    }, 300);
+  });
+  
+  globalNavSearch.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') {
+      e.preventDefault();
+      const query = e.target.value.trim();
+      if(query) {
+        ui.toggleNav(true);
+        openNavlessSearch();
+        setTimeout(() => {
+          const searchInput = document.getElementById('searchInput');
+          if(searchInput) {
+            searchInput.value = query;
+            performSearch(query, 'fullSearch');
+          }
+        }, 100);
+      }
+    }
+  });
+}
 </script>
 </body>
 </html>
