@@ -3384,6 +3384,7 @@ async function openPostOverlayById(id, updateURL = true) {
     const currentCategory = currentParams.get('category');
     const currentEditor = currentParams.get('editor');
     const currentPage = currentParams.get('page');
+    const currentPath = window.location.pathname;
 
     let previousState = {
       url: currentUrl,
@@ -3391,7 +3392,18 @@ async function openPostOverlayById(id, updateURL = true) {
       scrollPosition: window.scrollY
     };
 
-    if(currentCategory) {
+    // 검색 페이지에서 게시물 진입 확인
+    if(currentPath === '/search' || document.getElementById('searchOverlay').classList.contains('active')) {
+      previousState.page = 'search';
+      previousState.searchTerm = document.getElementById('searchInput')?.value || '';
+      // 검색 결과 상태 저장
+      try {
+        sessionStorage.setItem('lastSearchQuery', previousState.searchTerm);
+        sessionStorage.setItem('searchScrollPosition', document.getElementById('searchOverlay').scrollTop);
+      } catch(e) {
+        console.error('sessionStorage error:', e);
+      }
+    } else if(currentCategory) {
       previousState.page = 'category';
       previousState.category = currentCategory;
     } else if(currentEditor) {
@@ -3577,32 +3589,108 @@ async function renderPostOverlay(post) {
     </div>
     <div class="post-content">${contentHTML}</div>
     
-    <div class="share-section">
-      <h3 class="share-title">이 글을 공유하세요</h3>
-      <div class="share-buttons">
-        <button class="share-btn facebook" onclick="shareToFacebook()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <div class="share-section" style="
+      max-width: 800px;
+      margin: 48px auto;
+      padding: 32px 24px;
+      text-align: center;
+    ">
+      <h3 class="share-title" style="
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 24px;
+        color: #333;
+      ">아티클 공유</h3>
+      <div class="share-buttons" style="
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      ">
+        <button class="share-btn" onclick="shareToFacebook()" style="
+          background: #f6f7f9;
+          border: none;
+          padding: 12px;
+          border-radius: 50%;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          width: 48px;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        " onmouseover="this.style.background='#1877f2';this.querySelector('svg').style.fill='white'" onmouseout="this.style.background='#f6f7f9';this.querySelector('svg').style.fill='#666'">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill:#666;">
             <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
           </svg>
-          <span>Facebook</span>
         </button>
-        <button class="share-btn twitter" onclick="shareToTwitter()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+        <button class="share-btn" onclick="shareToTwitter()" style="
+          background: #f6f7f9;
+          border: none;
+          padding: 12px;
+          border-radius: 50%;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          width: 48px;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        " onmouseover="this.style.background='#000';this.querySelector('svg').style.fill='white'" onmouseout="this.style.background='#f6f7f9';this.querySelector('svg').style.fill='#666'">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" style="fill:#666;">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
           </svg>
-          <span>Twitter</span>
         </button>
-        <button class="share-btn kakao" onclick="shareToKakao()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3zm5.907 8.06l1.47-1.424a.472.472 0 0 0-.656-.68l-1.918 1.86V6.472a.472.472 0 0 0-.944 0v2.683a.473.473 0 0 0 0 .222v2.067a.472.472 0 0 0 .944 0V9.78l.366-.354 1.624 2.157a.471.471 0 0 0 .732-.081.473.473 0 0 0-.067-.587l-1.551-2.055zm-5.605-1.68h-.848V8.293a.448.448 0 0 0-.472-.447.448.448 0 0 0-.472.447v3.24a.448.448 0 0 0 .472.448h1.32a.448.448 0 0 0 .472-.447.448.448 0 0 0-.472-.448zm3.623-.08h-1.083v-.86h1.083a.431.431 0 0 0 0-.862h-1.083v-.859h1.083a.431.431 0 0 0 0-.862h-1.535a.448.448 0 0 0-.472.447v3.24a.448.448 0 0 0 .472.448h1.535a.431.431 0 0 0 0-.862zm-6.68.862a.58.58 0 0 0 .432-.12l1.263-1.083.013.022a.53.53 0 0 0 .068.087l.852 1.094a.472.472 0 0 0 .651.117.443.443 0 0 0 .117-.628l-.935-1.202 1.031-.882a.443.443 0 0 0 .052-.623.473.473 0 0 0-.644-.051l-1.485 1.273V6.471a.472.472 0 0 0-.944 0v4.663a.448.448 0 0 0 .472.447.473.473 0 0 0 .057-.004z"/>
+        <button class="share-btn" onclick="shareToLinkedIn()" style="
+          background: #f6f7f9;
+          border: none;
+          padding: 12px;
+          border-radius: 50%;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          width: 48px;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        " onmouseover="this.style.background='#0A66C2';this.querySelector('svg').style.fill='white'" onmouseout="this.style.background='#f6f7f9';this.querySelector('svg').style.fill='#666'">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" style="fill:#666;">
+            <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/>
           </svg>
-          <span>Kakao</span>
         </button>
-        <button class="share-btn link" onclick="copyLink()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <button class="share-btn" onclick="shareEmail()" style="
+          background: #f6f7f9;
+          border: none;
+          padding: 12px;
+          border-radius: 50%;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          width: 48px;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        " onmouseover="this.style.background='#EA4335';this.querySelector('svg').style.fill='white'" onmouseout="this.style.background='#f6f7f9';this.querySelector('svg').style.fill='#666'">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" style="fill:#666;">
+            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+          </svg>
+        </button>
+        <button class="share-btn" onclick="copyLink()" style="
+          background: #f6f7f9;
+          border: none;
+          padding: 12px;
+          border-radius: 50%;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          width: 48px;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        " onmouseover="this.style.background='#666';this.querySelector('svg').style.fill='white'" onmouseout="this.style.background='#f6f7f9';this.querySelector('svg').style.fill='#666'">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" style="fill:#666;">
             <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
           </svg>
-          <span>링크 복사</span>
         </button>
       </div>
     </div>
@@ -3944,17 +4032,27 @@ const router = {
           }
         }, 100);
       } else if(prev.page === 'search') {
+        // 검색 페이지로 돌아가기 - History를 사용하지 않고 직접 처리
         const newUrl = `${window.location.origin}/search`;
-        history.pushState({page: 'search'}, '', newUrl);
-        openNavlessSearch(false);
+        // replaceState 대신 pushState를 사용하지 않음 (브라우저가 이미 처리)
+        window.history.replaceState({page: 'search', searchTerm: prev.searchTerm}, '', newUrl);
+        
+        // 검색 오버레이 다시 활성화
+        const searchOverlay = document.getElementById('searchOverlay');
+        searchOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // 검색어 복원
         if(prev.searchTerm) {
-          setTimeout(() => {
-            const searchInput = document.getElementById('searchInput');
-            if(searchInput) {
-              searchInput.value = prev.searchTerm;
+          const searchInput = document.getElementById('searchInput');
+          if(searchInput) {
+            searchInput.value = prev.searchTerm;
+            // 검색 결과가 이미 있는지 확인
+            const searchResults = document.getElementById('searchResults');
+            if(!searchResults.children.length) {
               performSearch(prev.searchTerm, 'fullSearch');
             }
-          }, 100);
+          }
         }
       } else if(prev.page === 'about') {
         const newUrl = `${window.location.origin}${window.location.pathname}?page=about`;
@@ -3989,6 +4087,7 @@ const router = {
         }
       }
     } else {
+      // 기본 동작: 브라우저의 뒤로가기 사용
       history.back();
     }
   },
@@ -4145,13 +4244,44 @@ async function performSearch(query, mode) {
           index === self.findIndex(p => p.id === post.id)
         );
 
-        // 검색 결과 개수 표시 (중앙 정렬, 큰 글씨, n에 하이라이트)
-        loadingEl.innerHTML = `<div style="text-align:center;margin:32px 0;"><span style="font-size:28px;font-weight:800;color:#000;"><span style="background:#ff6b35;color:#fff;padding:4px 12px;border-radius:6px;margin-right:4px;">${uniquePosts.length}</span>개의 검색 결과</span></div>`;
-        
-        // 다크모드 대응
-        if(document.body.classList.contains('dark-mode')) {
-          loadingEl.innerHTML = `<div style="text-align:center;margin:32px 0;"><span style="font-size:28px;font-weight:800;color:#fff;"><span style="background:#ff6b35;color:#fff;padding:4px 12px;border-radius:6px;margin-right:4px;">${uniquePosts.length}</span>개의 검색 결과</span></div>`;
-        }
+        // 검색 결과 개수 표시 - About 페이지처럼 화려한 스타일
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        loadingEl.innerHTML = `
+          <div style="text-align:center;margin:48px 0;">
+            <div style="display:inline-block;position:relative;">
+              <span style="font-size:42px;font-weight:900;color:${isDarkMode ? '#fff' : '#000'};letter-spacing:-0.5px;">
+                <span style="
+                  display:inline-block;
+                  background:linear-gradient(135deg,#ff6b35,#ff8c42);
+                  color:#fff;
+                  padding:8px 20px;
+                  border-radius:12px;
+                  margin-right:8px;
+                  box-shadow:0 4px 16px rgba(255,107,53,0.3);
+                  transform:translateY(-2px);
+                  animation:pulse 2s infinite;
+                ">${uniquePosts.length}</span>
+                <span style="display:inline-block;transform:translateY(2px);">개의 검색 결과</span>
+              </span>
+              <div style="
+                position:absolute;
+                bottom:-8px;
+                left:50%;
+                transform:translateX(-50%);
+                width:120px;
+                height:3px;
+                background:linear-gradient(90deg,transparent,#ff6b35,transparent);
+                border-radius:2px;
+              "></div>
+            </div>
+          </div>
+          <style>
+            @keyframes pulse {
+              0%, 100% { transform: translateY(-2px) scale(1); }
+              50% { transform: translateY(-2px) scale(1.05); }
+            }
+          </style>
+        `;
         
         // 페이지네이션 설정
         const itemsPerPage = 12;
@@ -4560,35 +4690,48 @@ window.addEventListener('popstate', async (e) => {
 
     router.openAbout(false);
     return;
-  } else if(pageParam === 'search') {
+  } else if(pageParam === 'search' || pathname === '/search') {
     // 게시물 오버레이가 활성화되어 있으면 먼저 닫기
     const postOverlay = document.getElementById('postOverlay');
     if(postOverlay.classList.contains('active')) {
       postOverlay.classList.remove('active');
+      document.getElementById('progressBar').classList.remove('active');
+      document.getElementById('postHeaderBar').classList.remove('show');
+      document.getElementById('postToTopBtn').classList.remove('show');
     }
     
-    // 모든 오버레이 닫기
-    document.querySelectorAll('.post-overlay, .about-page, .editors-overlay, .category-overlay').forEach(el => {
+    // 다른 오버레이 닫기
+    document.querySelectorAll('.about-page, .editors-overlay, .category-overlay').forEach(el => {
       el.classList.remove('active');
     });
-    document.getElementById('progressBar').classList.remove('active');
-    document.getElementById('postHeaderBar').classList.remove('show');
-    document.getElementById('postToTopBtn').classList.remove('show');
 
-    // 검색 오버레이 강제 활성화
+    // 검색 오버레이 활성화
     const searchOverlay = document.getElementById('searchOverlay');
-    searchOverlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    if(!searchOverlay.classList.contains('active')) {
+      searchOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
     
-    // 세션 스토리지에서 검색어 복원
+    // 세션 스토리지에서 검색어와 스크롤 위치 복원
     setTimeout(() => {
       const searchInput = document.getElementById('searchInput');
       if(searchInput) {
         try {
           const lastQuery = sessionStorage.getItem('lastSearchQuery');
+          const scrollPos = sessionStorage.getItem('searchScrollPosition');
+          
           if(lastQuery) {
             searchInput.value = lastQuery;
-            performSearch(lastQuery, 'fullSearch');
+            // 검색 결과가 아직 없으면 다시 검색
+            const searchResults = document.getElementById('searchResults');
+            if(!searchResults.children.length) {
+              performSearch(lastQuery, 'fullSearch');
+            }
+          }
+          
+          // 스크롤 위치 복원
+          if(scrollPos && searchOverlay) {
+            searchOverlay.scrollTop = parseInt(scrollPos);
           }
         } catch(e) {
           console.error('sessionStorage access failed:', e);
@@ -4889,6 +5032,18 @@ function shareToTwitter() {
   const url = encodeURIComponent(window.location.href);
   const text = encodeURIComponent(document.title);
   window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', 'width=600,height=400');
+}
+
+function shareToLinkedIn() {
+  const url = encodeURIComponent(window.location.href);
+  window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank', 'width=600,height=400');
+}
+
+function shareEmail() {
+  const url = window.location.href;
+  const title = document.title;
+  const body = `${title}\n\n${url}`;
+  window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
 }
 
 function shareToKakao() {
