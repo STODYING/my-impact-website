@@ -3767,7 +3767,7 @@ const router = {
           }
         }, 100);
       } else if(prev.page === 'search') {
-        const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
+        const newUrl = `${window.location.origin}/search`;
         history.pushState({page: 'search'}, '', newUrl);
         openNavlessSearch(false);
         if(prev.searchTerm) {
@@ -3902,7 +3902,7 @@ async function openNavlessSearch(updateURL = true) {
   
   document.getElementById('searchInput').focus();
   if(updateURL) {
-    const newUrl = `${window.location.origin}${window.location.pathname}?page=search`;
+    const newUrl = `${window.location.origin}/search`;
     history.pushState({page:'search'}, '', newUrl);
   }
 }
