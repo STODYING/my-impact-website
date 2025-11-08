@@ -485,11 +485,11 @@
     right: 24px;
     background: none;
     border: none;
-    font-size: 32px;
+    font-size: 24px;
     cursor: pointer;
     color: #111;
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1675,7 +1675,7 @@
   }
 
   body.dark-mode .share-title {
-    color: #f5f5f5;
+    color: #ffffff !important;
   }
 
   .share-buttons {
@@ -3637,7 +3637,7 @@ async function renderPostOverlay(post) {
         font-size: 20px;
         font-weight: 700;
         margin-bottom: 24px;
-        color: #333;
+        color: #000;
       ">아티클 공유</h3>
       <div class="share-buttons" style="
         display: flex;
@@ -4079,11 +4079,16 @@ const router = {
         searchOverlay.classList.add('active');
         document.body.style.overflow = 'hidden';
         
-        // 검색어와 스크롤 위치 복원
+        // 검색어와 결과 복원
         if(prev.searchTerm) {
           const searchInput = document.getElementById('searchInput');
           if(searchInput) {
             searchInput.value = prev.searchTerm;
+            // 검색 결과 다시 실행 (결과가 없으면)
+            const searchResults = document.getElementById('searchResults');
+            if(!searchResults.children.length) {
+              performSearch(prev.searchTerm, 'fullSearch');
+            }
           }
         }
         
@@ -4093,7 +4098,7 @@ const router = {
           if(scrollPos) {
             setTimeout(() => {
               searchOverlay.scrollTop = parseInt(scrollPos);
-            }, 100);
+            }, 150);
           }
         } catch(e) {
           console.error('sessionStorage error:', e);
@@ -4199,6 +4204,10 @@ const router = {
             const paginationDiv = document.createElement('div');
             paginationDiv.className = 'pagination';
             paginationDiv.id = 'editorPagination';
+            paginationDiv.style.width = '100%';
+            paginationDiv.style.display = 'flex';
+            paginationDiv.style.justifyContent = 'center';
+            paginationDiv.style.marginTop = '40px';
             
             // 이전 버튼
             const prevBtn = document.createElement('button');
@@ -4297,10 +4306,11 @@ async function openNavlessSearch(updateURL = true) {
   document.getElementById('searchInput').value = '';
   document.getElementById('searchResults').innerHTML = '';
   document.getElementById('searchLoading').textContent = '';
-  // 페이지네이션도 완전히 초기화
-  const existingPagination = document.querySelector('#searchResults .pagination');
-  if (existingPagination) {
-    existingPagination.remove();
+  
+  // 페이지네이션 컨테이너도 완전히 초기화
+  const paginationContainer = document.getElementById('searchPagination');
+  if(paginationContainer) {
+    paginationContainer.innerHTML = '';
   }
   
   // [IMPACT-LOADING] 완료 후 스크롤 리셋 및 로딩 해제
@@ -4380,8 +4390,8 @@ async function performSearch(query, mode) {
         const isDarkMode = document.body.classList.contains('dark-mode');
         loadingEl.innerHTML = `
           <div style="display:flex;justify-content:center;align-items:center;margin:32px 0;text-align:center;">
-            <span style="font-size:18px;color:${isDarkMode ? '#e8e8e8' : '#666'};">
-              <strong style="color:#ff6b35;font-weight:700;">'${query}'</strong>에 대한 검색 결과 : <span style="color:#ff6b35;font-weight:700;">${uniquePosts.length}</span>개
+            <span style="font-size:18px;font-weight:700;color:${isDarkMode ? '#e8e8e8' : '#000'};">
+              '<strong style="font-weight:900;color:#ff6b35;">${query}</strong>'-에 대한 검색 결과 : <strong style="font-weight:900;color:#ff6b35;">${uniquePosts.length}개</strong>
             </span>
           </div>
         `;
