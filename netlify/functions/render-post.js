@@ -1,7 +1,7 @@
 // Netlify Function: SSR for WordPress post pages
 import fetch from "node-fetch";
 
-const SITE = "https://당신의도메인";                 // 예: https://impactceo.art
+const SITE = "https://impactceo.art";                 // 예: https://impactceo.art
 const WP   = "https://impactceo0.wordpress.com";      // 당신의 WP 기본 URL
 
 export async function handler(event) {
