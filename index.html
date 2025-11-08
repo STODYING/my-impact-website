@@ -32,6 +32,7 @@
     gtag('config', 'G-D0DVTWYNGN');
   </script>
   <link rel="icon" href="logo.png" type="image/png">
+  <link rel="shortcut icon" href="logo.png" type="image/png">
   <link rel="apple-touch-icon" href="logo.png">
   <link rel="apple-touch-icon" sizes="152x152" href="logo.png">
   <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
@@ -480,15 +481,15 @@
   .nav-overlay.active { transform: translateX(0); }
   .nav-close {
     position: absolute;
-    top: 20px;
-    right: 16px;
+    top: 32px;
+    right: 28px;
     background: none;
     border: none;
-    font-size: 32px;
+    font-size: 24px;
     cursor: pointer;
     color: #111;
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3456,6 +3457,15 @@ async function openPostOverlayById(id, updateURL = true) {
     } else if(currentPage === 'search') {
       previousState.page = 'search';
       previousState.searchTerm = document.getElementById('searchInput')?.value || '';
+      // 검색 오버레이 스크롤 위치 저장
+      const searchOverlay = document.getElementById('searchOverlay');
+      if(searchOverlay) {
+        try {
+          sessionStorage.setItem('searchScrollPosition', searchOverlay.scrollTop.toString());
+        } catch(e) {
+          console.error('sessionStorage error:', e);
+        }
+      }
     } else if(currentPage === 'about') {
       previousState.page = 'about';
     } else if(currentPage === 'editors') {
@@ -3829,6 +3839,9 @@ async function renderPostOverlay(post) {
           slug: authorData.slug || ''
         }, true);
         
+        // 타이틀 즉시 변경
+        document.title = 'EDITORS - IMPACT';
+        
         // [IMPACT-LOADING] 완료 후 스크롤 리셋 및 로딩 해제
         resetScrollTop('editors');
         await nextFrame();
@@ -3884,7 +3897,8 @@ const router = {
   openCategory: (slug, updateURL = true) => {
     // [IMPACT-LOADING] 즉시 로딩 표시
     openLoading('카테고리를 불러오는 중...');
-    loadCategory(slug, 1);
+    
+    // 타이틀 즉시 변경 (로딩 전에)
     if(updateURL) {
       const newUrl = `${window.location.origin}/category/${slug}`;
       history.pushState({page:'category', slug:slug}, '', newUrl);
@@ -3906,16 +3920,18 @@ const router = {
       // 네비게이션 리스트 업데이트 (현재 페이지 강조 표시)
       renderNavList();
     }
+    
+    loadCategory(slug, 1);
   },
   closeCategory: async () => {
+    // 메타태그 즉시 복원
+    updateMetaTags({});
+    updateStructuredData(null);
+    
     document.getElementById('categoryOverlay').classList.remove('active');
     document.body.style.overflow = '';
     const newUrl = `${window.location.origin}/`;
     history.pushState({page:'home'}, '', newUrl);
-    
-    // 메타태그 복원
-    updateMetaTags({});
-    updateStructuredData(null);
     
     // 네비게이션 리스트 업데이트 (현재 페이지 강조 해제)
     renderNavList();
@@ -3936,6 +3952,17 @@ const router = {
     // [IMPACT-LOADING] 즉시 로딩 표시
     openLoading('에디터 목록을 불러오는 중...');
     
+    // 타이틀 즉시 변경 (로딩 전에)
+    if(updateURL) {
+      const newUrl = `${window.location.origin}/editors`;
+      history.pushState({page:'editors'}, '', newUrl);
+      updateMetaTags({
+        title: 'EDITORS - IMPACT',
+        description: 'IMPACT에 참여하는 에디터 목록과 각 에디터의 작성 글을 확인할 수 있습니다.',
+        url: newUrl
+      });
+    }
+    
     // 수정됨: EDITORS 페이지 열기 전에 먼저 스크롤 리셋
     const editorsOverlay = document.getElementById('editorsOverlay');
     editorsOverlay.scrollTop = 0;
@@ -3950,18 +3977,12 @@ const router = {
     resetScrollTop('editors');
     await nextFrame();
     closeLoading();
-    
-    if(updateURL) {
-      const newUrl = `${window.location.origin}/editors`;
-      history.pushState({page:'editors'}, '', newUrl);
-      updateMetaTags({
-        title: 'EDITORS - IMPACT',
-        description: 'IMPACT에 참여하는 에디터 목록과 각 에디터의 작성 글을 확인할 수 있습니다.',
-        url: newUrl
-      });
-    }
   },
   closeEditors: async (resetView = true) => {
+    // 메타태그 즉시 복원
+    updateMetaTags({});
+    updateStructuredData(null);
+    
     // resetView가 true이면 에디터 목록 뷰로 복귀
     if(resetView) {
       document.getElementById('editorProfileSection').style.display = 'none';
@@ -3974,10 +3995,6 @@ const router = {
     document.body.style.overflow = '';
     const newUrl = `${window.location.origin}/`;
     history.pushState({page:'home'}, '', newUrl);
-    
-    // 메타태그 복원
-    updateMetaTags({});
-    updateStructuredData(null);
     
     // 수정됨: 메인 홈이 로드되지 않았다면 즉시 로드 및 로딩 표시
     const container = document.getElementById('rowsContainer');
@@ -3995,6 +4012,17 @@ const router = {
     // [IMPACT-LOADING] 즉시 로딩 표시
     openLoading('ABOUT 페이지를 불러오는 중...');
     
+    // 타이틀 즉시 변경 (로딩 전에)
+    if(updateURL) {
+      const newUrl = `${window.location.origin}/about`;
+      history.pushState({page:'about'}, '', newUrl);
+      updateMetaTags({
+        title: 'ABOUT - IMPACT',
+        description: 'IMPACT에 대해 알아보고 우리의 비전과 목표를 확인하세요.',
+        url: newUrl
+      });
+    }
+    
     // 수정됨: ABOUT 페이지 열기 전에 먼저 스크롤 리셋
     const aboutPage = document.getElementById('aboutPage');
     aboutPage.scrollTop = 0;
@@ -4007,18 +4035,12 @@ const router = {
     resetScrollTop('about');
     await nextFrame();
     closeLoading();
-    
-    if(updateURL) {
-      const newUrl = `${window.location.origin}/about`;
-      history.pushState({page:'about'}, '', newUrl);
-      updateMetaTags({
-        title: 'ABOUT - IMPACT',
-        description: 'IMPACT에 대해 알아보고 우리의 비전과 목표를 확인하세요.',
-        url: newUrl
-      });
-    }
   },
   closeAbout: async () => {
+    // 메타태그 즉시 복원
+    updateMetaTags({});
+    updateStructuredData(null);
+    
     const aboutPage = document.getElementById('aboutPage');
     aboutPage.classList.remove('active');
     // 어바웃 페이지 스크롤 위치 초기화
@@ -4026,10 +4048,6 @@ const router = {
     document.body.style.overflow = '';
     const newUrl = `${window.location.origin}/`;
     history.pushState({page:'home'}, '', newUrl);
-    
-    // 메타태그 복원
-    updateMetaTags({});
-    updateStructuredData(null);
     
     // 수정됨: 메인 홈이 로드되지 않았다면 즉시 로드 및 로딩 표시
     const container = document.getElementById('rowsContainer');
@@ -4320,9 +4338,17 @@ async function openNavlessSearch(updateURL = true) {
   if(updateURL) {
     const newUrl = `${window.location.origin}/search`;
     history.pushState({page:'search'}, '', newUrl);
+    updateMetaTags({
+      title: 'SEARCH - IMPACT',
+      description: 'IMPACT 게시물을 검색하세요.',
+      url: newUrl
+    });
   }
 }
 async function closeSearch() {
+  // 메타태그 즉시 복원
+  updateMetaTags({});
+  
   document.getElementById('searchOverlay').classList.remove('active');
   document.body.style.overflow = '';
   document.getElementById('searchResults').innerHTML = '';
