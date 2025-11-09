@@ -24,8 +24,14 @@
   
   <!-- Canonical URL for SEO -->
   <link rel="canonical" href="https://impactceo.art/" id="canonicalUrl">
+  
+  <!-- DNS Prefetch for external resources -->
+  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
 
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-D0DVTWYNGN"></script>
+  <!-- Google Analytics - Optimized with defer -->
+  <script defer src="https://www.googletagmanager.com/gtag/js?id=G-D0DVTWYNGN"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
@@ -59,7 +65,8 @@
   <meta name="apple-mobile-web-app-title" content="IMPACT">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet"></noscript>
   <style>
   *, *::before, *::after { box-sizing: border-box; }
   html, body { height: 100%; }
@@ -4905,84 +4912,114 @@ window.addEventListener('popstate', async (e) => {
   }
 });
 
-document.getElementById('imageModal').addEventListener('click', (e) => {
-  if(e.target.id === 'imageModal' || e.target.classList.contains('image-modal')) {
-    closeImageModal();
-  }
-});
-
-document.addEventListener('DOMContentLoaded', async () => {
-  renderNavList();
-
-  const loadingEl = document.getElementById('homeLoading');
-  loadingEl.textContent = '페이지를 불러오는 중...';
-
-  // 수정됨: 새로고침 시 항상 메인 콘텐츠를 미리 로드
-  // 메인 홈 콘텐츠를 백그라운드로 로드
-  const loadHomeInBackground = async () => {
-    try {
-      await loadHomeChunk(1);
-      console.log('Home loaded successfully in background');
-    } catch(err) {
-      console.error('Background home loading failed:', err);
+// 즉시 실행: 초기 로딩 최적화를 위해 DOMContentLoaded 제거
+(function() {
+  // DOM 준비 체크 함수
+  function ready(fn) {
+    if (document.readyState !== 'loading') {
+      fn();
+    } else {
+      document.addEventListener('DOMContentLoaded', fn);
     }
-  };
-
-  // 중요: await를 사용하여 checkURLAndLoadPost의 결과를 기다림
-  const hasSpecificPage = await checkURLAndLoadPost();
-
-  if(!hasSpecificPage) {
-    // 메인 페이지인 경우 즉시 로드
-    loadHomeChunk(1)
-      .then(() => {
-        console.log('Home loaded successfully');
-      })
-      .catch((err) => {
-        console.error('Home loading failed:', err);
-        loadingEl.textContent = '페이지를 불러오지 못했습니다. 새로고침을 시도해주세요.';
+  }
+  
+  // 이미지 모달 이벤트는 DOM이 준비된 후 등록
+  ready(() => {
+    const imageModal = document.getElementById('imageModal');
+    if (imageModal) {
+      imageModal.addEventListener('click', (e) => {
+        if(e.target.id === 'imageModal' || e.target.classList.contains('image-modal')) {
+          closeImageModal();
+        }
       });
-  } else {
-    // 수정됨: 서브 페이지에서 시작한 경우도 백그라운드로 메인 콘텐츠 로드
-    loadingEl.textContent = '';
-    // 약간의 디레이 후 백그라운드로 메인 콘텐츠 로드
+    }
+  });
+  
+  // 초기 로딩 로직 - 즉시 실행
+  ready(async () => {
+    renderNavList();
+
+    const loadingEl = document.getElementById('homeLoading');
+    if (loadingEl) {
+      loadingEl.textContent = '페이지를 불러오는 중...';
+    }
+
+    // 수정됨: 새로고침 시 항상 메인 콘텐츠를 미리 로드
+    // 메인 홈 콘텐츠를 백그라운드로 로드
+    const loadHomeInBackground = async () => {
+      try {
+        await loadHomeChunk(1);
+        console.log('Home loaded successfully in background');
+      } catch(err) {
+        console.error('Background home loading failed:', err);
+      }
+    };
+
+    // 중요: await를 사용하여 checkURLAndLoadPost의 결과를 기다림
+    const hasSpecificPage = await checkURLAndLoadPost();
+
+    if(!hasSpecificPage) {
+      // 메인 페이지인 경우 즉시 로드
+      loadHomeChunk(1)
+        .then(() => {
+          console.log('Home loaded successfully');
+        })
+        .catch((err) => {
+          console.error('Home loading failed:', err);
+          if (loadingEl) {
+            loadingEl.textContent = '페이지를 불러오지 못했습니다. 새로고침을 시도해주세요.';
+          }
+        });
+    } else {
+      // 수정됨: 서브 페이지에서 시작한 경우도 백그라운드로 메인 콘텐츠 로드
+      if (loadingEl) {
+        loadingEl.textContent = '';
+      }
+      // 약간의 디레이 후 백그라운드로 메인 콘텐츠 로드
+      setTimeout(() => {
+        loadHomeInBackground();
+      }, 1000);
+    }
+    
+    // 리사이즈 및 키보드 이벤트는 지연 등록하여 초기 로딩 최적화
     setTimeout(() => {
-      loadHomeInBackground();
-    }, 1000);
-  }
-});
-let resizeTimeout;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimeout);
-  resizeTimeout = setTimeout(() => {
-    if(!document.getElementById('categoryOverlay').classList.contains('active') &&
-       !document.getElementById('postOverlay').classList.contains('active') &&
-       !document.getElementById('searchOverlay').classList.contains('active') &&
-       !document.getElementById('aboutPage').classList.contains('active') &&
-       !document.getElementById('editorsOverlay').classList.contains('active')) {
-      state.homeLoadPromise = null;
-      loadHomeChunk(state.homePage || 1);
-    }
-  }, 300);
-});
-document.addEventListener('keydown', (e) => {
-  if(e.key === 'Escape') {
-    if(document.getElementById('imageModal').classList.contains('active')) {
-      closeImageModal();
-    } else if(document.getElementById('postOverlay').classList.contains('active')) {
-      router.closePost();
-    } else if(document.getElementById('searchOverlay').classList.contains('active')) {
-      closeSearch();
-    } else if(document.getElementById('categoryOverlay').classList.contains('active')) {
-      router.closeCategory();
-    } else if(document.getElementById('editorsOverlay').classList.contains('active')) {
-      router.closeEditors();
-    } else if(document.getElementById('aboutPage').classList.contains('active')) {
-      router.closeAbout();
-    } else if(document.getElementById('navOverlay').classList.contains('active')) {
-      ui.toggleNav(true);
-    }
-  }
-});
+      let resizeTimeout;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          if(!document.getElementById('categoryOverlay').classList.contains('active') &&
+             !document.getElementById('postOverlay').classList.contains('active') &&
+             !document.getElementById('searchOverlay').classList.contains('active') &&
+             !document.getElementById('aboutPage').classList.contains('active') &&
+             !document.getElementById('editorsOverlay').classList.contains('active')) {
+            state.homeLoadPromise = null;
+            loadHomeChunk(state.homePage || 1);
+          }
+        }, 300);
+      });
+      
+      document.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape') {
+          if(document.getElementById('imageModal').classList.contains('active')) {
+            closeImageModal();
+          } else if(document.getElementById('postOverlay').classList.contains('active')) {
+            router.closePost();
+          } else if(document.getElementById('searchOverlay').classList.contains('active')) {
+            closeSearch();
+          } else if(document.getElementById('categoryOverlay').classList.contains('active')) {
+            router.closeCategory();
+          } else if(document.getElementById('editorsOverlay').classList.contains('active')) {
+            router.closeEditors();
+          } else if(document.getElementById('aboutPage').classList.contains('active')) {
+            router.closeAbout();
+          } else if(document.getElementById('navOverlay').classList.contains('active')) {
+            ui.toggleNav(true);
+          }
+        }
+      });
+    }, 100);
+  });
+})();
 
 // 검색 기능 개선: 중복 제거 및 키워드 매칭 정확도 향상
 function performSearch(query, source = 'overlay') {
@@ -5445,12 +5482,14 @@ async function handleInitialRoute() {
   loadHomeChunk(1);
 }
 
-// 페이지 로드 완료 시 초기 라우팅 실행
-if(document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', handleInitialRoute);
-} else {
-  handleInitialRoute();
-}
+// 페이지 로드 완료 시 초기 라우팅 실행 - 최적화: 즉시 실행
+(function() {
+  if(document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', handleInitialRoute);
+  } else {
+    handleInitialRoute();
+  }
+})();
 </script>
 </body>
 </html>
