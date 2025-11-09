@@ -25,33 +25,24 @@
   <!-- Canonical URL for SEO -->
   <link rel="canonical" href="https://impactceo.art/" id="canonicalUrl">
   
-  <!-- DNS Prefetch for external resources -->
+  <!-- 최적화된 리소스 힌트 -->
+  <link rel="preconnect" href="https://www.googletagmanager.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://fonts.googleapis.com">
-  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
 
-  <!-- Google Analytics - Optimized with defer -->
-  <script defer src="https://www.googletagmanager.com/gtag/js?id=G-D0DVTWYNGN"></script>
+  <!-- Google Analytics - 비동기 로딩 최적화 -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', 'G-D0DVTWYNGN');
   </script>
-  <!-- 표준 파비콘 (브라우저 탭용) -->
-  <link rel="icon" type="image/png" sizes="32x32" href="/logo.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/logo.png">
-  <link rel="shortcut icon" href="/logo.png" type="image/png">
-
-  <!-- 웨일/안드로이드/크롬 -->
-  <link rel="icon" type="image/png" sizes="192x192" href="/logo.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="/logo.png">
-
-  <!-- Apple Touch Icons -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-D0DVTWYNGN"></script>
+  <!-- ⚡ 최적화된 파비콘 -->
+  <link rel="icon" type="image/png" href="/logo.png">
   <link rel="apple-touch-icon" href="/logo.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/logo.png">
-  <link rel="apple-touch-icon" sizes="167x167" href="/logo.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="/logo.png">
 
   <!-- Microsoft -->
   <meta name="msapplication-TileImage" content="/logo.png">
@@ -63,10 +54,18 @@
 
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="IMPACT">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <!-- 폰트 최적화: font-display swap으로 FOIT 방지 -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet"></noscript>
+  
+  <!-- ⚡ Critical CSS: Above-the-fold 최적화 -->
+  <style>
+  /* Critical: 페이지 로딩 스피너 */
+  .page-transition{position:fixed;top:0;left:0;right:0;bottom:0;background:#f6f7f9;z-index:10001;opacity:0;pointer-events:none;transition:opacity .3s ease;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:500;color:#111}
+  .page-transition.active{opacity:1;pointer-events:all}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+  
   <style>
   *, *::before, *::after { box-sizing: border-box; }
   html, body { height: 100%; }
@@ -1826,15 +1825,57 @@
     color: #fff;
   }
   </style>
+  
+  <!-- ⚡ 성능 최적화: 리소스 우선순위 힌트 -->
+  <link rel="preload" as="image" href="/logo.png" type="image/png">
 </head>
 <body>
+  <!-- ⚡ 성능 최적화: 초기 로딩 스크립트 -->
+  <script>
+    // 페이지 로드 시간 측정
+    window.performanceMetrics = {
+      start: performance.now(),
+      fcp: 0,
+      lcp: 0
+    };
+    
+    // First Contentful Paint 감지
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (entry.name === 'first-contentful-paint') {
+          window.performanceMetrics.fcp = entry.startTime;
+          console.log('⚡ FCP:', entry.startTime.toFixed(2), 'ms');
+        }
+      }
+    }).observe({ entryTypes: ['paint'] });
+    
+    // Largest Contentful Paint 감지
+    new PerformanceObserver((list) => {
+      const entries = list.getEntries();
+      const lastEntry = entries[entries.length - 1];
+      window.performanceMetrics.lcp = lastEntry.startTime;
+      console.log('⚡ LCP:', lastEntry.startTime.toFixed(2), 'ms');
+    }).observe({ entryTypes: ['largest-contentful-paint'] });
+    
+    // Cumulative Layout Shift 감지
+    let clsScore = 0;
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (!entry.hadRecentInput) {
+          clsScore += entry.value;
+          console.log('⚡ CLS:', clsScore.toFixed(3));
+        }
+      }
+    }).observe({ entryTypes: ['layout-shift'] });
+  </script>
+  
   <div class="page-transition" id="pageTransition"></div>
   <div class="progress-bar" id="progressBar"></div>
   <header class="header" id="siteHeader">
     <div class="header-inner wrap">
       <div class="brand">
         <div class="logo" id="logoBtn" onclick="goToHome()">
-          <img src="/logo.png" alt="IMPACT logo" style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
+          <img src="/logo.png" alt="IMPACT logo" width="36" height="36" style="width:36px;height:36px;border-radius:8px;object-fit:cover;" fetchpriority="high">
           <div class="logo-text">
             <div class="main-text">IMPACT</div>
             <small>MAKE A IMPACT</small>
@@ -5490,6 +5531,68 @@ async function handleInitialRoute() {
     handleInitialRoute();
   }
 })();
+
+// ⚡ 성능 최적화: 이미지 lazy loading 강화
+if ('loading' in HTMLImageElement.prototype) {
+  const images = document.querySelectorAll('img[data-src]');
+  images.forEach(img => {
+    img.src = img.dataset.src;
+  });
+} else {
+  // Lazy loading polyfill for older browsers
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.3.2/lazysizes.min.js';
+  document.body.appendChild(script);
+}
+
+// ⚡ 성능 최적화: Intersection Observer로 이미지 지연 로딩
+const imageObserver = new IntersectionObserver((entries, observer) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const img = entry.target;
+      if (img.dataset.src) {
+        img.src = img.dataset.src;
+        img.removeAttribute('data-src');
+        observer.unobserve(img);
+      }
+    }
+  });
+}, { rootMargin: '50px' });
+
+// MutationObserver로 동적으로 추가되는 이미지 감시
+const mutationObserver = new MutationObserver((mutations) => {
+  mutations.forEach((mutation) => {
+    mutation.addedNodes.forEach((node) => {
+      if (node.tagName === 'IMG' && node.dataset.src) {
+        imageObserver.observe(node);
+      }
+      if (node.querySelectorAll) {
+        node.querySelectorAll('img[data-src]').forEach(img => {
+          imageObserver.observe(img);
+        });
+      }
+    });
+  });
+});
+
+mutationObserver.observe(document.body, {
+  childList: true,
+  subtree: true
+});
+
+// ⚡ 성능 최적화: 리소스 힌트 추가
+const resourceHints = [
+  { rel: 'dns-prefetch', href: 'https://impactceo.art' },
+  { rel: 'preconnect', href: 'https://impactceo.art' }
+];
+
+resourceHints.forEach(hint => {
+  const link = document.createElement('link');
+  link.rel = hint.rel;
+  link.href = hint.href;
+  if (hint.rel === 'preconnect') link.crossOrigin = '';
+  document.head.appendChild(link);
+});
 </script>
 </body>
 </html>
