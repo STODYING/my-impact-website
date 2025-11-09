@@ -8,7 +8,7 @@
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" id="ogType">
-  <meta property="og:url" content="https:///impactceo.art/" id="ogUrl">
+  <meta property="og:url" content="https://impactceo.art/" id="ogUrl">
   <meta property="og:title" content="IMPACT – MAKE A IMPACT" id="ogTitle">
   <meta property="og:description" content="Innovation Management Passion Acceleration Creativity Technology" id="ogDescription">
   <meta property="og:image" content="https://impactceo.art/logo.png" id="ogImage">
@@ -18,11 +18,11 @@
   <meta property="twitter:url" content="https://impactceo.art/" id="twitterUrl">
   <meta property="twitter:title" content="IMPACT – MAKE A IMPACT" id="twitterTitle">
   <meta property="twitter:description" content="Innovation Management Passion Acceleration Creativity Technology" id="twitterDescription">
-  <meta property="twitter:image" content="https://page.gensparksite.com/logo.png" id="twitterImage">
+  <meta property="twitter:image" content="https://impactceo.art/logo.png" id="twitterImage">
   <meta name="naver-site-verification" content="75a4e73cbf2b7f3acb2c71fac1ea821a9c13ae85" />
   
   <!-- Canonical URL for SEO -->
-  <link rel="canonical" href="https://page.gensparksite.com/" id="canonicalUrl">
+  <link rel="canonical" href="https://impactceo.art/" id="canonicalUrl">
 
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-D0DVTWYNGN"></script>
   <script>
@@ -37,6 +37,12 @@
   <link rel="apple-touch-icon" sizes="152x152" href="/logo.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/logo.png">
   <link rel="apple-touch-icon" sizes="167x167" href="/logo.png">
+  
+  <!-- 네이버 웨일 브라우저용 아이콘 -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/logo.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/logo.png">
+  <meta name="msapplication-TileImage" content="/logo.png">
+  <meta name="theme-color" content="#ffffff">
 
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="IMPACT">
@@ -1758,6 +1764,8 @@
       flex: 1;
       min-width: calc(50% - 6px);
       justify-content: center;
+      aspect-ratio: auto;
+      padding: 12px 20px;
     }
   }
   
@@ -5123,8 +5131,21 @@ function performSearch(query, source = 'overlay') {
 function shareToFacebook() {
   const url = encodeURIComponent(window.location.href);
   const title = encodeURIComponent(document.querySelector('.post-info h1')?.textContent || document.title);
-  // 페이스북 공유 대화상자 - quote 파라미터를 사용하여 제목 포함
-  window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${title}`, '_blank', 'width=600,height=400');
+  
+  // 모바일 디바이스 감지
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  
+  if (isMobile) {
+    // 모바일에서는 페이스북 앱 딥링크 시도 후 웹으로 폴백
+    const fbAppUrl = `fb://facewebmodal/f?href=https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${title}`;
+    const fbWebUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${title}`;
+    
+    // 현재 창에서 열기 (모바일에서 더 안정적)
+    window.location.href = fbWebUrl;
+  } else {
+    // 데스크톱에서는 팝업 사용
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${title}`, '_blank', 'width=600,height=400');
+  }
 }
 
 function shareToTwitter() {
