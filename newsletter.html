@@ -42,10 +42,6 @@
       overscroll-behavior-y: contain;
       -webkit-tap-highlight-color: transparent;
       transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
     }
 
     body.dark-mode {
@@ -68,6 +64,18 @@
       border-bottom: 1px solid rgba(0,0,0,0.06);
       backdrop-filter: blur(10px);
       transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+      animation: slideDown 0.6s ease-out;
+    }
+    
+    @keyframes slideDown {
+      from {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
     
     body.dark-mode .header {
@@ -97,7 +105,7 @@
       letter-spacing: 1px;
       color: #111;
       cursor: pointer;
-      transition: opacity 0.2s ease;
+      transition: all 0.3s ease;
     }
     
     body.dark-mode .brand .logo {
@@ -106,6 +114,7 @@
     
     .brand .logo:hover {
       opacity: 0.7;
+      transform: translateY(-2px);
     }
     
     .brand .logo .logo-text {
@@ -135,20 +144,74 @@
       margin-top: 120px;
       padding-bottom: 80px;
       min-height: calc(100vh - 200px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
     
-    .newsletter-container {
-      max-width: 600px;
-      width: 100%;
+    .newsletter-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      animation: fadeInUp 0.8s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .newsletter-info {
       background: #fff;
       border-radius: 16px;
       padding: 48px 40px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.08);
       border: 1px solid rgba(0,0,0,0.06);
       transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: fadeInLeft 0.8s ease-out 0.2s both;
+    }
+    
+    @keyframes fadeInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    body.dark-mode .newsletter-info {
+      background: #1a1a1a;
+      border-color: rgba(255,255,255,0.12);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    
+    .newsletter-container {
+      background: #fff;
+      border-radius: 16px;
+      padding: 48px 40px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      border: 1px solid rgba(0,0,0,0.06);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: fadeInRight 0.8s ease-out 0.4s both;
+    }
+    
+    @keyframes fadeInRight {
+      from {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
     
     body.dark-mode .newsletter-container {
@@ -157,16 +220,28 @@
       box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     }
     
-    .newsletter-header {
-      text-align: center;
-      margin-bottom: 40px;
+    .newsletter-info:hover,
+    .newsletter-container:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    
+    body.dark-mode .newsletter-info:hover,
+    body.dark-mode .newsletter-container:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     }
     
     .newsletter-title {
       font-size: 32px;
       font-weight: 900;
-      margin: 0 0 12px;
+      margin: 0 0 20px;
       color: #111;
+      animation: fadeIn 1s ease-out 0.6s both;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     
     body.dark-mode .newsletter-title {
@@ -176,17 +251,107 @@
     .newsletter-subtitle {
       font-size: 16px;
       color: #666;
-      line-height: 1.6;
+      line-height: 1.8;
+      margin-bottom: 24px;
+      animation: fadeIn 1s ease-out 0.8s both;
     }
     
     body.dark-mode .newsletter-subtitle {
       color: #cccccc;
     }
     
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 32px 0 0 0;
+    }
+    
+    .feature-item {
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      font-size: 15px;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      opacity: 0;
+      animation: fadeInItem 0.6s ease-out forwards;
+    }
+    
+    .feature-item:nth-child(1) { animation-delay: 1s; }
+    .feature-item:nth-child(2) { animation-delay: 1.2s; }
+    .feature-item:nth-child(3) { animation-delay: 1.4s; }
+    .feature-item:nth-child(4) { animation-delay: 1.6s; }
+    
+    @keyframes fadeInItem {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .feature-item:last-child {
+      border-bottom: none;
+    }
+    
+    body.dark-mode .feature-item {
+      border-bottom-color: rgba(255,255,255,0.08);
+      color: #e8e8e8;
+    }
+    
+    .feature-icon {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, #ff6b35, #ff8c5a);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    
+    .form-header {
+      margin-bottom: 32px;
+    }
+    
+    .form-title {
+      font-size: 24px;
+      font-weight: 900;
+      margin: 0 0 8px;
+      color: #111;
+    }
+    
+    body.dark-mode .form-title {
+      color: #f5f5f5;
+    }
+    
+    .form-description {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    body.dark-mode .form-description {
+      color: #cccccc;
+    }
+    
     /* Form */
     .form-group {
       margin-bottom: 24px;
+      animation: fadeInUp 0.6s ease-out forwards;
+      opacity: 0;
     }
+    
+    .form-group:nth-child(1) { animation-delay: 1s; }
+    .form-group:nth-child(2) { animation-delay: 1.2s; }
+    .form-group:nth-child(3) { animation-delay: 1.4s; }
+    .form-group:nth-child(4) { animation-delay: 1.6s; }
     
     .form-label {
       display: block;
@@ -208,7 +373,7 @@
       border-radius: 10px;
       background: #f9f9f9;
       color: #111;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
       font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
     }
     
@@ -216,6 +381,8 @@
       outline: none;
       border-color: #ff6b35;
       background: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.15);
     }
     
     body.dark-mode .form-input {
@@ -227,6 +394,7 @@
     body.dark-mode .form-input:focus {
       background: #333;
       border-color: #ff8c5a;
+      box-shadow: 0 4px 12px rgba(255, 140, 90, 0.15);
     }
     
     .form-input::placeholder {
@@ -250,10 +418,19 @@
       cursor: pointer;
       font-size: 15px;
       color: #111;
+      transition: all 0.2s ease;
+    }
+    
+    .form-check-label:hover {
+      color: #ff6b35;
     }
     
     body.dark-mode .form-check-label {
       color: #e8e8e8;
+    }
+    
+    body.dark-mode .form-check-label:hover {
+      color: #ff8c5a;
     }
     
     .form-check-input {
@@ -261,6 +438,11 @@
       height: 20px;
       cursor: pointer;
       accent-color: #ff6b35;
+      transition: transform 0.2s ease;
+    }
+    
+    .form-check-input:hover {
+      transform: scale(1.1);
     }
     
     .btn {
@@ -271,7 +453,7 @@
       font-weight: 700;
       font-size: 14px;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       color: #111;
       font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
     }
@@ -291,6 +473,27 @@
       padding: 14px;
       font-size: 16px;
       margin-top: 8px;
+      animation: fadeInUp 0.6s ease-out 1.8s both;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn.primary::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    
+    .btn.primary:hover::before {
+      width: 300px;
+      height: 300px;
     }
     
     .btn:disabled {
@@ -315,11 +518,13 @@
       color: #666;
       font-size: 14px;
       text-decoration: underline;
-      transition: color 0.2s ease;
+      transition: all 0.3s ease;
+      animation: fadeIn 1s ease-out 2s both;
     }
     
     .terms-link:hover {
       color: #ff6b35;
+      transform: translateX(5px);
     }
     
     body.dark-mode .terms-link {
@@ -337,6 +542,18 @@
       text-align: center;
       font-weight: 600;
       display: none;
+      animation: slideInUp 0.4s ease-out;
+    }
+    
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
     
     .status-message.success {
@@ -372,6 +589,7 @@
       justify-content: center;
       padding: 20px;
       overflow-y: auto;
+      animation: fadeIn 0.3s ease-out;
     }
     
     .modal-overlay.active {
@@ -388,6 +606,18 @@
       max-height: 90vh;
       display: flex;
       flex-direction: column;
+      animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
     }
     
     body.dark-mode .modal-content {
@@ -429,7 +659,7 @@
       align-items: center;
       justify-content: center;
       border-radius: 50%;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
     }
     
     .modal-close:hover {
@@ -464,8 +694,12 @@
       cursor: pointer;
       color: #666;
       border-bottom: 3px solid transparent;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
       font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+    }
+    
+    .tab-button:hover {
+      background: rgba(0,0,0,0.02);
     }
     
     .tab-button.active {
@@ -475,6 +709,10 @@
     
     body.dark-mode .tab-button {
       color: #888;
+    }
+    
+    body.dark-mode .tab-button:hover {
+      background: rgba(255,255,255,0.05);
     }
     
     body.dark-mode .tab-button.active {
@@ -544,6 +782,14 @@
       font-size: 28px;
       font-weight: 900;
       margin-bottom: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-block;
+    }
+    
+    .footer-brand:hover {
+      color: #ff6b35;
+      transform: translateX(5px);
     }
     
     .footer-links {
@@ -560,6 +806,7 @@
     
     .footer-links a:hover {
       color: #ff6b35;
+      transform: translateX(5px);
     }
     
     .theme-toggle {
@@ -655,6 +902,11 @@
     
     /* Responsive */
     @media (max-width: 1100px) {
+      .newsletter-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+      
       .footer-inner {
         grid-template-columns: 1fr;
         gap: 32px;
@@ -667,6 +919,7 @@
         padding-bottom: 40px;
       }
       
+      .newsletter-info,
       .newsletter-container {
         padding: 32px 24px;
       }
@@ -707,7 +960,7 @@
   <header class="header">
     <div class="header-inner wrap">
       <div class="brand">
-        <a href="/" class="logo">
+        <a href="/" target="_blank" class="logo">
           <img src="/logo.png" alt="IMPACT logo" width="36" height="36" style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
           <div class="logo-text">
             <div class="main-text">IMPACT</div>
@@ -721,76 +974,104 @@
   <!-- Main Content -->
   <main class="main-content">
     <div class="wrap">
-      <div class="newsletter-container">
-        <div class="newsletter-header">
-          <h1 class="newsletter-title">IMPACT NEWSLETTER</h1>
+      <div class="newsletter-grid">
+        
+        <!-- 왼쪽: 설명 영역 -->
+        <div class="newsletter-info">
+          <h1 class="newsletter-title">Newsletter</h1>
           <p class="newsletter-subtitle">
-            IMPACT MAGAZINE의 게시물을 큐레이션하여 전달하는 뉴스레터입니다.<br>
-            사회 이슈를 깊이 있게 탐구하고, 인사이트를 얻어가세요.
+            최신 기술이 경제에 미치는 영향, 한국 상위 0.1% 이공계 전문가들이 매일 엄선한 보너스입니다. 엔비디아, MS, 메타, 애플, 구글, 테슬라, 삼성, 현대, 칩... 기술과 돈이 만나는 곳에 대한 ㅁㄱ다 인사이트를 경영에반영!
           </p>
+          
+          <ul class="feature-list">
+            <li class="feature-item">
+              <span class="feature-icon">✓</span>
+              <span>IMPACT MAGAZINE의 큐레이션 콘텐츠</span>
+            </li>
+            <li class="feature-item">
+              <span class="feature-icon">✓</span>
+              <span>주간 트렌드 분석 및 인사이트</span>
+            </li>
+            <li class="feature-item">
+              <span class="feature-icon">✓</span>
+              <span>독점 인터뷰 및 심층 리포트</span>
+            </li>
+            <li class="feature-item">
+              <span class="feature-icon">✓</span>
+              <span>구독자 전용 이벤트 및 혜택</span>
+            </li>
+          </ul>
         </div>
 
-        <!-- 구독 신청 폼 -->
-        <form id="newsletterForm">
-          
-          <div class="form-group">
-            <label for="nickname" class="form-label">닉네임 *</label>
-            <input type="text" id="nickname" name="nickname" required
-                  class="form-input"
-                  placeholder="사용하실 닉네임을 입력하세요">
+        <!-- 오른쪽: 구독 신청 폼 -->
+        <div class="newsletter-container">
+          <div class="form-header">
+            <h2 class="form-title">하이젠버그 무료 뉴스레터 구독하기</h2>
+            <p class="form-description">최신 소식을 이메일로 받아보세요</p>
           </div>
 
-          <div class="form-group">
-            <label for="email" class="form-label">이메일 주소 *</label>
-            <input type="email" id="email" name="email" required
-                  class="form-input"
-                  placeholder="example@email.com">
-          </div>
-
-          <!-- 개인정보 동의 (필수) -->
-          <div class="form-group">
-            <label class="form-label">개인정보 수집 및 이용 동의 *</label>
-            <div class="form-check-group">
-              <label class="form-check-label">
-                <input type="radio" name="privacy_consent" value="O" checked class="form-check-input">
-                <span>동의</span>
-              </label>
-              <label class="form-check-label">
-                <input type="radio" name="privacy_consent" value="X" class="form-check-input">
-                <span>비동의</span>
-              </label>
+          <form id="newsletterForm">
+            
+            <div class="form-group">
+              <label for="nickname" class="form-label">이메일 주소 *</label>
+              <input type="text" id="nickname" name="nickname" required
+                    class="form-input"
+                    placeholder="사용하실 닉네임을 입력하세요">
             </div>
-          </div>
 
-          <!-- 광고 수신 동의 (필수) -->
-          <div class="form-group">
-            <label class="form-label">광고 정보 수신 동의 *</label>
-            <div class="form-check-group">
-              <label class="form-check-label">
-                <input type="radio" name="ad_consent" value="O" checked class="form-check-input">
-                <span>동의</span>
-              </label>
-              <label class="form-check-label">
-                <input type="radio" name="ad_consent" value="X" class="form-check-input">
-                <span>비동의</span>
-              </label>
+            <div class="form-group">
+              <label for="email" class="form-label">이름</label>
+              <input type="email" id="email" name="email" required
+                    class="form-input"
+                    placeholder="example@email.com">
             </div>
-          </div>
-          
-          <button type="submit" id="submitButton" class="btn primary">
-            구독 신청하기
-          </button>
-        </form>
 
-        <!-- '이용 약관 및 이용방침' 버튼 -->
-        <div style="text-align: center;">
-          <button type="button" onclick="openModal()" class="terms-link">
-            이용 약관 및 개인정보처리방침 보기
-          </button>
+            <!-- 개인정보 동의 (필수) -->
+            <div class="form-group">
+              <label class="form-label">* 개인정보 수집 및 이용 방침 동의</label>
+              <div class="form-check-group">
+                <label class="form-check-label">
+                  <input type="radio" name="privacy_consent" value="O" checked class="form-check-input">
+                  <span>O (동의)</span>
+                </label>
+                <label class="form-check-label">
+                  <input type="radio" name="privacy_consent" value="X" class="form-check-input">
+                  <span>X (비동의)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 광고 수신 동의 (필수) -->
+            <div class="form-group">
+              <label class="form-label">* 광고 정보 수신 동의</label>
+              <div class="form-check-group">
+                <label class="form-check-label">
+                  <input type="radio" name="ad_consent" value="O" checked class="form-check-input">
+                  <span>O (동의)</span>
+                </label>
+                <label class="form-check-label">
+                  <input type="radio" name="ad_consent" value="X" class="form-check-input">
+                  <span>X (비동의)</span>
+                </label>
+              </div>
+            </div>
+            
+            <button type="submit" id="submitButton" class="btn primary">
+              구독하기
+            </button>
+          </form>
+
+          <!-- '이용 약관 및 이용방침' 버튼 -->
+          <div style="text-align: center;">
+            <button type="button" onclick="openModal()" class="terms-link">
+              이용 약관 및 개인정보처리방침 보기
+            </button>
+          </div>
+
+          <!-- 결과 메시지 표시 영역 -->
+          <div id="statusMessage" class="status-message"></div>
+
         </div>
-
-        <!-- 결과 메시지 표시 영역 -->
-        <div id="statusMessage" class="status-message"></div>
 
       </div>
     </div>
@@ -800,13 +1081,13 @@
   <footer class="site-footer">
     <div class="wrap footer-inner">
       <div>
-        <div class="footer-brand">IMPACT</div>
+        <div class="footer-brand" onclick="window.open('/', '_blank')">IMPACT</div>
         <div style="margin-top:12px;color:#ddd;font-size:14px">광고 문의 | <a href="mailto:welcome@impactceo.art">welcome@impactceo.art</a></div>
         <div style="color:#ddd;font-size:14px;margin-top:8px">뉴스레터 | <a href="mailto:press@impactceo.art">press@impactceo.art</a></div>
         <div style="color:#ddd;font-size:14px;margin-top:8px">공식 계정 | <a href="mailto:ceo@impactceo.art">ceo@impactceo.art</a></div>
       </div>
       <div class="footer-links">
-        <a href="/">MAGAZINE</a>
+        <a href="/" target="_blank">MAGAZINE</a>
         <a href="https://www.instagram.com/ceo_impact_official" target="_blank" rel="noopener">INSTAGRAM</a>
       </div>
       <div class="footer-right">
@@ -1125,7 +1406,7 @@
                 statusMessage.textContent = '❌ 구독 신청 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
             } finally {
                 submitButton.disabled = false;
-                submitButton.textContent = '구독 신청하기';
+                submitButton.textContent = '구독하기';
                 hideMessage();
             }
         });
