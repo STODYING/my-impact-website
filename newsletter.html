@@ -478,26 +478,6 @@
       font-size: 16px;
       margin-top: 8px;
       animation: fadeInUp 0.6s ease-out 1.8s both;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .btn.primary::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.3);
-      transform: translate(-50%, -50%);
-      transition: width 0.6s, height 0.6s;
-    }
-    
-    .btn.primary:hover::before {
-      width: 300px;
-      height: 300px;
     }
     
     .btn:disabled {
@@ -730,8 +710,8 @@
     
     .modal-body {
       padding: 28px;
-      overflow-y: visible; /* Remove scrolling from modal body */
-      max-height: none; /* Remove height constraint */
+      overflow-y: visible;
+      max-height: none;
       overscroll-behavior: contain;
       -webkit-overflow-scrolling: touch;
       padding-bottom: 40px;
@@ -750,7 +730,7 @@
       overscroll-behavior: contain;
       -webkit-overflow-scrolling: touch;
       padding-right: 10px;
-      max-height: 400px; /* Set a fixed height for individual scrolling */
+      max-height: 400px;
       padding-bottom: 20px;
       display: block;
     }
@@ -770,13 +750,6 @@
     #privacyContent::-webkit-scrollbar-thumb {
       background: rgba(0,0,0,0.3);
       border-radius: 3px;
-    }
-    
-    #termsContent:not(.hidden),
-    #privacyContent:not(.hidden) {
-      display: block !important;
-      position: static !important;
-      visibility: visible !important;
     }
     
     body.dark-mode #termsContent::-webkit-scrollbar-track,
@@ -807,7 +780,7 @@
     }
     
     .policy-content p:last-child {
-      margin-bottom: 20px; /* Ensure last paragraph has extra space */
+      margin-bottom: 20px;
     }
     
     body.dark-mode .policy-content p {
@@ -827,7 +800,7 @@
     }
     
     .policy-content li:last-child {
-      margin-bottom: 16px; /* Extra space for last list item */
+      margin-bottom: 16px;
     }
     
     body.dark-mode .policy-content li {
@@ -1015,15 +988,13 @@
     
     .hidden { 
       display: none !important; 
-      position: absolute !important; /* Prevent layout interference */
+      position: absolute !important;
       visibility: hidden !important;
     }
     
-    /* Hide scroll buttons */
     ::-webkit-scrollbar-button { display: none; }
     ::-webkit-scrollbar-corner { display: none; }
     
-    /* For Firefox */
     * { scrollbar-width: thin; }
   </style>
 </head>
@@ -1378,7 +1349,7 @@
         setTimeout(() => {
             statusMessage.className = 'status-message';
             statusMessage.textContent = '';
-        }, 5000);
+        }, 8000);
     };
 
     // Modal 열기
@@ -1403,7 +1374,6 @@
             tabTermsBtn.classList.add('active');
             tabPrivacyBtn.classList.remove('active');
             
-            // 스크롤 위치 초기화
             setTimeout(() => {
                 termsContent.scrollTop = 0;
             }, 10);
@@ -1414,7 +1384,6 @@
             tabPrivacyBtn.classList.add('active');
             tabTermsBtn.classList.remove('active');
             
-            // 스크롤 위치 초기화
             setTimeout(() => {
                 privacyContent.scrollTop = 0;
             }, 10);
