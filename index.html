@@ -105,7 +105,11 @@
   }
 
   body.dark-mode .card,
-  body.dark-mode .btn {
+  body.dark-mode .btn,
+  body.dark-mode .to-top,
+  body.dark-mode .nav-search,
+  body.dark-mode .search-bar,
+  body.dark-mode .editor-card {
     background: #1a1a1a;
     border-color: rgba(255,255,255,0.12);
     color: #e8e8e8;
@@ -138,11 +142,7 @@
     color: #e8e8e8;
   }
 
-  body.dark-mode .to-top {
-    background: #1a1a1a;
-    color: #e8e8e8;
-    border-color: rgba(255,255,255,0.12);
-  }
+  /* to-top 스타일은 위에서 통합됨 */
 
   body.dark-mode .post-content {
     color: #e8e8e8;
@@ -174,10 +174,7 @@
     background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
   }
 
-  body.dark-mode .nav-search {
-    background: #1a1a1a;
-  }
-
+  /* nav-search 배경은 위에서 통합됨 */
   body.dark-mode .nav-search input {
     color: #e8e8e8;
   }
@@ -186,10 +183,7 @@
     color: #e8e8e8;
   }
 
-  body.dark-mode .search-bar {
-    background: #1a1a1a;
-  }
-
+  /* search-bar 배경은 위에서 통합됨 */
   body.dark-mode .search-bar input[type="search"] {
     color: #e8e8e8;
   }
@@ -204,20 +198,7 @@
     color: #e8e8e8 !important;
   }
 
-  body.dark-mode .btn {
-    background: #1a1a1a;
-    color: #e8e8e8;
-    border-color: rgba(255,255,255,0.12);
-  }
-
-  body.dark-mode .btn:hover {
-    background: #252525;
-  }
-
-  body.dark-mode .editor-card {
-    background: #1a1a1a;
-    border-color: rgba(255,255,255,0.12);
-  }
+  /* btn, editor-card 스타일은 위에서 통합됨 */
 
   body.dark-mode .page-header {
     border-bottom-color: rgba(255,255,255,0.08);
@@ -621,7 +602,7 @@
 
   .magazine-row {
     display: grid;
-    grid-template-columns: 1.2fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 20px;
     margin-bottom: 28px;
     max-width: 100%;
@@ -636,7 +617,7 @@
   }
 
   .magazine-row.reverse {
-    grid-template-columns: 1fr 1.2fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .magazine-large {
@@ -1018,27 +999,29 @@
     transform: scale(1.02);
   }
   
-  /* 유튜브 임베드 반응형 스타일 */
+  /* 유튜브 임베드 반응형 스타일 - 전체 너비 사용 */
   .post-content iframe[src*="youtube.com"],
   .post-content iframe[src*="youtu.be"] {
-    max-width: 100%;
-    width: 100%;
+    max-width: 100vw;
+    width: 100vw;
     aspect-ratio: 16 / 9;
     height: auto;
-    border-radius: 12px;
+    border-radius: 0;
     margin: 32px 0;
+    margin-left: calc(-50vw + 50%);
   }
   
-  /* iframe 컨테이너가 있는 경우를 위한 스타일 */
+  /* iframe 컨테이너가 있는 경우를 위한 스타일 - 전체 너비 사용 */
   .post-content .video-container,
   .post-content .youtube-container {
     position: relative;
-    width: 100%;
+    width: 100vw;
     padding-bottom: 56.25%; /* 16:9 비율 */
     height: 0;
     overflow: hidden;
     margin: 32px 0;
-    border-radius: 12px;
+    border-radius: 0;
+    margin-left: calc(-50vw + 50%);
   }
   
   .post-content .video-container iframe,
@@ -1048,8 +1031,21 @@
     left: 0;
     width: 100%;
     height: 100%;
-    border-radius: 12px;
+    border-radius: 0;
     margin: 0;
+  }
+  
+  /* 모바일에서 유튜브 영상 여백 조정 */
+  @media (max-width: 768px) {
+    .post-content iframe[src*="youtube.com"],
+    .post-content iframe[src*="youtu.be"] {
+      margin-left: calc(-50vw + 50%);
+    }
+    
+    .post-content .video-container,
+    .post-content .youtube-container {
+      margin-left: calc(-50vw + 50%);
+    }
   }
 
   .author-profile-section {
@@ -1893,34 +1889,47 @@
       lcp: 0
     };
     
-    // First Contentful Paint 감지
-    new PerformanceObserver((list) => {
-      for (const entry of list.getEntries()) {
-        if (entry.name === 'first-contentful-paint') {
-          window.performanceMetrics.fcp = entry.startTime;
-          console.log('⚡ FCP:', entry.startTime.toFixed(2), 'ms');
+    // PerformanceObserver 안전하게 사용 (네이버 웨일 등 호환성 개선)
+    try {
+      if (typeof PerformanceObserver !== 'undefined' && PerformanceObserver.supportedEntryTypes) {
+        // First Contentful Paint 감지
+        if (PerformanceObserver.supportedEntryTypes.includes('paint')) {
+          new PerformanceObserver((list) => {
+            for (const entry of list.getEntries()) {
+              if (entry.name === 'first-contentful-paint') {
+                window.performanceMetrics.fcp = entry.startTime;
+                console.log('⚡ FCP:', entry.startTime.toFixed(2), 'ms');
+              }
+            }
+          }).observe({ entryTypes: ['paint'] });
+        }
+        
+        // Largest Contentful Paint 감지
+        if (PerformanceObserver.supportedEntryTypes.includes('largest-contentful-paint')) {
+          new PerformanceObserver((list) => {
+            const entries = list.getEntries();
+            const lastEntry = entries[entries.length - 1];
+            window.performanceMetrics.lcp = lastEntry.startTime;
+            console.log('⚡ LCP:', lastEntry.startTime.toFixed(2), 'ms');
+          }).observe({ entryTypes: ['largest-contentful-paint'] });
+        }
+        
+        // Cumulative Layout Shift 감지
+        if (PerformanceObserver.supportedEntryTypes.includes('layout-shift')) {
+          let clsScore = 0;
+          new PerformanceObserver((list) => {
+            for (const entry of list.getEntries()) {
+              if (!entry.hadRecentInput) {
+                clsScore += entry.value;
+                console.log('⚡ CLS:', clsScore.toFixed(3));
+              }
+            }
+          }).observe({ entryTypes: ['layout-shift'] });
         }
       }
-    }).observe({ entryTypes: ['paint'] });
-    
-    // Largest Contentful Paint 감지
-    new PerformanceObserver((list) => {
-      const entries = list.getEntries();
-      const lastEntry = entries[entries.length - 1];
-      window.performanceMetrics.lcp = lastEntry.startTime;
-      console.log('⚡ LCP:', lastEntry.startTime.toFixed(2), 'ms');
-    }).observe({ entryTypes: ['largest-contentful-paint'] });
-    
-    // Cumulative Layout Shift 감지
-    let clsScore = 0;
-    new PerformanceObserver((list) => {
-      for (const entry of list.getEntries()) {
-        if (!entry.hadRecentInput) {
-          clsScore += entry.value;
-          console.log('⚡ CLS:', clsScore.toFixed(3));
-        }
-      }
-    }).observe({ entryTypes: ['layout-shift'] });
+    } catch (e) {
+      console.log('PerformanceObserver not fully supported:', e.message);
+    }
   </script>
   
   <div class="page-transition" id="pageTransition"></div>
@@ -2832,50 +2841,10 @@ function renderMobileLayout(posts, container) {
     const group = posts.slice(i, i + 5);
 
     if(group[0]) {
-      const largePost = group[0];
       const largeDiv = document.createElement('div');
       largeDiv.className = 'magazine-row mobile-large-post';
-
-      const largeContainer = document.createElement('div');
-      largeContainer.className = 'magazine-large';
-
-      let heroUrl = largePost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
-      largeContainer.innerHTML = `
-        <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero">
-        <div class="hero-overlay">
-          <h2 class="hero-title">${largePost.title?.rendered || '제목 없음'}</h2>
-          <div style="display:flex;align-items:center;gap:10px">
-            <div class="hero-author" style="font-weight:800;color:#fff">${largePost._embedded?.author?.[0]?.name || '익명'}</div>
-            <div class="hero-date" style="color:#eee;opacity:.9">${formatDate(largePost.date)}</div>
-          </div>
-        </div>
-      `;
-
-      const catWrap = document.createElement('div');
-      catWrap.className = 'hero-cats';
-      const firstCat = largePost._embedded?.['wp:term']?.[0]?.[0];
-      if(firstCat) {
-        const span = document.createElement('span');
-        span.className = 'cat-badge ' + pickCategoryClass(firstCat.slug || firstCat.name);
-        span.textContent = firstCat.name;
-        catWrap.appendChild(span);
-      }
-      largeContainer.appendChild(catWrap);
-
-      let clickTimeout;
-      largeContainer.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if(state.isProcessing) return;
-        // [IMPACT-LOADING] 클릭 즉시 로딩 표시
-        openLoading('게시물을 불러오는 중...');
-        clearTimeout(clickTimeout);
-        clickTimeout = setTimeout(() => {
-          openPostOverlayById(largePost.id);
-        }, 150);
-      });
-
+      
+      const largeContainer = createLargePostElement(group[0]);
       largeDiv.appendChild(largeContainer);
       container.appendChild(largeDiv);
     }
@@ -2900,6 +2869,50 @@ function renderMobileLayout(posts, container) {
     }
   }
 }
+// 큰 게시물 생성 헬퍼 함수 (중복 제거)
+function createLargePostElement(largePost) {
+  const largeDiv = document.createElement('div');
+  largeDiv.className = 'magazine-large';
+
+  let heroUrl = largePost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+  largeDiv.innerHTML = `
+    <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero" loading="lazy">
+    <div class="hero-overlay">
+      <h2 class="hero-title">${largePost.title?.rendered || '제목 없음'}</h2>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="hero-author" style="font-weight:800;color:#fff">${largePost._embedded?.author?.[0]?.name || '익명'}</div>
+        <div class="hero-date" style="color:#eee;opacity:.9">${formatDate(largePost.date)}</div>
+      </div>
+    </div>
+  `;
+
+  const catWrap = document.createElement('div');
+  catWrap.className = 'hero-cats';
+  const firstCat = largePost._embedded?.['wp:term']?.[0]?.[0];
+  if(firstCat) {
+    const span = document.createElement('span');
+    span.className = 'cat-badge ' + pickCategoryClass(firstCat.slug || firstCat.name);
+    span.textContent = firstCat.name;
+    catWrap.appendChild(span);
+  }
+  largeDiv.appendChild(catWrap);
+
+  let clickTimeout;
+  largeDiv.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if(state.isProcessing) return;
+    openLoading('게시물을 불러오는 중...');
+    clearTimeout(clickTimeout);
+    clickTimeout = setTimeout(() => {
+      openPostOverlayById(largePost.id);
+    }, 150);
+  });
+
+  return largeDiv;
+}
+
 function renderDesktopLayout(posts, container) {
   for(let i = 0; i < posts.length; i += 5) {
     const group = posts.slice(i, i + 5);
@@ -2910,52 +2923,8 @@ function renderDesktopLayout(posts, container) {
     if(!isEven) {
       row.classList.add('reverse');
     }
-    if(group[0]) {
-      const largePost = group[0];
-      const largeDiv = document.createElement('div');
-      largeDiv.className = 'magazine-large';
-
-      let heroUrl = largePost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
-      largeDiv.innerHTML = `
-        <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero" loading="lazy">
-        <div class="hero-overlay">
-          <h2 class="hero-title">${largePost.title?.rendered || '제목 없음'}</h2>
-          <div style="display:flex;align-items:center;gap:10px">
-            <div class="hero-author" style="font-weight:800;color:#fff">${largePost._embedded?.author?.[0]?.name || '익명'}</div>
-            <div class="hero-date" style="color:#eee;opacity:.9">${formatDate(largePost.date)}</div>
-          </div>
-        </div>
-      `;
-
-      const catWrap = document.createElement('div');
-      catWrap.className = 'hero-cats';
-      const firstCat = largePost._embedded?.['wp:term']?.[0]?.[0];
-      if(firstCat) {
-        const span = document.createElement('span');
-        span.className = 'cat-badge ' + pickCategoryClass(firstCat.slug || firstCat.name);
-        span.textContent = firstCat.name;
-        catWrap.appendChild(span);
-      }
-      largeDiv.appendChild(catWrap);
-
-      let clickTimeout;
-      largeDiv.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if(state.isProcessing) return;
-        // [IMPACT-LOADING] 클릭 즉시 로딩 표시
-        openLoading('게시물을 불러오는 중...');
-        clearTimeout(clickTimeout);
-        clickTimeout = setTimeout(() => {
-          openPostOverlayById(largePost.id);
-        }, 150);
-      });
-
-      if(isEven) {
-        row.appendChild(largeDiv);
-      }
-    }
+    
+    // 작은 게시물 그리드 생성
     const smallGrid = document.createElement('div');
     smallGrid.className = 'magazine-small-grid';
     group.slice(1, 5).forEach(post => {
@@ -2965,56 +2934,21 @@ function renderDesktopLayout(posts, container) {
       }
     });
 
-    if(isEven) {
-      row.appendChild(smallGrid);
-    } else {
-      row.appendChild(smallGrid);
-      if(group[0]) {
-        const largePost = group[0];
-        const largeDiv = document.createElement('div');
-        largeDiv.className = 'magazine-large';
-
-        let heroUrl = largePost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
-        largeDiv.innerHTML = `
-          <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero" loading="lazy">
-          <div class="hero-overlay">
-            <h2 class="hero-title">${largePost.title?.rendered || '제목 없음'}</h2>
-            <div style="display:flex;align-items:center;gap:10px">
-              <div class="hero-author" style="font-weight:800;color:#fff">${largePost._embedded?.author?.[0]?.name || '익명'}</div>
-              <div class="hero-date" style="color:#eee;opacity:.9">${formatDate(largePost.date)}</div>
-            </div>
-          </div>
-        `;
-
-        const catWrap = document.createElement('div');
-        catWrap.className = 'hero-cats';
-        const firstCat = largePost._embedded?.['wp:term']?.[0]?.[0];
-        if(firstCat) {
-          const span = document.createElement('span');
-          span.className = 'cat-badge ' + pickCategoryClass(firstCat.slug || firstCat.name);
-          span.textContent = firstCat.name;
-          catWrap.appendChild(span);
-        }
-        largeDiv.appendChild(catWrap);
-
-        let clickTimeout;
-        largeDiv.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-
-          if(state.isProcessing) return;
-          clearTimeout(clickTimeout);
-          clickTimeout = setTimeout(() => {
-            openLoading('게시물을 불러오는 중...');
-            setTimeout(() => {
-              openPostOverlayById(largePost.id);
-            }, 50);
-          }, 150);
-        });
-
+    // 큰 게시물과 작은 게시물 순서 배치
+    if(group[0]) {
+      const largeDiv = createLargePostElement(group[0]);
+      
+      if(isEven) {
+        row.appendChild(largeDiv);
+        row.appendChild(smallGrid);
+      } else {
+        row.appendChild(smallGrid);
         row.appendChild(largeDiv);
       }
+    } else {
+      row.appendChild(smallGrid);
     }
+    
     container.appendChild(row);
   }
 }
