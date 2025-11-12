@@ -2195,9 +2195,9 @@
         </div>
 
         <h3 style="margin-top:48px;font-size:24px">IMPACT 공식 계정</h3>
-        <p>광고 문의: <a href="mailto:welcome@impactceo.art" style="color:#ff6b35;font-weight:700">welcome@impactceo.art</a></p>
-        <p>뉴스레터: <a href="mailto:press@impactceo.art" style="color:#ff6b35;font-weight:700">press@impactceo.art</a></p>
-        <p>공식 계정: <a href="mailto:ceo@impactceo.art" style="color:#ff6b35;font-weight:700">ceo@impactceo.art</a></p>
+        <p>광고 문의: <a href="/cdn-cgi/l/email-protection#ccbba9a0afa3a1a98ca5a1bcadafb8afa9a3e2adbeb8" style="color:#ff6b35;font-weight:700"><span class="__cf_email__" data-cfemail="a5d2c0c9c6cac8c0e5ccc8d5c4c6d1c6c0ca8bc4d7d1">[email&#160;protected]</span></a></p>
+        <p>뉴스레터: <a href="/cdn-cgi/l/email-protection#9bebe9fee8e8dbf2f6ebfaf8eff8fef4b5fae9ef" style="color:#ff6b35;font-weight:700"><span class="__cf_email__" data-cfemail="bdcdcfd8cecefdd4d0cddcdec9ded8d293dccfc9">[email&#160;protected]</span></a></p>
+        <p>공식 계정: <a href="/cdn-cgi/l/email-protection#3251575d725b5f4253514651575d1c534046" style="color:#ff6b35;font-weight:700"><span class="__cf_email__" data-cfemail="caa9afa58aa3a7baaba9bea9afa5e4abb8be">[email&#160;protected]</span></a></p>
         <p>Instagram: <a href="https://www.instagram.com/ceo_impact_official" target="_blank" style="color:#ff6b35;font-weight:700">@ceo_impact_official</a></p>
       </div>
     </div>
@@ -2220,9 +2220,9 @@
     <div class="wrap footer-inner">
       <div>
         <div class="footer-brand">IMPACT</div>
-        <div style="margin-top:12px;color:#ddd;font-size:14px">광고 문의 | <a href="mailto:welcome@impactceo.art">welcome@impactceo.art</a></div>
-        <div style="color:#ddd;font-size:14px;margin-top:8px">뉴스레터 | <a href="mailto:press@impactceo.art">press@impactceo.art</a></div>
-        <div style="color:#ddd;font-size:14px;margin-top:8px">공식 계정 | <a href="mailto:ceo@impactceo.art">ceo@impactceo.art</a></div>
+        <div style="margin-top:12px;color:#ddd;font-size:14px">광고 문의 | <a href="/cdn-cgi/l/email-protection#5e293b323d31333b1e37332e3f3d2a3d3b31703f2c2a"><span class="__cf_email__" data-cfemail="f5829099969a9890b59c988594968196909adb948781">[email&#160;protected]</span></a></div>
+        <div style="color:#ddd;font-size:14px;margin-top:8px">뉴스레터 | <a href="/cdn-cgi/l/email-protection#9ceceef9efefdcf5f1ecfdffe8fff9f3b2fdeee8"><span class="__cf_email__" data-cfemail="8efefcebfdfdcee7e3feefedfaedebe1a0effcfa">[email&#160;protected]</span></a></div>
+        <div style="color:#ddd;font-size:14px;margin-top:8px">공식 계정 | <a href="/cdn-cgi/l/email-protection#c0a3a5af80a9adb0a1a3b4a3a5afeea1b2b4"><span class="__cf_email__" data-cfemail="7d1e18123d14100d1c1e091e1812531c0f09">[email&#160;protected]</span></a></div>
       </div>
       <div class="footer-links">
         <a href="javascript:void(0)" onclick="router.openAbout()">ABOUT</a>
@@ -2268,7 +2268,7 @@
       <div class="editor-bio"></div>
     </div>
   </template>
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const WP_SITE = "impactceo0.wordpress.com";
 const HOME_PER_PAGE = 20;
 const CATEGORIES = {
@@ -5635,38 +5635,23 @@ const imageObserver = new IntersectionObserver((entries, observer) => {
 
 // MutationObserver로 동적으로 추가되는 이미지 감시
 const mutationObserver = new MutationObserver((mutations) => {
-  mutations.forEach((mutation) => {
-    mutation.addedNodes.forEach((node) => {
-      if (node.tagName === 'IMG' && node.dataset.src) {
+  mutations.forEach(mutation => {
+    mutation.addedNodes.forEach(node => {
+      if (node.nodeName === 'IMG' && node.dataset && node.dataset.src) {
         imageObserver.observe(node);
-      }
-      if (node.querySelectorAll) {
-        node.querySelectorAll('img[data-src]').forEach(img => {
-          imageObserver.observe(img);
-        });
       }
     });
   });
 });
 
-mutationObserver.observe(document.body, {
-  childList: true,
-  subtree: true
-});
+// body 요소를 감시하여 동적으로 추가되는 이미지 처리
+if (document.body) {
+  mutationObserver.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+}
 
-// ⚡ 성능 최적화: 리소스 힌트 추가
-const resourceHints = [
-  { rel: 'dns-prefetch', href: 'https://impactceo.art' },
-  { rel: 'preconnect', href: 'https://impactceo.art' }
-];
-
-resourceHints.forEach(hint => {
-  const link = document.createElement('link');
-  link.rel = hint.rel;
-  link.href = hint.href;
-  if (hint.rel === 'preconnect') link.crossOrigin = '';
-  document.head.appendChild(link);
-});
 </script>
 </body>
 </html>
