@@ -5595,4 +5595,40 @@ const imageObserver = new IntersectionObserver((entries, observer) => {
 }, { rootMargin: '50px' });
 
 // MutationObserver로 동적으로 추가되는 이미지 감시
-const mutationObserver
+const mutationObserver = new MutationObserver((mutations) => {
+  mutations.forEach((mutation) => {
+    mutation.addedNodes.forEach((node) => {
+      if (node.tagName === 'IMG' && node.dataset.src) {
+        imageObserver.observe(node);
+      }
+      if (node.querySelectorAll) {
+        node.querySelectorAll('img[data-src]').forEach(img => {
+          imageObserver.observe(img);
+        });
+      }
+    });
+  });
+});
+
+mutationObserver.observe(document.body, {
+  childList: true,
+  subtree: true
+});
+
+// ⚡ 성능 최적화: 리소스 힌트 추가
+const resourceHints = [
+  { rel: 'dns-prefetch', href: 'https://impactceo.art' },
+  { rel: 'preconnect', href: 'https://impactceo.art' }
+];
+
+resourceHints.forEach(hint => {
+  const link = document.createElement('link');
+  link.rel = hint.rel;
+  link.href = hint.href;
+  if (hint.rel === 'preconnect') link.crossOrigin = '';
+  document.head.appendChild(link);
+});
+</script>
+</body>
+</html>
+
