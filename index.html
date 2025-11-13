@@ -1593,63 +1593,6 @@
     margin: 0;
     font-weight: 900;
   }
-  /* 아이패드 세로 모드 (768px ~ 1024px, 3:4 비율) - 모바일 레이아웃 적용 */
-  @media (max-width: 1024px) and (min-width: 769px) and (orientation: portrait) {
-    .magazine-row {
-      grid-template-columns: 1fr;
-    }
-
-    .magazine-row.reverse {
-      grid-template-columns: 1fr;
-    }
-
-    .magazine-small-grid {
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-
-    .card .thumb {
-      height: 180px;
-    }
-
-    .mobile-large-post {
-      margin-bottom: 24px;
-    }
-
-    .mobile-large-post .magazine-large {
-      width: 100%;
-      min-height: 350px;
-    }
-
-    .mobile-small-grid {
-      margin-bottom: 32px;
-    }
-
-    .mobile-small-grid .magazine-small-grid {
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-
-    .hero-title {
-      font-size: 22px;
-    }
-
-    .card h3 {
-      font-size: 15px;
-      line-height: 1.4;
-      margin-bottom: 8px;
-    }
-
-    .card-body {
-      padding: 14px;
-    }
-
-    .footer-inner {
-      grid-template-columns: 1fr;
-      gap: 32px;
-    }
-  }
-
   @media (max-width: 1100px) {
     .magazine-row {
       grid-template-columns: 1fr;
@@ -2397,28 +2340,6 @@ function nextFrame() {
   return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 }
 
-// 타임아웃이 있는 fetch 함수 (웨일 브라우저 호환성 개선)
-async function fetchWithTimeout(url, options = {}, timeout = 15000) {
-  const controller = new AbortController();
-  const signal = controller.signal;
-  
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, timeout);
-  
-  try {
-    const response = await fetch(url, { ...options, signal });
-    clearTimeout(timeoutId);
-    return response;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error.name === 'AbortError') {
-      throw new Error('요청 시간 초과');
-    }
-    throw error;
-  }
-}
-
 // Netlify Functions를 통한 WordPress API 호출
 function api(path) {
   const p = path.includes('_embed') ? path : (path + (path.includes('?') ? '&' : '?') + '_embed');
@@ -2435,7 +2356,7 @@ async function getTotalPostsCount() {
     // Netlify Functions를 통한 호출 (per_page=1로 최소 데이터만)
     const proxyUrl = api('posts?per_page=1&page=1');
     console.log('  → Netlify Functions 호출:', proxyUrl);
-    const res = await fetchWithTimeout(proxyUrl);
+    const res = await fetch(proxyUrl);
     
     const totalFromProxy = parseInt(res.headers.get('X-WP-Total') || '0');
     const totalPagesFromProxy = parseInt(res.headers.get('X-WP-TotalPages') || '0');
@@ -3040,7 +2961,7 @@ async function loadHomeChunk(page = 1) {
   loadingEl.textContent = '로딩 중...';
   state.homeLoadPromise = new Promise(async (resolve, reject) => {
     try {
-      const res = await fetchWithTimeout(api(`posts?per_page=${HOME_PER_PAGE}&page=${page}`));
+      const res = await fetch(api(`posts?per_page=${HOME_PER_PAGE}&page=${page}`));
       if(!res.ok) throw new Error('Failed to load');
 
       // 방법 1: 헤더에서 읽기 시도
@@ -3147,10 +3068,7 @@ async function loadHomeChunk(page = 1) {
       // 페이지 전환 시 항상 기존 게시물 제거
       container.innerHTML = '';
       
-      // 아이패드 세로 모드(768-1024px portrait)도 모바일 레이아웃 적용
-      const isMobile = window.innerWidth <= 680 || 
-                       (window.innerWidth >= 768 && window.innerWidth <= 1024 && 
-                        window.matchMedia('(orientation: portrait)').matches);
+      const isMobile = window.innerWidth <= 680;
       if(isMobile) {
         renderMobileLayout(uniquePosts, container);
       } else {
@@ -3408,7 +3326,7 @@ async function loadCategory(slug, page = 1) {
       return;
     }
 
-    const res = await fetchWithTimeout(api(`posts?categories=${catId}&per_page=20&page=${page}`));
+    const res = await fetch(api(`posts?categories=${catId}&per_page=20&page=${page}`));
     if(!res.ok) throw new Error('Failed');
 
     let totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '0');
@@ -3466,7 +3384,7 @@ async function loadEditors() {
   if(state.editorsLoaded) return;
   document.getElementById('editorsLoading').textContent = '로딩 중...';
   try {
-    const res = await fetchWithTimeout(api(`users?per_page=100`));
+    const res = await fetch(api(`users?per_page=100`));
     if(!res.ok) throw new Error('editors api fail ' + res.status);
     const users = await res.json();
     state.editorsList = Array.isArray(users) ? users : [];
@@ -3503,7 +3421,7 @@ async function loadRelatedPosts(categories, currentPostId) {
 
   try {
     const catId = categories[0].id;
-    const res = await fetchWithTimeout(api(`posts?categories=${catId}&per_page=8&exclude=${currentPostId}`));
+    const res = await fetch(api(`posts?categories=${catId}&per_page=8&exclude=${currentPostId}`));
     if(!res.ok) return [];
     const posts = await res.json();
 
@@ -3539,7 +3457,7 @@ function closeImageModal() {
 // slug로 게시물 ID를 찾는 함수
 async function getPostIdBySlug(slug) {
   try {
-    const res = await fetchWithTimeout(api(`posts?slug=${encodeURIComponent(slug)}&_embed`));
+    const res = await fetch(api(`posts?slug=${encodeURIComponent(slug)}&_embed`));
     if(!res.ok) return null;
     const posts = await res.json();
     if(Array.isArray(posts) && posts.length > 0) {
@@ -3684,7 +3602,7 @@ async function openPostOverlayById(id, updateURL = true) {
   `;
 
   try {
-    const res = await fetchWithTimeout(api(`posts/${id}?_embed`));
+    const res = await fetch(api(`posts/${id}?_embed`));
     if(!res.ok) throw new Error('post fetch failed ' + res.status);
     const post = await res.json();
 
@@ -4355,7 +4273,7 @@ const router = {
     }
     
     try {
-      const res = await fetchWithTimeout(api(`posts?author=${user.id}&per_page=100`));
+      const res = await fetch(api(`posts?author=${user.id}&per_page=100`));
       const posts = await res.json();
       if(Array.isArray(posts) && posts.length > 0) {
         const uniquePosts = posts.filter((post, index, self) =>
@@ -4559,7 +4477,7 @@ async function performSearch(query, mode) {
     loadingEl.textContent = '검색 중...';
 
     try {
-      const res = await fetchWithTimeout(api(`posts?search=${encodeURIComponent(query)}&per_page=100&_embed`));
+      const res = await fetch(api(`posts?search=${encodeURIComponent(query)}&per_page=100&_embed`));
       const posts = await res.json();
 
       loadingEl.textContent = '';
@@ -4714,7 +4632,7 @@ async function checkURLAndLoadPost() {
     
     // 문자열이면 slug로 처리 - API에서 게시물 검색
     try {
-      const res = await fetchWithTimeout(api(`posts?slug=${postSlugOrId}&_embed`));
+      const res = await fetch(api(`posts?slug=${postSlugOrId}&_embed`));
       if(res.ok) {
         const posts = await res.json();
         if(posts && posts.length > 0) {
@@ -5025,16 +4943,12 @@ window.addEventListener('popstate', async (e) => {
 
 // 즉시 실행: 초기 로딩 최적화를 위해 DOMContentLoaded 제거
 (function() {
-  // DOM 준비 체크 함수 (모바일 웨일 브라우저 호환성 개선)
+  // DOM 준비 체크 함수
   function ready(fn) {
     if (document.readyState !== 'loading') {
-      // DOM이 이미 로드된 경우 즉시 실행
-      setTimeout(fn, 0);
+      fn();
     } else {
-      // DOM 로딩 중인 경우 DOMContentLoaded 대기
-      document.addEventListener('DOMContentLoaded', fn, { once: true });
-      // 폴백: load 이벤트도 등록 (웨일 브라우저 대응)
-      window.addEventListener('load', fn, { once: true });
+      document.addEventListener('DOMContentLoaded', fn);
     }
   }
   
