@@ -1877,6 +1877,141 @@
   body.dark-mode #searchResults .card p {
     color: #fff;
   }
+  
+  /* 워드프레스 갤러리 슬라이더 스타일 */
+  .wp-gallery-slider {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 12px;
+    margin: 32px 0;
+    background: #f5f5f5;
+  }
+  
+  body.dark-mode .wp-gallery-slider {
+    background: #1a1a1a;
+  }
+  
+  .wp-gallery-slider-track {
+    display: flex;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: grab;
+  }
+  
+  .wp-gallery-slider-track:active {
+    cursor: grabbing;
+  }
+  
+  .wp-gallery-slider-slide {
+    min-width: 100%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .wp-gallery-slider-slide img {
+    width: 100%;
+    height: auto;
+    display: block;
+    max-height: 80vh;
+    object-fit: contain;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+  
+  .wp-gallery-slider-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 10;
+  }
+  
+  .wp-gallery-slider-nav:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transform: translateY(-50%) scale(1.1);
+  }
+  
+  .wp-gallery-slider-nav.prev {
+    left: 16px;
+  }
+  
+  .wp-gallery-slider-nav.next {
+    right: 16px;
+  }
+  
+  .wp-gallery-slider-nav:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  
+  .wp-gallery-slider-dots {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+  }
+  
+  .wp-gallery-slider-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+  }
+  
+  .wp-gallery-slider-dot.active {
+    background: white;
+    width: 24px;
+    border-radius: 4px;
+  }
+  
+  .wp-gallery-slider-counter {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 10;
+  }
+  
+  @media (max-width: 768px) {
+    .wp-gallery-slider-nav {
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+    }
+    
+    .wp-gallery-slider-nav.prev {
+      left: 8px;
+    }
+    
+    .wp-gallery-slider-nav.next {
+      right: 8px;
+    }
+  }
   </style>
   
   <!-- ⚡ 성능 최적화: 리소스 우선순위 힌트 -->
@@ -3992,7 +4127,229 @@ async function renderPostOverlay(post) {
   const progressBar = document.getElementById('progressBar');
   progressBar.classList.add('active');
   progressBar.style.width = '0%';
+  
+  // 워드프레스 갤러리 슬라이더 초기화
+  await nextFrame();
+  initializeGallerySliders();
 }
+
+// 워드프레스 갤러리 슬라이더 초기화 함수
+function initializeGallerySliders() {
+  const postContent = document.querySelector('.post-content');
+  if (!postContent) return;
+  
+  // 워드프레스 갤러리 찾기 (.wp-block-gallery, .gallery, .blocks-gallery-grid 등)
+  const galleries = postContent.querySelectorAll('.wp-block-gallery, .gallery, .blocks-gallery-grid, [class*="gallery"]');
+  
+  galleries.forEach((gallery, index) => {
+    // 이미 처리된 갤러리는 건너뛰기
+    if (gallery.classList.contains('wp-gallery-processed')) return;
+    
+    const images = gallery.querySelectorAll('img');
+    
+    // 이미지가 2개 이상일 때만 슬라이더로 변환
+    if (images.length >= 2) {
+      createGallerySlider(gallery, images, index);
+      gallery.classList.add('wp-gallery-processed');
+    }
+  });
+  
+  // figure 안에 여러 img가 있는 경우도 처리
+  const figures = postContent.querySelectorAll('figure');
+  figures.forEach((figure, index) => {
+    if (figure.classList.contains('wp-gallery-processed')) return;
+    
+    const images = figure.querySelectorAll('img');
+    if (images.length >= 2) {
+      createGallerySlider(figure, images, index + 1000);
+      figure.classList.add('wp-gallery-processed');
+    }
+  });
+}
+
+// 갤러리 슬라이더 생성 함수
+function createGallerySlider(container, images, galleryId) {
+  const imageArray = Array.from(images);
+  
+  // 슬라이더 구조 생성
+  const slider = document.createElement('div');
+  slider.className = 'wp-gallery-slider';
+  slider.dataset.galleryId = galleryId;
+  
+  const track = document.createElement('div');
+  track.className = 'wp-gallery-slider-track';
+  
+  // 각 이미지를 슬라이드로 변환
+  imageArray.forEach((img, idx) => {
+    const slide = document.createElement('div');
+    slide.className = 'wp-gallery-slider-slide';
+    
+    const clonedImg = img.cloneNode(true);
+    clonedImg.style.cursor = 'default';
+    slide.appendChild(clonedImg);
+    track.appendChild(slide);
+  });
+  
+  slider.appendChild(track);
+  
+  // 네비게이션 버튼 추가
+  const prevBtn = document.createElement('button');
+  prevBtn.className = 'wp-gallery-slider-nav prev';
+  prevBtn.innerHTML = '‹';
+  prevBtn.setAttribute('aria-label', '이전 이미지');
+  
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'wp-gallery-slider-nav next';
+  nextBtn.innerHTML = '›';
+  nextBtn.setAttribute('aria-label', '다음 이미지');
+  
+  slider.appendChild(prevBtn);
+  slider.appendChild(nextBtn);
+  
+  // 카운터 추가
+  const counter = document.createElement('div');
+  counter.className = 'wp-gallery-slider-counter';
+  counter.textContent = `1 / ${imageArray.length}`;
+  slider.appendChild(counter);
+  
+  // 도트 네비게이션 추가
+  if (imageArray.length <= 10) {
+    const dots = document.createElement('div');
+    dots.className = 'wp-gallery-slider-dots';
+    
+    imageArray.forEach((_, idx) => {
+      const dot = document.createElement('button');
+      dot.className = 'wp-gallery-slider-dot';
+      if (idx === 0) dot.classList.add('active');
+      dot.setAttribute('aria-label', `이미지 ${idx + 1}로 이동`);
+      dots.appendChild(dot);
+    });
+    
+    slider.appendChild(dots);
+  }
+  
+  // 기존 갤러리 내용을 슬라이더로 교체
+  container.innerHTML = '';
+  container.appendChild(slider);
+  
+  // 슬라이더 기능 초기화
+  initializeSliderControls(slider, track, imageArray.length, prevBtn, nextBtn, counter);
+}
+
+// 슬라이더 컨트롤 초기화
+function initializeSliderControls(slider, track, totalSlides, prevBtn, nextBtn, counter) {
+  let currentIndex = 0;
+  let startX = 0;
+  let currentX = 0;
+  let isDragging = false;
+  
+  const updateSlider = () => {
+    track.style.transform = `translateX(-${currentIndex * 100}%)`;
+    counter.textContent = `${currentIndex + 1} / ${totalSlides}`;
+    
+    // 도트 업데이트
+    const dots = slider.querySelectorAll('.wp-gallery-slider-dot');
+    dots.forEach((dot, idx) => {
+      dot.classList.toggle('active', idx === currentIndex);
+    });
+    
+    // 버튼 상태 업데이트
+    prevBtn.disabled = currentIndex === 0;
+    nextBtn.disabled = currentIndex === totalSlides - 1;
+  };
+  
+  const goToSlide = (index) => {
+    currentIndex = Math.max(0, Math.min(index, totalSlides - 1));
+    updateSlider();
+  };
+  
+  // 버튼 이벤트
+  prevBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    goToSlide(currentIndex - 1);
+  });
+  
+  nextBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    goToSlide(currentIndex + 1);
+  });
+  
+  // 도트 클릭 이벤트
+  const dots = slider.querySelectorAll('.wp-gallery-slider-dot');
+  dots.forEach((dot, idx) => {
+    dot.addEventListener('click', (e) => {
+      e.stopPropagation();
+      goToSlide(idx);
+    });
+  });
+  
+  // 터치/마우스 드래그 이벤트
+  const handleStart = (e) => {
+    isDragging = true;
+    startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+    currentX = startX;
+    track.style.transition = 'none';
+  };
+  
+  const handleMove = (e) => {
+    if (!isDragging) return;
+    
+    e.preventDefault();
+    currentX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+    const diff = currentX - startX;
+    const percentage = (diff / slider.offsetWidth) * 100;
+    
+    track.style.transform = `translateX(calc(-${currentIndex * 100}% + ${percentage}%))`;
+  };
+  
+  const handleEnd = () => {
+    if (!isDragging) return;
+    
+    isDragging = false;
+    track.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    
+    const diff = currentX - startX;
+    const threshold = slider.offsetWidth * 0.2;
+    
+    if (Math.abs(diff) > threshold) {
+      if (diff > 0 && currentIndex > 0) {
+        goToSlide(currentIndex - 1);
+      } else if (diff < 0 && currentIndex < totalSlides - 1) {
+        goToSlide(currentIndex + 1);
+      } else {
+        updateSlider();
+      }
+    } else {
+      updateSlider();
+    }
+  };
+  
+  // 마우스 이벤트
+  track.addEventListener('mousedown', handleStart);
+  document.addEventListener('mousemove', handleMove);
+  document.addEventListener('mouseup', handleEnd);
+  
+  // 터치 이벤트
+  track.addEventListener('touchstart', handleStart, { passive: true });
+  track.addEventListener('touchmove', handleMove, { passive: false });
+  track.addEventListener('touchend', handleEnd);
+  
+  // 키보드 네비게이션
+  slider.setAttribute('tabindex', '0');
+  slider.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      goToSlide(currentIndex - 1);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      goToSlide(currentIndex + 1);
+    }
+  });
+  
+  // 초기 상태 설정
+  updateSlider();
+}
+
 const ui = {
   toggleNav: (forceClose = false) => {
     const nav = document.getElementById('navOverlay');
@@ -5558,6 +5915,57 @@ async function handleInitialRoute() {
   loadHomeChunk(1);
 }
 
+// 화면 회전 감지 및 레이아웃 재렌더링
+let resizeTimeout;
+let lastOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    const currentOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+    
+    // 방향이 바뀌었고 홈 페이지에 있을 때만 재렌더링
+    if (currentOrientation !== lastOrientation) {
+      lastOrientation = currentOrientation;
+      
+      const container = document.getElementById('rowsContainer');
+      if (container && container.children.length > 0) {
+        // 현재 표시된 게시물들을 가져와서 재렌더링
+        const posts = [];
+        Object.values(state.postsCache).forEach(post => {
+          // 현재 페이지의 게시물들만 가져오기
+          if (post && post.id) {
+            posts.push(post);
+          }
+        });
+        
+        if (posts.length > 0) {
+          // 날짜순으로 정렬
+          posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+          
+          // 현재 페이지에 해당하는 게시물만 표시
+          const startIndex = (state.homePage - 1) * HOME_PER_PAGE;
+          const endIndex = startIndex + HOME_PER_PAGE;
+          const currentPagePosts = posts.slice(startIndex, endIndex);
+          
+          container.innerHTML = '';
+          
+          const isMobile = window.innerWidth <= 680;
+          const isIpadPortrait = window.innerWidth > 680 && window.innerWidth <= 1100 && window.innerHeight > window.innerWidth;
+          
+          if (isMobile) {
+            renderMobileLayout(currentPagePosts, container);
+          } else if (isIpadPortrait) {
+            renderIpadPortraitLayout(currentPagePosts, container);
+          } else {
+            renderDesktopLayout(currentPagePosts, container);
+          }
+        }
+      }
+    }
+  }, 300);
+});
+
 // 페이지 로드 완료 시 초기 라우팅 실행 - 최적화: 즉시 실행
 (function() {
   if(document.readyState === 'loading') {
@@ -5609,18 +6017,15 @@ const mutationObserver = new MutationObserver((mutations) => {
     });
   });
 });
-
 mutationObserver.observe(document.body, {
   childList: true,
   subtree: true
 });
-
 // ⚡ 성능 최적화: 리소스 힌트 추가
 const resourceHints = [
   { rel: 'dns-prefetch', href: 'https://impactceo.art' },
   { rel: 'preconnect', href: 'https://impactceo.art' }
 ];
-
 resourceHints.forEach(hint => {
   const link = document.createElement('link');
   link.rel = hint.rel;
@@ -5631,4 +6036,3 @@ resourceHints.forEach(hint => {
 </script>
 </body>
 </html>
-
