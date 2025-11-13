@@ -1593,213 +1593,6 @@
     margin: 0;
     font-weight: 900;
   }
-  
-  /* =============================================
-     모바일 9:16 비율 레이아웃 (세로 모드)
-     큰 게시물 1개 → 작은 게시물 4개 (1열)
-     각각 화면 전체 높이 차지
-  ============================================= */
-  @media (orientation: portrait) and (max-aspect-ratio: 10/16) {
-    /* 큰 게시물 1개가 화면 전체 높이 차지 */
-    .mobile-large-post {
-      height: 100vh;
-      margin-bottom: 0;
-      padding: 0;
-    }
-    
-    .mobile-large-post .magazine-large {
-      height: 100vh;
-      min-height: 100vh;
-      width: 100%;
-      border-radius: 0;
-      margin: 0;
-    }
-    
-    /* 작은 게시물 4개 컨테이너가 화면 전체 높이 차지 */
-    .mobile-small-grid {
-      height: 100vh;
-      margin-bottom: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .mobile-small-grid .magazine-small-grid {
-      grid-template-columns: 1fr;
-      gap: 12px;
-      height: 100%;
-      display: grid;
-      grid-template-rows: repeat(4, 1fr);
-      padding: 12px;
-    }
-    
-    .mobile-small-grid .card {
-      border-radius: 14px;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      border: 1px solid rgba(0,0,0,0.06);
-    }
-    
-    body.dark-mode .mobile-small-grid .card {
-      border-color: rgba(255,255,255,0.12);
-    }
-    
-    .mobile-small-grid .card .thumb {
-      height: 45%;
-      flex-shrink: 0;
-      border-radius: 14px 14px 0 0;
-      overflow: hidden;
-    }
-    
-    .mobile-small-grid .card-body {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 14px;
-    }
-    
-    /* 모바일 작은 카드에서도 모든 정보 표시 */
-    .mobile-small-grid .card h3 {
-      font-size: 14px;
-      line-height: 1.4;
-      margin: 0 0 8px 0;
-    }
-    
-    .mobile-small-grid .card .cat-row {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-      margin-bottom: 8px;
-    }
-    
-    .mobile-small-grid .card .cat-badge {
-      padding: 3px 8px;
-      font-size: 10px;
-    }
-    
-    .mobile-small-grid .card .meta {
-      font-size: 11px;
-      margin-top: auto;
-    }
-    
-    /* 홈 영역 패딩 제거 */
-    .home {
-      margin-top: 72px;
-      padding-bottom: 0;
-    }
-    
-    .magazine-row {
-      padding: 0;
-      margin-bottom: 0;
-      gap: 0;
-    }
-  }
-  
-  /* =============================================
-     태블릿 4:3 비율 레이아웃 (세로 모드)
-     큰 게시물 1개 → 작은 게시물 4개 (2×2)
-     각각 화면 전체 높이 차지
-  ============================================= */
-  @media (orientation: portrait) and (min-aspect-ratio: 10/16) and (max-aspect-ratio: 5/6) {
-    /* 큰 게시물 1개가 화면 전체 높이 차지 */
-    .mobile-large-post {
-      height: 100vh;
-      margin-bottom: 0;
-      padding: 0;
-    }
-    
-    .mobile-large-post .magazine-large {
-      height: 100vh;
-      min-height: 100vh;
-      width: 100%;
-      border-radius: 0;
-      margin: 0;
-    }
-    
-    /* 작은 게시물 4개 컨테이너가 화면 전체 높이 차지 */
-    .mobile-small-grid {
-      height: 100vh;
-      margin-bottom: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .mobile-small-grid .magazine-small-grid {
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: 1fr 1fr;
-      gap: 12px;
-      height: 100%;
-      display: grid;
-      padding: 12px;
-    }
-    
-    .mobile-small-grid .card {
-      border-radius: 14px;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      border: 1px solid rgba(0,0,0,0.06);
-    }
-    
-    body.dark-mode .mobile-small-grid .card {
-      border-color: rgba(255,255,255,0.12);
-    }
-    
-    .mobile-small-grid .card .thumb {
-      height: 45%;
-      flex-shrink: 0;
-      border-radius: 14px 14px 0 0;
-      overflow: hidden;
-    }
-    
-    .mobile-small-grid .card-body {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 14px;
-    }
-    
-    /* 태블릿 작은 카드에서도 모든 정보 표시 */
-    .mobile-small-grid .card h3 {
-      font-size: 14px;
-      line-height: 1.4;
-      margin: 0 0 8px 0;
-    }
-    
-    .mobile-small-grid .card .cat-row {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-      margin-bottom: 8px;
-    }
-    
-    .mobile-small-grid .card .cat-badge {
-      padding: 3px 8px;
-      font-size: 10px;
-    }
-    
-    .mobile-small-grid .card .meta {
-      font-size: 11px;
-      margin-top: auto;
-    }
-    
-    /* 홈 영역 패딩 제거 */
-    .home {
-      margin-top: 72px;
-      padding-bottom: 0;
-    }
-    
-    .magazine-row {
-      padding: 0;
-      margin-bottom: 0;
-      gap: 0;
-    }
-  }
-  
   /* 아이패드 세로 모드 (768px ~ 1024px, 3:4 비율) - 모바일 레이아웃 적용 */
   @media (max-width: 1024px) and (min-width: 769px) and (orientation: portrait) {
     .magazine-row {
@@ -2146,12 +1939,6 @@
 <body>
   <!-- ⚡ 성능 최적화: 초기 로딩 스크립트 -->
   <script>
-    // iOS 웨일 호환성: 전역 에러 핸들러
-    window.onerror = function(msg, url, line, col, error) {
-      console.error('Global error:', msg, 'at', url, line + ':' + col, error);
-      return false; // 에러를 계속 전파
-    };
-    
     // 페이지 로드 시간 측정
     window.performanceMetrics = {
       start: performance.now(),
@@ -2159,15 +1946,13 @@
       lcp: 0
     };
     
-    // PerformanceObserver 안전하게 사용 (iOS 웨일 등 호환성 개선)
+    // PerformanceObserver 안전하게 사용 (네이버 웨일 등 호환성 개선)
     try {
       if (typeof PerformanceObserver !== 'undefined' && PerformanceObserver.supportedEntryTypes) {
         // First Contentful Paint 감지
         if (PerformanceObserver.supportedEntryTypes.includes('paint')) {
-          new PerformanceObserver(function(list) {
-            var entries = list.getEntries();
-            for (var i = 0; i < entries.length; i++) {
-              var entry = entries[i];
+          new PerformanceObserver((list) => {
+            for (const entry of list.getEntries()) {
               if (entry.name === 'first-contentful-paint') {
                 window.performanceMetrics.fcp = entry.startTime;
                 console.log('⚡ FCP:', entry.startTime.toFixed(2), 'ms');
@@ -2178,9 +1963,9 @@
         
         // Largest Contentful Paint 감지
         if (PerformanceObserver.supportedEntryTypes.includes('largest-contentful-paint')) {
-          new PerformanceObserver(function(list) {
-            var entries = list.getEntries();
-            var lastEntry = entries[entries.length - 1];
+          new PerformanceObserver((list) => {
+            const entries = list.getEntries();
+            const lastEntry = entries[entries.length - 1];
             window.performanceMetrics.lcp = lastEntry.startTime;
             console.log('⚡ LCP:', lastEntry.startTime.toFixed(2), 'ms');
           }).observe({ entryTypes: ['largest-contentful-paint'] });
@@ -2188,11 +1973,9 @@
         
         // Cumulative Layout Shift 감지
         if (PerformanceObserver.supportedEntryTypes.includes('layout-shift')) {
-          var clsScore = 0;
-          new PerformanceObserver(function(list) {
-            var entries = list.getEntries();
-            for (var i = 0; i < entries.length; i++) {
-              var entry = entries[i];
+          let clsScore = 0;
+          new PerformanceObserver((list) => {
+            for (const entry of list.getEntries()) {
               if (!entry.hadRecentInput) {
                 clsScore += entry.value;
                 console.log('⚡ CLS:', clsScore.toFixed(3));
@@ -2412,9 +2195,9 @@
         </div>
 
         <h3 style="margin-top:48px;font-size:24px">IMPACT 공식 계정</h3>
-        <p>광고 문의: <a href="/cdn-cgi/l/email-protection#ccbba9a0afa3a1a98ca5a1bcadafb8afa9a3e2adbeb8" style="color:#ff6b35;font-weight:700"><span class="__cf_email__" data-cfemail="a5d2c0c9c6cac8c0e5ccc8d5c4c6d1c6c0ca8bc4d7d1">[email&#160;protected]</span></a></p>
-        <p>뉴스레터: <a href="/cdn-cgi/l/email-protection#9bebe9fee8e8dbf2f6ebfaf8eff8fef4b5fae9ef" style="color:#ff6b35;font-weight:700"><span class="__cf_email__" data-cfemail="bdcdcfd8cecefdd4d0cddcdec9ded8d293dccfc9">[email&#160;protected]</span></a></p>
-        <p>공식 계정: <a href="/cdn-cgi/l/email-protection#3251575d725b5f4253514651575d1c534046" style="color:#ff6b35;font-weight:700"><span class="__cf_email__" data-cfemail="caa9afa58aa3a7baaba9bea9afa5e4abb8be">[email&#160;protected]</span></a></p>
+        <p>광고 문의: <a href="mailto:welcome@impactceo.art" style="color:#ff6b35;font-weight:700">welcome@impactceo.art</a></p>
+        <p>뉴스레터: <a href="mailto:press@impactceo.art" style="color:#ff6b35;font-weight:700">press@impactceo.art</a></p>
+        <p>공식 계정: <a href="mailto:ceo@impactceo.art" style="color:#ff6b35;font-weight:700">ceo@impactceo.art</a></p>
         <p>Instagram: <a href="https://www.instagram.com/ceo_impact_official" target="_blank" style="color:#ff6b35;font-weight:700">@ceo_impact_official</a></p>
       </div>
     </div>
@@ -2437,9 +2220,9 @@
     <div class="wrap footer-inner">
       <div>
         <div class="footer-brand">IMPACT</div>
-        <div style="margin-top:12px;color:#ddd;font-size:14px">광고 문의 | <a href="/cdn-cgi/l/email-protection#5e293b323d31333b1e37332e3f3d2a3d3b31703f2c2a"><span class="__cf_email__" data-cfemail="f5829099969a9890b59c988594968196909adb948781">[email&#160;protected]</span></a></div>
-        <div style="color:#ddd;font-size:14px;margin-top:8px">뉴스레터 | <a href="/cdn-cgi/l/email-protection#9ceceef9efefdcf5f1ecfdffe8fff9f3b2fdeee8"><span class="__cf_email__" data-cfemail="8efefcebfdfdcee7e3feefedfaedebe1a0effcfa">[email&#160;protected]</span></a></div>
-        <div style="color:#ddd;font-size:14px;margin-top:8px">공식 계정 | <a href="/cdn-cgi/l/email-protection#c0a3a5af80a9adb0a1a3b4a3a5afeea1b2b4"><span class="__cf_email__" data-cfemail="7d1e18123d14100d1c1e091e1812531c0f09">[email&#160;protected]</span></a></div>
+        <div style="margin-top:12px;color:#ddd;font-size:14px">광고 문의 | <a href="mailto:welcome@impactceo.art">welcome@impactceo.art</a></div>
+        <div style="color:#ddd;font-size:14px;margin-top:8px">뉴스레터 | <a href="mailto:press@impactceo.art">press@impactceo.art</a></div>
+        <div style="color:#ddd;font-size:14px;margin-top:8px">공식 계정 | <a href="mailto:ceo@impactceo.art">ceo@impactceo.art</a></div>
       </div>
       <div class="footer-links">
         <a href="javascript:void(0)" onclick="router.openAbout()">ABOUT</a>
@@ -2485,21 +2268,10 @@
       <div class="editor-bio"></div>
     </div>
   </template>
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-// iOS 웨일 호환성: 안전한 스크립트 초기화
-(function() {
-  'use strict';
-  
-  try {
-    console.log('Script initializing...');
-  } catch(e) {
-    // 콘솔이 없는 환경 대응
-  }
-})();
-
-var WP_SITE = "impactceo0.wordpress.com";
-var HOME_PER_PAGE = 20;
-var CATEGORIES = {
+<script>
+const WP_SITE = "impactceo0.wordpress.com";
+const HOME_PER_PAGE = 20;
+const CATEGORIES = {
   "tech": 318,
   "eat": 123073,
   "style": 2286,
@@ -2507,8 +2279,8 @@ var CATEGORIES = {
   "life": 124,
   "editors-pick": 259543
 };
-var NAV_ORDER = ["TECH","EAT","STYLE","CULTURE","LIFE","EDITORS' PICK"];
-var state = {
+const NAV_ORDER = ["TECH","EAT","STYLE","CULTURE","LIFE","EDITORS' PICK"];
+const state = {
   homePage: 1,
   homeTotal: 0,
   allPostsCount: 0, // 전체 게시물 수 저장
@@ -2529,14 +2301,12 @@ var state = {
 };
 
 // [IMPACT-LOADING] A. Loading overlay controller (replaces showPageTransition)
-var __loadingTimer = null;
-var __loadingDelayTimer = null;
-var __loadingStartTime = null;
+let __loadingTimer = null;
+let __loadingDelayTimer = null;
+let __loadingStartTime = null;
 
-function openLoading(label, delay) {
-  label = label || '불러오는 중...';
-  delay = delay !== undefined ? delay : 150;
-  var el = document.getElementById('pageTransition');
+function openLoading(label = '불러오는 중...', delay = 150) {
+  const el = document.getElementById('pageTransition');
   if (!el) return;
   
   // 기존 타이머 정리
@@ -2557,7 +2327,7 @@ function openLoading(label, delay) {
 }
 
 function closeLoading() {
-  var el = document.getElementById('pageTransition');
+  const el = document.getElementById('pageTransition');
   if (!el) return;
   
   // 지연 타이머가 아직 실행 안됐으면 취소
@@ -2574,9 +2344,7 @@ function closeLoading() {
 
 // 스크롤 상단 세팅 헬퍼: 오버레이/페이지 컨테이너 모두 대응
 // 수정됨: 초기 스크롤만 실행하고 이후 사용자 스크롤 유지
-function resetScrollTop(target, force) {
-  target = target || 'window';
-  force = force || false;
+function resetScrollTop(target = 'window', force = false) {
   // force가 true이거나 초기 스크롤이 아직 완료되지 않은 경우만 스크롤
   if (target === 'post') {
     const o = document.getElementById('postOverlay');
@@ -2587,15 +2355,10 @@ function resetScrollTop(target, force) {
         
         // 사용자가 스크롤하기 시작하면 초기 스크롤 플래그 유지 (추가 강제 스크롤 방지)
         if (!state.scrollListeners['post']) {
-          var scrollHandler = function() {
+          const scrollHandler = () => {
             state.initialScrollDone['post'] = true;
           };
-          // iOS 웨일 호환성: passive 옵션 안전하게 사용
-          try {
-            o.addEventListener('scroll', scrollHandler, { passive: true });
-          } catch(e) {
-            o.addEventListener('scroll', scrollHandler);
-          }
+          o.addEventListener('scroll', scrollHandler, { passive: true });
           state.scrollListeners['post'] = scrollHandler;
         }
       }
@@ -2634,12 +2397,10 @@ function nextFrame() {
   return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 }
 
-// 타임아웃이 있는 fetch 함수 (iOS 웨일 브라우저 호환성 개선)
-async function fetchWithTimeout(url, options, timeout) {
-  options = options || {};
-  timeout = timeout || 15000;
-  var controller = new AbortController();
-  var signal = controller.signal;
+// 타임아웃이 있는 fetch 함수 (웨일 브라우저 호환성 개선)
+async function fetchWithTimeout(url, options = {}, timeout = 15000) {
+  const controller = new AbortController();
+  const signal = controller.signal;
   
   const timeoutId = setTimeout(() => {
     controller.abort();
@@ -2712,11 +2473,8 @@ function formatDate(dstr) {
     return `${d.getFullYear()}. ${String(d.getMonth()+1).padStart(2,'0')}. ${String(d.getDate()).padStart(2,'0')}.`;
   } catch(e) { return ''; }
 }
-function placeholderDataURI(w, h, txt) {
-  w = w || 600;
-  h = h || 400;
-  txt = txt || 'No Image';
-  var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '"><rect width="100%" height="100%" fill="#efefef"/><text x="50%" y="50%" fill="#aaa" font-size="20" text-anchor="middle" dominant-baseline="middle">' + txt + '</text></svg>';
+function placeholderDataURI(w=600,h=400,txt='No Image') {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'><rect width='100%' height='100%' fill='#efefef'/><text x='50%' y='50%' fill='#aaa' font-size='20' text-anchor='middle' dominant-baseline='middle'>${txt}</text></svg>`;
   return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
 }
 function pickCategoryClass(nameOrSlug) {
@@ -2730,58 +2488,56 @@ function pickCategoryClass(nameOrSlug) {
   if(s.includes('editor') || s.includes('editors')) return 'cat-editors-pick';
   return '';
 }
-function stripTags(str) {
-  str = str || '';
+function stripTags(str='') {
   return str.replace(/<\/?[^>]+(>|$)/g, "");
 }
 
 // OG 메타태그 업데이트 함수
 function updateMetaTags(data) {
-  var defaults = {
+  const defaults = {
     title: 'IMPACT – MAKE A IMPACT',
     description: 'Innovation Management Passion Acceleration Creativity Technology',
-    image: window.location.origin + '/logo.png',
+    image: `${window.location.origin}/logo.png`,
     url: window.location.href,
     type: 'website'
   };
   
-  // Object spread 대신 Object.assign 사용 (iOS 웨일 호환성)
-  var metaData = Object.assign({}, defaults, data || {});
+  const metaData = { ...defaults, ...data };
   
   // Document title
   document.title = metaData.title;
   
   // Description
-  var metaDesc = document.getElementById('metaDescription');
+  const metaDesc = document.getElementById('metaDescription');
   if(metaDesc) metaDesc.setAttribute('content', metaData.description);
   
   // Open Graph
-  var ogType = document.getElementById('ogType');
+  const ogType = document.getElementById('ogType');
   if(ogType) ogType.setAttribute('content', metaData.type);
   
-  var ogUrl = document.getElementById('ogUrl');
+  const ogUrl = document.getElementById('ogUrl');
   if(ogUrl) ogUrl.setAttribute('content', metaData.url);
   
-  var ogTitle = document.getElementById('ogTitle');
+  const ogTitle = document.getElementById('ogTitle');
   if(ogTitle) ogTitle.setAttribute('content', metaData.title);
   
-  var ogDescription = document.getElementById('ogDescription');
+  const ogDescription = document.getElementById('ogDescription');
   if(ogDescription) ogDescription.setAttribute('content', metaData.description);
   
-  var ogImage = document.getElementById('ogImage');
+  const ogImage = document.getElementById('ogImage');
   if(ogImage) ogImage.setAttribute('content', metaData.image);
   
   // Twitter
-  var twitterUrl = document.getElementById('twitterUrl');
+  const twitterUrl = document.getElementById('twitterUrl');
   if(twitterUrl) twitterUrl.setAttribute('content', metaData.url);
   
-  var twitterTitle = document.getElementById('twitterTitle');
+  const twitterTitle = document.getElementById('twitterTitle');
   if(twitterTitle) twitterTitle.setAttribute('content', metaData.title);
   
-  var twitterDescription = document.getElementById('twitterDescription');
+  const twitterDescription = document.getElementById('twitterDescription');
   if(twitterDescription) twitterDescription.setAttribute('content', metaData.description);
   
-  var twitterImage = document.getElementById('twitterImage');
+  const twitterImage = document.getElementById('twitterImage');
   if(twitterImage) twitterImage.setAttribute('content', metaData.image);
   
   // Canonical URL
@@ -3108,13 +2864,9 @@ function createCardNode(post) {
   try {
     thumbUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
   } catch(e) { thumbUrl = ''; }
+  imgEl.src = thumbUrl || placeholderDataURI(1200,800,'No Image');
   imgEl.loading = 'lazy'; // Lazy loading 추가
   imgEl.alt = (post.title && post.title.rendered) ? stripTags(post.title.rendered) : 'thumb';
-  // 크롬OS 호환성: 이미지 로딩 에러 처리
-  imgEl.onerror = function() {
-    this.src = placeholderDataURI(1200,800,'No Image');
-  };
-  imgEl.src = thumbUrl || placeholderDataURI(1200,800,'No Image');
   node.querySelector('.title').innerHTML = post.title && post.title.rendered ? post.title.rendered : '제목 없음';
   const avatarImg = node.querySelector('.author-avatar');
   const authorNameEl = node.querySelector('.author-name');
@@ -3122,12 +2874,9 @@ function createCardNode(post) {
   if(post._embedded && post._embedded.author && post._embedded.author[0]) {
     const a = post._embedded.author[0];
     const avatarUrl = a.avatar_urls ? (a.avatar_urls['48']||a.avatar_urls['24']||'') : '';
+    avatarImg.src = avatarUrl || placeholderDataURI(96,96,'U');
     avatarImg.loading = 'lazy'; // Lazy loading 추가
     avatarImg.alt = a.name || 'author';
-    avatarImg.onerror = function() {
-      this.src = placeholderDataURI(96,96,'U');
-    };
-    avatarImg.src = avatarUrl || placeholderDataURI(96,96,'U');
     authorNameEl.textContent = a.name || '익명';
   } else {
     avatarImg.src = placeholderDataURI(96,96,'U');
@@ -3206,7 +2955,7 @@ function createLargePostElement(largePost) {
 
   let heroUrl = largePost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
   largeDiv.innerHTML = `
-    <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero" loading="lazy" onerror="this.src='${placeholderDataURI(1200,800,'No Image').replace(/'/g, "\\'")}';this.onerror=null;">
+    <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero" loading="lazy">
     <div class="hero-overlay">
       <h2 class="hero-title">${largePost.title?.rendered || '제목 없음'}</h2>
       <div style="display:flex;align-items:center;gap:10px">
@@ -5276,31 +5025,24 @@ window.addEventListener('popstate', async (e) => {
 
 // 즉시 실행: 초기 로딩 최적화를 위해 DOMContentLoaded 제거
 (function() {
-  // DOM 준비 체크 함수 (iOS 웨일 브라우저 호환성 개선)
+  // DOM 준비 체크 함수 (모바일 웨일 브라우저 호환성 개선)
   function ready(fn) {
     if (document.readyState !== 'loading') {
       // DOM이 이미 로드된 경우 즉시 실행
       setTimeout(fn, 0);
     } else {
       // DOM 로딩 중인 경우 DOMContentLoaded 대기
-      var executed = false;
-      var handler = function() {
-        if (!executed) {
-          executed = true;
-          fn();
-        }
-      };
-      document.addEventListener('DOMContentLoaded', handler);
+      document.addEventListener('DOMContentLoaded', fn, { once: true });
       // 폴백: load 이벤트도 등록 (웨일 브라우저 대응)
-      window.addEventListener('load', handler);
+      window.addEventListener('load', fn, { once: true });
     }
   }
   
   // 이미지 모달 이벤트는 DOM이 준비된 후 등록
-  ready(function() {
-    var imageModal = document.getElementById('imageModal');
+  ready(() => {
+    const imageModal = document.getElementById('imageModal');
     if (imageModal) {
-      imageModal.addEventListener('click', function(e) {
+      imageModal.addEventListener('click', (e) => {
         if(e.target.id === 'imageModal' || e.target.classList.contains('image-modal')) {
           closeImageModal();
         }
@@ -5308,56 +5050,51 @@ window.addEventListener('popstate', async (e) => {
     }
   });
   
-  // 초기 로딩 로직 - 즉시 실행 (iOS 웨일 호환성 개선)
-  ready(function() {
+  // 초기 로딩 로직 - 즉시 실행
+  ready(async () => {
     renderNavList();
 
-    var loadingEl = document.getElementById('homeLoading');
+    const loadingEl = document.getElementById('homeLoading');
     if (loadingEl) {
       loadingEl.textContent = '페이지를 불러오는 중...';
     }
 
     // 수정됨: 새로고침 시 항상 메인 콘텐츠를 미리 로드
     // 메인 홈 콘텐츠를 백그라운드로 로드
-    var loadHomeInBackground = function() {
-      loadHomeChunk(1).then(function() {
+    const loadHomeInBackground = async () => {
+      try {
+        await loadHomeChunk(1);
         console.log('Home loaded successfully in background');
-      }).catch(function(err) {
+      } catch(err) {
         console.error('Background home loading failed:', err);
-      });
+      }
     };
 
-    // 중요: checkURLAndLoadPost의 결과를 기다림
-    checkURLAndLoadPost().then(function(hasSpecificPage) {
-      if(!hasSpecificPage) {
-        // 메인 페이지인 경우 즉시 로드
-        loadHomeChunk(1)
-          .then(function() {
-            console.log('Home loaded successfully');
-          })
-          .catch(function(err) {
-            console.error('Home loading failed:', err);
-            if (loadingEl) {
-              loadingEl.textContent = '페이지를 불러오지 못했습니다. 새로고침을 시도해주세요.';
-            }
-          });
-      } else {
-        // 수정됨: 서브 페이지에서 시작한 경우도 백그라운드로 메인 콘텐츠 로드
-        if (loadingEl) {
-          loadingEl.textContent = '';
-        }
-        // 약간의 디레이 후 백그라운드로 메인 콘텐츠 로드
-        setTimeout(function() {
-          loadHomeInBackground();
-        }, 1000);
+    // 중요: await를 사용하여 checkURLAndLoadPost의 결과를 기다림
+    const hasSpecificPage = await checkURLAndLoadPost();
+
+    if(!hasSpecificPage) {
+      // 메인 페이지인 경우 즉시 로드
+      loadHomeChunk(1)
+        .then(() => {
+          console.log('Home loaded successfully');
+        })
+        .catch((err) => {
+          console.error('Home loading failed:', err);
+          if (loadingEl) {
+            loadingEl.textContent = '페이지를 불러오지 못했습니다. 새로고침을 시도해주세요.';
+          }
+        });
+    } else {
+      // 수정됨: 서브 페이지에서 시작한 경우도 백그라운드로 메인 콘텐츠 로드
+      if (loadingEl) {
+        loadingEl.textContent = '';
       }
-    }).catch(function(err) {
-      console.error('Initial route check failed:', err);
-      // 에러 발생 시 메인 페이지 로드
-      loadHomeChunk(1).catch(function(err2) {
-        console.error('Fallback home loading failed:', err2);
-      });
-    });
+      // 약간의 디레이 후 백그라운드로 메인 콘텐츠 로드
+      setTimeout(() => {
+        loadHomeInBackground();
+      }, 1000);
+    }
     
     // 리사이즈 및 키보드 이벤트는 지연 등록하여 초기 로딩 최적화
     setTimeout(() => {
@@ -5898,23 +5635,38 @@ const imageObserver = new IntersectionObserver((entries, observer) => {
 
 // MutationObserver로 동적으로 추가되는 이미지 감시
 const mutationObserver = new MutationObserver((mutations) => {
-  mutations.forEach(mutation => {
-    mutation.addedNodes.forEach(node => {
-      if (node.nodeName === 'IMG' && node.dataset && node.dataset.src) {
+  mutations.forEach((mutation) => {
+    mutation.addedNodes.forEach((node) => {
+      if (node.tagName === 'IMG' && node.dataset.src) {
         imageObserver.observe(node);
+      }
+      if (node.querySelectorAll) {
+        node.querySelectorAll('img[data-src]').forEach(img => {
+          imageObserver.observe(img);
+        });
       }
     });
   });
 });
 
-// body 요소를 감시하여 동적으로 추가되는 이미지 처리
-if (document.body) {
-  mutationObserver.observe(document.body, {
-    childList: true,
-    subtree: true
-  });
-}
+mutationObserver.observe(document.body, {
+  childList: true,
+  subtree: true
+});
 
+// ⚡ 성능 최적화: 리소스 힌트 추가
+const resourceHints = [
+  { rel: 'dns-prefetch', href: 'https://impactceo.art' },
+  { rel: 'preconnect', href: 'https://impactceo.art' }
+];
+
+resourceHints.forEach(hint => {
+  const link = document.createElement('link');
+  link.rel = hint.rel;
+  link.href = hint.href;
+  if (hint.rel === 'preconnect') link.crossOrigin = '';
+  document.head.appendChild(link);
+});
 </script>
 </body>
 </html>
