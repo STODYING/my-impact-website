@@ -1886,9 +1886,7 @@
     border-radius: 12px;
     margin: 32px 0;
     background: #f5f5f5;
-    min-height: 300px;
-    transition: aspect-ratio 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-                max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   body.dark-mode .wp-gallery-slider {
@@ -1916,8 +1914,10 @@
   }
   
   .wp-gallery-slider-slide img {
-    width: 100%;
-    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
     display: block;
     object-fit: contain;
     margin: 0 !important;
@@ -1925,51 +1925,58 @@
     transition: opacity 0.2s ease;
   }
   
-  /* 가로 이미지 (landscape) */
+  /* 가로 이미지 (landscape) - 가로가 더 긴 이미지 */
   .wp-gallery-slider.landscape {
-    aspect-ratio: 16 / 9;
-    max-height: 70vh;
+    height: 60vh;
+    max-height: 600px;
   }
   
   .wp-gallery-slider.landscape .wp-gallery-slider-slide img {
+    width: 100%;
+    height: auto;
     object-fit: cover;
   }
   
-  /* 세로 이미지 (portrait) */
+  /* 세로 이미지 (portrait) - 세로가 더 긴 이미지 */
   .wp-gallery-slider.portrait {
-    aspect-ratio: 3 / 4;
-    max-height: 80vh;
+    height: 70vh;
+    max-height: 800px;
   }
   
   .wp-gallery-slider.portrait .wp-gallery-slider-slide img {
+    width: auto;
+    height: 100%;
+    max-width: 100%;
     object-fit: contain;
   }
   
   /* 정사각형 이미지 (square) */
   .wp-gallery-slider.square {
-    aspect-ratio: 1 / 1;
-    max-height: 70vh;
+    height: 60vh;
+    max-height: 600px;
   }
   
   .wp-gallery-slider.square .wp-gallery-slider-slide img {
+    width: 100%;
+    height: auto;
     object-fit: cover;
   }
   
   /* 모바일에서 높이 조정 */
   @media (max-width: 768px) {
     .wp-gallery-slider.landscape {
-      aspect-ratio: 4 / 3;
-      max-height: 50vh;
+      height: 40vh;
+      max-height: 400px;
     }
     
     .wp-gallery-slider.portrait {
-      aspect-ratio: 3 / 4;
-      max-height: 60vh;
+      height: 60vh;
+      max-height: 600px;
     }
     
     .wp-gallery-slider.square {
-      aspect-ratio: 1 / 1;
-      max-height: 50vh;
+      height: 50vh;
+      max-height: 500px;
     }
   }
   
@@ -4187,41 +4194,51 @@ async function renderPostOverlay(post) {
 }
 
 // 워드프레스 갤러리 슬라이더 초기화 함수
-function initializeGallerySliders() {
+async function initializeGallerySliders() {
   const postContent = document.querySelector('.post-content');
   if (!postContent) return;
+  
+  console.log('갤러리 슬라이더 초기화 시작');
   
   // 워드프레스 갤러리 찾기 (.wp-block-gallery, .gallery, .blocks-gallery-grid 등)
   const galleries = postContent.querySelectorAll('.wp-block-gallery, .gallery, .blocks-gallery-grid, [class*="gallery"]');
   
-  galleries.forEach((gallery, index) => {
+  for (let i = 0; i < galleries.length; i++) {
+    const gallery = galleries[i];
+    
     // 이미 처리된 갤러리는 건너뛰기
-    if (gallery.classList.contains('wp-gallery-processed')) return;
+    if (gallery.classList.contains('wp-gallery-processed')) continue;
     
     const images = gallery.querySelectorAll('img');
     
     // 이미지가 2개 이상일 때만 슬라이더로 변환
     if (images.length >= 2) {
-      createGallerySlider(gallery, images, index);
+      console.log(`갤러리 ${i + 1} 처리 중 (이미지 ${images.length}개)`);
+      await createGallerySlider(gallery, images, i);
       gallery.classList.add('wp-gallery-processed');
     }
-  });
+  }
   
   // figure 안에 여러 img가 있는 경우도 처리
   const figures = postContent.querySelectorAll('figure');
-  figures.forEach((figure, index) => {
-    if (figure.classList.contains('wp-gallery-processed')) return;
+  for (let i = 0; i < figures.length; i++) {
+    const figure = figures[i];
+    
+    if (figure.classList.contains('wp-gallery-processed')) continue;
     
     const images = figure.querySelectorAll('img');
     if (images.length >= 2) {
-      createGallerySlider(figure, images, index + 1000);
+      console.log(`Figure ${i + 1} 처리 중 (이미지 ${images.length}개)`);
+      await createGallerySlider(figure, images, i + 1000);
       figure.classList.add('wp-gallery-processed');
     }
-  });
+  }
+  
+  console.log('갤러리 슬라이더 초기화 완료');
 }
 
 // 갤러리 슬라이더 생성 함수
-function createGallerySlider(container, images, galleryId) {
+async function createGallerySlider(container, images, galleryId) {
   const imageArray = Array.from(images);
   
   // 슬라이더 구조 생성
@@ -4232,42 +4249,57 @@ function createGallerySlider(container, images, galleryId) {
   const track = document.createElement('div');
   track.className = 'wp-gallery-slider-track';
   
-  // 이미지 비율 감지를 위한 배열
-  const aspectRatios = [];
+  // 이미지 비율 배열
+  const imageRatios = [];
   
-  // 각 이미지를 슬라이드로 변환
-  imageArray.forEach((img, idx) => {
-    const slide = document.createElement('div');
-    slide.className = 'wp-gallery-slider-slide';
-    
-    const clonedImg = img.cloneNode(true);
-    clonedImg.style.cursor = 'default';
-    
-    // 이미지 로드 후 비율 계산
-    if (img.naturalWidth && img.naturalHeight) {
-      const ratio = img.naturalWidth / img.naturalHeight;
-      aspectRatios.push(ratio);
-    } else {
-      // 이미지가 아직 로드되지 않은 경우
-      clonedImg.addEventListener('load', function() {
-        const ratio = this.naturalWidth / this.naturalHeight;
-        aspectRatios.push(ratio);
-        
-        // 모든 이미지가 로드되면 슬라이더 타입 결정
-        if (aspectRatios.length === imageArray.length) {
-          setSliderType(slider, aspectRatios);
-        }
-      });
-    }
-    
-    slide.appendChild(clonedImg);
-    track.appendChild(slide);
+  // 모든 이미지 로드를 기다림
+  const imageLoadPromises = imageArray.map((img, idx) => {
+    return new Promise((resolve) => {
+      const slide = document.createElement('div');
+      slide.className = 'wp-gallery-slider-slide';
+      
+      const clonedImg = img.cloneNode(true);
+      clonedImg.style.cursor = 'default';
+      
+      // 이미지가 이미 로드된 경우
+      if (img.complete && img.naturalWidth && img.naturalHeight) {
+        const ratio = img.naturalWidth / img.naturalHeight;
+        imageRatios[idx] = ratio;
+        slide.dataset.ratio = ratio;
+        console.log(`이미지 ${idx + 1} 비율:`, ratio.toFixed(2), 
+                    `(${img.naturalWidth}x${img.naturalHeight})`);
+        slide.appendChild(clonedImg);
+        track.appendChild(slide);
+        resolve();
+      } else {
+        // 이미지 로드 대기
+        const tempImg = new Image();
+        tempImg.onload = function() {
+          const ratio = this.naturalWidth / this.naturalHeight;
+          imageRatios[idx] = ratio;
+          slide.dataset.ratio = ratio;
+          console.log(`이미지 ${idx + 1} 비율:`, ratio.toFixed(2), 
+                      `(${this.naturalWidth}x${this.naturalHeight})`);
+          clonedImg.src = img.src;
+          slide.appendChild(clonedImg);
+          track.appendChild(slide);
+          resolve();
+        };
+        tempImg.onerror = function() {
+          console.error(`이미지 ${idx + 1} 로드 실패`);
+          imageRatios[idx] = 1;
+          slide.dataset.ratio = 1;
+          slide.appendChild(clonedImg);
+          track.appendChild(slide);
+          resolve();
+        };
+        tempImg.src = img.src;
+      }
+    });
   });
   
-  // 이미 로드된 이미지들의 비율이 있으면 슬라이더 타입 설정
-  if (aspectRatios.length === imageArray.length) {
-    setSliderType(slider, aspectRatios);
-  }
+  // 모든 이미지 로드 대기
+  await Promise.all(imageLoadPromises);
   
   slider.appendChild(track);
   
@@ -4307,89 +4339,57 @@ function createGallerySlider(container, images, galleryId) {
     slider.appendChild(dots);
   }
   
+  // 첫 번째 이미지 비율로 초기 설정
+  if (imageRatios.length > 0 && imageRatios[0]) {
+    setSliderType(slider, imageRatios[0]);
+  }
+  
   // 기존 갤러리 내용을 슬라이더로 교체
   container.innerHTML = '';
   container.appendChild(slider);
   
   // 슬라이더 기능 초기화
-  initializeSliderControls(slider, track, imageArray.length, prevBtn, nextBtn, counter);
+  initializeSliderControls(slider, track, imageArray.length, prevBtn, nextBtn, counter, imageRatios);
 }
 
-// 슬라이더 타입 결정 함수 (첫 번째 이미지 기준)
-function setSliderType(slider, aspectRatios) {
-  if (aspectRatios.length === 0) return;
+// 슬라이더 타입 결정 함수 (단일 이미지 비율 기준)
+function setSliderType(slider, ratio) {
+  // 기존 클래스 제거
+  slider.classList.remove('landscape', 'portrait', 'square');
   
-  // 첫 번째 이미지의 비율 사용
-  const firstRatio = aspectRatios[0];
+  console.log('슬라이더 타입 설정 - 비율:', ratio.toFixed(2));
   
   // 비율 기준:
-  // landscape: 비율 > 1.3 (가로가 세로보다 30% 이상 큼)
-  // portrait: 비율 < 0.8 (세로가 가로보다 25% 이상 큼)
-  // square: 0.8 <= 비율 <= 1.3
+  // landscape: 비율 > 1.2 (가로가 세로보다 20% 이상 큼)
+  // portrait: 비율 < 0.85 (세로가 가로보다 많이 큼)
+  // square: 0.85 <= 비율 <= 1.2
   
-  if (firstRatio > 1.3) {
+  if (ratio > 1.2) {
     slider.classList.add('landscape');
-  } else if (firstRatio < 0.8) {
+    console.log('→ 가로형 이미지');
+  } else if (ratio < 0.85) {
     slider.classList.add('portrait');
+    console.log('→ 세로형 이미지');
   } else {
     slider.classList.add('square');
+    console.log('→ 정사각형 이미지');
   }
 }
 
 // 슬라이더 컨트롤 초기화
-function initializeSliderControls(slider, track, totalSlides, prevBtn, nextBtn, counter) {
+function initializeSliderControls(slider, track, totalSlides, prevBtn, nextBtn, counter, imageRatios) {
   let currentIndex = 0;
   let startX = 0;
   let currentX = 0;
   let isDragging = false;
-  
-  // 각 슬라이드의 이미지 비율 저장
-  const slides = track.querySelectorAll('.wp-gallery-slider-slide');
-  const slideRatios = [];
-  
-  slides.forEach((slide, idx) => {
-    const img = slide.querySelector('img');
-    if (img) {
-      // 이미지가 로드되면 비율 저장
-      const ratio = img.naturalWidth && img.naturalHeight ? 
-        img.naturalWidth / img.naturalHeight : 1;
-      slideRatios[idx] = ratio;
-      
-      if (!img.complete) {
-        img.addEventListener('load', function() {
-          slideRatios[idx] = this.naturalWidth / this.naturalHeight;
-          if (idx === currentIndex) {
-            updateSliderSize(slider, slideRatios[idx]);
-          }
-        });
-      }
-    } else {
-      slideRatios[idx] = 1;
-    }
-  });
-  
-  // 슬라이더 크기 업데이트 함수
-  const updateSliderSize = (slider, ratio) => {
-    // 기존 타입 클래스 제거
-    slider.classList.remove('landscape', 'portrait', 'square');
-    
-    // 새 타입 클래스 추가
-    if (ratio > 1.3) {
-      slider.classList.add('landscape');
-    } else if (ratio < 0.8) {
-      slider.classList.add('portrait');
-    } else {
-      slider.classList.add('square');
-    }
-  };
   
   const updateSlider = () => {
     track.style.transform = `translateX(-${currentIndex * 100}%)`;
     counter.textContent = `${currentIndex + 1} / ${totalSlides}`;
     
     // 현재 슬라이드의 이미지 비율에 맞춰 슬라이더 크기 조정
-    if (slideRatios[currentIndex]) {
-      updateSliderSize(slider, slideRatios[currentIndex]);
+    if (imageRatios && imageRatios[currentIndex]) {
+      setSliderType(slider, imageRatios[currentIndex]);
     }
     
     // 도트 업데이트
