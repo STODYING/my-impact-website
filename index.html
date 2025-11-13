@@ -1593,6 +1593,178 @@
     margin: 0;
     font-weight: 900;
   }
+  
+  /* =============================================
+     모바일 9:16 비율 레이아웃 (세로 모드)
+     큰 게시물 1개 → 작은 게시물 4개 (1열)
+     각각 화면 전체 높이 차지
+  ============================================= */
+  @media (orientation: portrait) and (max-aspect-ratio: 10/16) {
+    /* 큰 게시물 1개가 화면 전체 높이 차지 */
+    .mobile-large-post {
+      height: 100vh;
+      margin-bottom: 0;
+      padding: 0;
+    }
+    
+    .mobile-large-post .magazine-large {
+      height: 100vh;
+      min-height: 100vh;
+      width: 100%;
+      border-radius: 0;
+      margin: 0;
+    }
+    
+    /* 작은 게시물 4개 컨테이너가 화면 전체 높이 차지 */
+    .mobile-small-grid {
+      height: 100vh;
+      margin-bottom: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .mobile-small-grid .magazine-small-grid {
+      grid-template-columns: 1fr;
+      gap: 0;
+      height: 100%;
+      display: grid;
+      grid-template-rows: repeat(4, 1fr);
+    }
+    
+    .mobile-small-grid .card {
+      border-radius: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      border-left: none;
+      border-right: none;
+      border-top: none;
+    }
+    
+    body.dark-mode .mobile-small-grid .card {
+      border-bottom-color: rgba(255,255,255,0.08);
+    }
+    
+    .mobile-small-grid .card:last-child {
+      border-bottom: none;
+    }
+    
+    .mobile-small-grid .card .thumb {
+      height: 60%;
+      flex-shrink: 0;
+    }
+    
+    .mobile-small-grid .card-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px;
+    }
+    
+    /* 홈 영역 패딩 제거 */
+    .home {
+      margin-top: 72px;
+      padding-bottom: 0;
+    }
+    
+    .magazine-row {
+      padding: 0;
+      margin-bottom: 0;
+      gap: 0;
+    }
+  }
+  
+  /* =============================================
+     태블릿 4:3 비율 레이아웃 (세로 모드)
+     큰 게시물 1개 → 작은 게시물 4개 (2×2)
+     각각 화면 전체 높이 차지
+  ============================================= */
+  @media (orientation: portrait) and (min-aspect-ratio: 10/16) and (max-aspect-ratio: 5/6) {
+    /* 큰 게시물 1개가 화면 전체 높이 차지 */
+    .mobile-large-post {
+      height: 100vh;
+      margin-bottom: 0;
+      padding: 0;
+    }
+    
+    .mobile-large-post .magazine-large {
+      height: 100vh;
+      min-height: 100vh;
+      width: 100%;
+      border-radius: 0;
+      margin: 0;
+    }
+    
+    /* 작은 게시물 4개 컨테이너가 화면 전체 높이 차지 */
+    .mobile-small-grid {
+      height: 100vh;
+      margin-bottom: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .mobile-small-grid .magazine-small-grid {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 0;
+      height: 100%;
+      display: grid;
+    }
+    
+    .mobile-small-grid .card {
+      border-radius: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid rgba(0,0,0,0.06);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    
+    body.dark-mode .mobile-small-grid .card {
+      border-right-color: rgba(255,255,255,0.08);
+      border-bottom-color: rgba(255,255,255,0.08);
+    }
+    
+    /* 오른쪽 열의 카드는 오른쪽 border 제거 */
+    .mobile-small-grid .card:nth-child(2n) {
+      border-right: none;
+    }
+    
+    /* 아래 행의 카드는 아래 border 제거 */
+    .mobile-small-grid .card:nth-child(n+3) {
+      border-bottom: none;
+    }
+    
+    .mobile-small-grid .card .thumb {
+      height: 60%;
+      flex-shrink: 0;
+    }
+    
+    .mobile-small-grid .card-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px;
+    }
+    
+    /* 홈 영역 패딩 제거 */
+    .home {
+      margin-top: 72px;
+      padding-bottom: 0;
+    }
+    
+    .magazine-row {
+      padding: 0;
+      margin-bottom: 0;
+      gap: 0;
+    }
+  }
+  
   /* 아이패드 세로 모드 (768px ~ 1024px, 3:4 비율) - 모바일 레이아웃 적용 */
   @media (max-width: 1024px) and (min-width: 769px) and (orientation: portrait) {
     .magazine-row {
