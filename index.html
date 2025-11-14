@@ -1123,7 +1123,7 @@
   }
 
   .image-modal {
-    display: none;
+    display: none; /* 기본적으로 숨김 */
     position: fixed;
     top: 0;
     left: 0;
@@ -1133,13 +1133,13 @@
     z-index: 10000;
     cursor: zoom-out;
     padding: 20px;
+    align-items: center;
+    justify-content: center;
     animation: fadeIn 0.3s ease;
   }
 
   .image-modal.active {
     display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
   .image-modal img {
@@ -1167,9 +1167,11 @@
     justify-content: center;
     transition: all 0.3s ease;
     z-index: 10001;
+    -webkit-tap-highlight-color: transparent; /* 모바일 탭 하이라이트 제거 */
   }
 
-  .image-modal-close:hover {
+  .image-modal-close:hover,
+  .image-modal-close:active {
     background: rgba(255,255,255,0.2);
     transform: rotate(90deg);
   }
@@ -3679,10 +3681,11 @@ function openImageModal(imgSrc) {
 
 function closeImageModal() {
   const modal = document.getElementById('imageModal');
+  modal.style.display = 'none';
   modal.classList.remove('active');
-  if(!document.getElementById('postOverlay').classList.contains('active')) {
-    document.body.style.overflow = '';
-  }
+  document.body.style.overflow = '';
+  
+  console.log('✅ 이미지 모달 닫힘');
 }
 
 // slug로 게시물 ID를 찾는 함수
@@ -4375,7 +4378,10 @@ function openImageModal(imageSrc) {
   if (modal && modalImg) {
     modalImg.src = imageSrc;
     modal.style.display = 'flex';
+    modal.classList.add('active');
     document.body.style.overflow = 'hidden';
+    
+    console.log('✅ 이미지 모달 열림:', imageSrc);
   }
 }
 
@@ -4575,8 +4581,9 @@ function initializeSliderControls(slider, track, totalSlides, prevBtn, nextBtn, 
   // 터치/마우스 드래그 이벤트
   const handleStart = (e) => {
     isDragging = true;
-    startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
-    currentX = startX;
+    const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+    startX = clientX;
+    currentX = clientX;
     track.style.transition = 'none';
   };
   
@@ -4591,26 +4598,41 @@ function initializeSliderControls(slider, track, totalSlides, prevBtn, nextBtn, 
     track.style.transform = `translateX(calc(-${currentIndex * 100}% + ${percentage}%))`;
   };
   
-  const handleEnd = () => {
+  const handleEnd = (e) => {
     if (!isDragging) return;
     
     isDragging = false;
     track.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
     
     const diff = currentX - startX;
-    const threshold = slider.offsetWidth * 0.2;
+    const threshold = slider.offsetWidth * 0.15; // 임계값 15%로 낮춤 (더 민감하게)
+    
+    console.log(`[스와이프] diff: ${diff}px, threshold: ${threshold}px, 현재: ${currentIndex}`);
     
     if (Math.abs(diff) > threshold) {
+      // 오른쪽으로 스와이프 (이전 슬라이드)
       if (diff > 0 && currentIndex > 0) {
+        console.log('→ 이전 슬라이드로 이동');
         goToSlide(currentIndex - 1);
-      } else if (diff < 0 && currentIndex < totalSlides - 1) {
+      } 
+      // 왼쪽으로 스와이프 (다음 슬라이드)
+      else if (diff < 0 && currentIndex < totalSlides - 1) {
+        console.log('→ 다음 슬라이드로 이동');
         goToSlide(currentIndex + 1);
-      } else {
+      } 
+      // 경계에서의 스와이프
+      else {
+        console.log('→ 경계 도달, 제자리');
         updateSlider();
       }
     } else {
+      console.log('→ 임계값 미만, 제자리');
       updateSlider();
     }
+    
+    // 초기화
+    startX = 0;
+    currentX = 0;
   };
   
   // 마우스 이벤트
