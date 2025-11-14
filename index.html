@@ -29,8 +29,34 @@
   <link rel="preconnect" href="https://www.googletagmanager.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://public-api.wordpress.com">
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://public-api.wordpress.com">
+  
+  <!-- 프리렌더링 힌트 (주요 페이지들을 미리 로드) -->
+  <!-- 이 링크들은 JavaScript로 동적으로 업데이트됩니다 -->
+  <link rel="prefetch" id="prefetchLink1" as="document">
+  <link rel="prefetch" id="prefetchLink2" as="document">
+  <link rel="prefetch" id="prefetchLink3" as="document">
+  
+  <!-- Speculation Rules API for Chrome (최신 프리렌더링) -->
+  <script type="speculationrules" id="speculationRules">
+  {
+    "prefetch": [
+      {
+        "source": "list",
+        "urls": []
+      }
+    ],
+    "prerender": [
+      {
+        "source": "list",
+        "urls": []
+      }
+    ]
+  }
+  </script>
 
   <!-- Google Analytics - 비동기 로딩 최적화 -->
   <script>
@@ -1882,6 +1908,7 @@
   .wp-gallery-slider {
     position: relative;
     width: 100%;
+    max-width: 100%;
     overflow: hidden;
     border-radius: 12px;
     margin: 32px 0;
@@ -1907,6 +1934,7 @@
   
   .wp-gallery-slider-slide {
     min-width: 100%;
+    width: 100%;
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -1923,6 +1951,19 @@
     object-fit: contain;
     margin: 0 auto !important;
     border-radius: 0 !important;
+  }
+  
+  /* 모바일 최적화 */
+  @media (max-width: 768px) {
+    .wp-gallery-slider {
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+    
+    .wp-gallery-slider-slide img {
+      max-width: 100%;
+      max-height: 100%;
+    }
   }
   
   .wp-gallery-slider-nav {
@@ -3372,6 +3413,9 @@ function renderPagination(containerId, currentPage, totalPages, onPageClick) {
   }
   container.appendChild(nextBtn);
   
+  // 프리렌더링: 인접 페이지 미리 로드
+  prerenderAdjacentPages(currentPage, totalPages);
+  
   console.log('━━━ renderPagination 완료 ━━━\n');
 }
 
@@ -4206,7 +4250,7 @@ async function createGallerySlider(container, images, galleryId) {
     slide.className = 'wp-gallery-slider-slide';
     
     const clonedImg = img.cloneNode(true);
-    clonedImg.style.cursor = 'default';
+    clonedImg.style.cursor = 'pointer'; // 클릭 가능하도록 변경
     
     // 이미지 로드 및 비율 계산
     await new Promise((resolve) => {
@@ -4215,8 +4259,14 @@ async function createGallerySlider(container, images, galleryId) {
         const height = img.naturalHeight;
         const ratio = width / height;
         
-        imageData[idx] = { width, height, ratio };
+        imageData[idx] = { width, height, ratio, src: img.src };
         console.log(`이미지 ${idx + 1}: ${width}x${height} → 비율 ${ratio.toFixed(3)}`);
+        
+        // 이미지 클릭 이벤트 추가
+        clonedImg.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openImageModal(img.src);
+        });
         
         slide.appendChild(clonedImg);
         track.appendChild(slide);
@@ -4228,17 +4278,31 @@ async function createGallerySlider(container, images, galleryId) {
           const height = this.naturalHeight;
           const ratio = width / height;
           
-          imageData[idx] = { width, height, ratio };
+          imageData[idx] = { width, height, ratio, src: img.src };
           console.log(`이미지 ${idx + 1}: ${width}x${height} → 비율 ${ratio.toFixed(3)}`);
           
           clonedImg.src = img.src;
+          
+          // 이미지 클릭 이벤트 추가
+          clonedImg.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openImageModal(img.src);
+          });
+          
           slide.appendChild(clonedImg);
           track.appendChild(slide);
           resolve();
         };
         tempImg.onerror = function() {
           console.error(`이미지 ${idx + 1} 로드 실패`);
-          imageData[idx] = { width: 800, height: 600, ratio: 1.33 };
+          imageData[idx] = { width: 800, height: 600, ratio: 1.33, src: img.src };
+          
+          // 이미지 클릭 이벤트 추가
+          clonedImg.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openImageModal(img.src);
+          });
+          
           slide.appendChild(clonedImg);
           track.appendChild(slide);
           resolve();
@@ -4290,8 +4354,12 @@ async function createGallerySlider(container, images, galleryId) {
   container.innerHTML = '';
   container.appendChild(slider);
   
-  // 첫 번째 이미지 비율로 초기 높이 설정
-  setSliderHeight(slider, imageData[0].ratio);
+  // DOM이 완전히 렌더링된 후 높이 설정
+  setTimeout(() => {
+    if (imageData.length > 0 && imageData[0]) {
+      setSliderHeight(slider, imageData[0].ratio);
+    }
+  }, 100);
   
   // 슬라이더 컨트롤 초기화
   initializeSliderControls(slider, track, imageArray.length, prevBtn, nextBtn, counter, imageData);
@@ -4299,24 +4367,154 @@ async function createGallerySlider(container, images, galleryId) {
   console.log(`=== 갤러리 ${galleryId} 생성 완료 ===\n`);
 }
 
+// 이미지 모달 열기 함수
+function openImageModal(imageSrc) {
+  const modal = document.getElementById('imageModal');
+  const modalImg = document.getElementById('modalImage');
+  
+  if (modal && modalImg) {
+    modalImg.src = imageSrc;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+// 프리렌더링 함수: 인접 페이지 미리 로드
+function prerenderAdjacentPages(currentPage, totalPages) {
+  const baseUrl = window.location.origin + window.location.pathname;
+  const urlsToPrerender = [];
+  
+  // 다음 페이지
+  if (currentPage < totalPages) {
+    urlsToPrerender.push(`${baseUrl}?page=${currentPage + 1}`);
+  }
+  
+  // 이전 페이지
+  if (currentPage > 1) {
+    urlsToPrerender.push(`${baseUrl}?page=${currentPage - 1}`);
+  }
+  
+  // 다다음 페이지 (사용자가 연속으로 클릭할 가능성 대비)
+  if (currentPage + 2 <= totalPages) {
+    urlsToPrerender.push(`${baseUrl}?page=${currentPage + 2}`);
+  }
+  
+  console.log('🚀 프리렌더링 URL:', urlsToPrerender);
+  
+  // 기존 prefetch 링크 업데이트
+  updatePrefetchLinks(urlsToPrerender);
+  
+  // Speculation Rules API 업데이트 (Chrome 지원)
+  updateSpeculationRules(urlsToPrerender);
+}
+
+// Prefetch 링크 동적 업데이트
+function updatePrefetchLinks(urls) {
+  for (let i = 0; i < Math.min(urls.length, 3); i++) {
+    const linkId = `prefetchLink${i + 1}`;
+    let link = document.getElementById(linkId);
+    
+    if (link && urls[i]) {
+      link.href = urls[i];
+      console.log(`✅ Prefetch 링크 ${i + 1} 업데이트:`, urls[i]);
+    }
+  }
+}
+
+// Speculation Rules API 업데이트 (최신 Chrome에서 더 효과적인 프리렌더링)
+function updateSpeculationRules(urls) {
+  const script = document.getElementById('speculationRules');
+  
+  if (script && 'speculationrules' in HTMLScriptElement.prototype) {
+    const rules = {
+      prefetch: [{
+        source: "list",
+        urls: urls.slice(0, 3) // 최대 3개
+      }],
+      prerender: [{
+        source: "list", 
+        urls: urls.slice(0, 1) // 다음 페이지만 prerender (리소스 절약)
+      }]
+    };
+    
+    script.textContent = JSON.stringify(rules);
+    console.log('✅ Speculation Rules 업데이트:', rules);
+  } else {
+    console.log('⚠️ Speculation Rules API 미지원 (Chrome 109+ 필요)');
+  }
+}
+
+// 포스트 상세 페이지 프리렌더링
+function prerenderPostLinks() {
+  // 현재 화면에 보이는 포스트 링크들을 수집
+  const postLinks = document.querySelectorAll('.post-title a, .post-link');
+  const visibleLinks = [];
+  
+  postLinks.forEach(link => {
+    const rect = link.getBoundingClientRect();
+    const isVisible = (
+      rect.top >= 0 &&
+      rect.left >= 0 &&
+      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+      rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+    );
+    
+    if (isVisible && visibleLinks.length < 5) {
+      visibleLinks.push(link.href);
+    }
+  });
+  
+  if (visibleLinks.length > 0) {
+    console.log('📄 포스트 프리렌더링:', visibleLinks);
+    updatePrefetchLinks(visibleLinks);
+  }
+}
+
+// 페이지 로드 시 초기화
+window.addEventListener('load', () => {
+  // 포스트 링크 프리렌더링 (3초 후 - 초기 로딩 완료 후)
+  setTimeout(() => {
+    prerenderPostLinks();
+  }, 3000);
+});
+
 // 슬라이더 높이 설정 함수
 function setSliderHeight(slider, ratio) {
-  const sliderWidth = slider.offsetWidth || 800; // 기본값 800px
+  // 실제 슬라이더 너비 측정 (여러 방법 시도)
+  let sliderWidth = slider.offsetWidth;
+  
+  // offsetWidth가 0이면 부모 컨테이너나 viewport 너비 사용
+  if (!sliderWidth || sliderWidth === 0) {
+    const parent = slider.parentElement;
+    if (parent) {
+      sliderWidth = parent.offsetWidth;
+    }
+    if (!sliderWidth || sliderWidth === 0) {
+      sliderWidth = window.innerWidth;
+    }
+  }
+  
+  // 패딩 제거 (좌우 20px씩)
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    sliderWidth = sliderWidth - 40; // 좌우 패딩 제거
+  }
+  
+  console.log(`[높이 계산] 슬라이더 너비: ${sliderWidth}px, 비율: ${ratio.toFixed(3)}`);
   
   // 이미지 비율로 높이 계산
   let calculatedHeight = sliderWidth / ratio;
   
   // 최대/최소 높이 제한
-  const isMobile = window.innerWidth <= 768;
-  const maxHeight = isMobile ? window.innerHeight * 0.7 : window.innerHeight * 0.8;
-  const minHeight = 300;
+  const maxHeight = isMobile ? window.innerHeight * 0.6 : window.innerHeight * 0.75;
+  const minHeight = isMobile ? 250 : 300;
   
   calculatedHeight = Math.max(minHeight, Math.min(calculatedHeight, maxHeight));
   
   slider.style.height = `${calculatedHeight}px`;
   slider.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
   
-  console.log(`슬라이더 높이 설정: 비율 ${ratio.toFixed(3)} → ${calculatedHeight.toFixed(0)}px (너비: ${sliderWidth}px)`);
+  console.log(`[높이 적용] ${calculatedHeight.toFixed(0)}px (최소: ${minHeight}px, 최대: ${maxHeight.toFixed(0)}px)`);
 }
 
 // 슬라이더 컨트롤 초기화
@@ -4331,8 +4529,11 @@ function initializeSliderControls(slider, track, totalSlides, prevBtn, nextBtn, 
     counter.textContent = `${currentIndex + 1} / ${totalSlides}`;
     
     // 현재 이미지의 비율로 슬라이더 높이 재설정
-    if (imageData && imageData[currentIndex]) {
-      setSliderHeight(slider, imageData[currentIndex].ratio);
+    if (imageData && imageData[currentIndex] && imageData[currentIndex].ratio) {
+      // 약간의 지연을 주어 DOM이 완전히 렌더링된 후 높이 설정
+      setTimeout(() => {
+        setSliderHeight(slider, imageData[currentIndex].ratio);
+      }, 50);
     }
     
     // 도트 업데이트
@@ -4436,17 +4637,20 @@ function initializeSliderControls(slider, track, totalSlides, prevBtn, nextBtn, 
   
   // 윈도우 리사이즈 시 높이 재계산
   let resizeTimeout;
-  window.addEventListener('resize', () => {
+  const handleResize = () => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-      if (imageData && imageData[currentIndex]) {
+      if (imageData && imageData[currentIndex] && imageData[currentIndex].ratio) {
         setSliderHeight(slider, imageData[currentIndex].ratio);
       }
     }, 300);
-  });
+  };
+  window.addEventListener('resize', handleResize);
   
-  // 초기 상태 설정
-  updateSlider();
+  // 초기 상태 설정 (약간의 지연)
+  setTimeout(() => {
+    updateSlider();
+  }, 100);
 }
 
 const ui = {
