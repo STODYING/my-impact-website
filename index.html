@@ -3679,11 +3679,16 @@ function openImageModal(imgSrc) {
   document.body.style.overflow = 'hidden';
 }
 
-function closeImageModal() {
+function closeImageModal(skipHistory = false) {
   const modal = document.getElementById('imageModal');
   modal.style.display = 'none';
   modal.classList.remove('active');
   document.body.style.overflow = '';
+  
+  // X 버튼이나 배경 클릭으로 닫을 때만 히스토리 뒤로 가기
+  if (!skipHistory && history.state && history.state.imageModal) {
+    history.back();
+  }
   
   console.log('✅ 이미지 모달 닫힘');
 }
@@ -4267,6 +4272,7 @@ async function createGallerySlider(container, images, galleryId) {
         
         // 이미지 클릭 이벤트 추가
         clonedImg.addEventListener('click', (e) => {
+          e.preventDefault();
           e.stopPropagation();
           openImageModal(img.src);
         });
@@ -4288,6 +4294,7 @@ async function createGallerySlider(container, images, galleryId) {
           
           // 이미지 클릭 이벤트 추가
           clonedImg.addEventListener('click', (e) => {
+            e.preventDefault();
             e.stopPropagation();
             openImageModal(img.src);
           });
@@ -4302,6 +4309,7 @@ async function createGallerySlider(container, images, galleryId) {
           
           // 이미지 클릭 이벤트 추가
           clonedImg.addEventListener('click', (e) => {
+            e.preventDefault();
             e.stopPropagation();
             openImageModal(img.src);
           });
@@ -4380,6 +4388,9 @@ function openImageModal(imageSrc) {
     modal.style.display = 'flex';
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
+    
+    // 히스토리에 추가 (뒤로가기 지원)
+    history.pushState({ imageModal: true }, '', window.location.href);
     
     console.log('✅ 이미지 모달 열림:', imageSrc);
   }
@@ -5492,6 +5503,13 @@ async function checkURLAndLoadPost() {
 window.addEventListener('popstate', async (e) => {
   const pathname = window.location.pathname;
   const postOverlay = document.getElementById('postOverlay');
+  const imageModal = document.getElementById('imageModal');
+  
+  // 이미지 모달이 열려있으면 닫기
+  if(imageModal && (imageModal.style.display === 'flex' || imageModal.classList.contains('active'))) {
+    closeImageModal(true); // skipHistory=true로 무한 루프 방지
+    return;
+  }
   
   // 게시물에서 뒤로가기 - 게시물이 열려있으면 닫고 이전 상태 복원
   if(postOverlay.classList.contains('active')) {
@@ -6085,6 +6103,13 @@ if(globalNavSearch) {
 // popstate 이벤트 핸들러 (뒤로가기/앞으로가기 처리)
 window.addEventListener('popstate', async (e) => {
   const path = window.location.pathname;
+  const imageModal = document.getElementById('imageModal');
+  
+  // 이미지 모달이 열려있으면 닫기
+  if(imageModal && (imageModal.style.display === 'flex' || imageModal.classList.contains('active'))) {
+    closeImageModal(true); // skipHistory=true로 무한 루프 방지
+    return;
+  }
   
   // /post/게시물슬러그 형식 체크
   if(path.startsWith('/post/')) {
