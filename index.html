@@ -95,8 +95,17 @@
   .skeleton-container{padding:0 20px;max-width:100%;margin:0 auto;margin-top:100px}
   @media (max-width:1280px){.skeleton-container{max-width:1400px}}
   .skeleton-header{position:fixed;top:0;left:0;right:0;height:72px;background:rgba(255,255,255,0.95);border-bottom:1px solid rgba(0,0,0,0.06);z-index:1200;backdrop-filter:blur(10px)}
+  
+  /* Skeleton row layout matching real layout */
   .skeleton-row{display:grid;gap:24px;margin-bottom:48px}
   .skeleton-card{background:#fff;border-radius:20px;overflow:hidden;border:1px solid rgba(0,0,0,0.06)}
+  .skeleton-large-card{background:#fff;border-radius:20px;overflow:hidden;border:1px solid rgba(0,0,0,0.06);position:relative}
+  .skeleton-large-image{width:100%;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:skeleton-loading 1.5s infinite}
+  .skeleton-large-overlay{position:absolute;bottom:0;left:0;right:0;padding:32px;background:linear-gradient(to top,rgba(0,0,0,0.7),transparent)}
+  .skeleton-large-title{height:32px;background:linear-gradient(90deg,rgba(255,255,255,0.3) 25%,rgba(255,255,255,0.4) 50%,rgba(255,255,255,0.3) 75%);background-size:200% 100%;animation:skeleton-loading 1.5s infinite;border-radius:4px;margin-bottom:12px;width:80%}
+  .skeleton-large-meta{height:20px;background:linear-gradient(90deg,rgba(255,255,255,0.3) 25%,rgba(255,255,255,0.4) 50%,rgba(255,255,255,0.3) 75%);background-size:200% 100%;animation:skeleton-loading 1.5s infinite;border-radius:4px;width:50%}
+  
+  .skeleton-small-grid{display:grid;gap:24px}
   .skeleton-image{width:100%;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:skeleton-loading 1.5s infinite}
   .skeleton-content{padding:24px}
   .skeleton-title{height:24px;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:skeleton-loading 1.5s infinite;border-radius:4px;margin-bottom:12px}
@@ -104,19 +113,43 @@
   .skeleton-meta{height:14px;width:60%;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:skeleton-loading 1.5s infinite;border-radius:4px}
   @keyframes skeleton-loading{0%{background-position:200% 0}100%{background-position:-200% 0}}
   
-  /* Desktop (3 columns) */
-  @media (min-width:1281px){.skeleton-row{grid-template-columns:repeat(3,1fr)}.skeleton-image{aspect-ratio:1.5/1}}
+  /* Desktop layout: 1 large + 4 small (2x2) in a row */
+  @media (min-width:1281px){
+    .skeleton-row{grid-template-columns:1.2fr 1fr}
+    .skeleton-row.skeleton-reverse{grid-template-columns:1fr 1.2fr;direction:ltr}
+    .skeleton-large-image{aspect-ratio:1.5/1;min-height:500px}
+    .skeleton-small-grid{grid-template-columns:repeat(2,1fr)}
+    .skeleton-image{aspect-ratio:1.5/1}
+  }
   
-  /* Tablet (2 columns) */
-  @media (min-width:769px) and (max-width:1280px){.skeleton-row{grid-template-columns:repeat(2,1fr)}.skeleton-image{aspect-ratio:1.5/1}}
+  /* Tablet layout: 1 large full width + 2x2 small grid (always large first) */
+  @media (min-width:769px) and (max-width:1280px){
+    .skeleton-row{grid-template-columns:1fr;display:flex;flex-direction:column}
+    .skeleton-row.skeleton-reverse{flex-direction:column} /* Large first on tablet */
+    .skeleton-large-card{order:1} /* Large always first */
+    .skeleton-small-grid{order:2;grid-template-columns:repeat(2,1fr)}
+    .skeleton-large-image{aspect-ratio:1.5/1;min-height:400px}
+    .skeleton-image{aspect-ratio:1.5/1}
+  }
   
-  /* Mobile (1 column) */
-  @media (max-width:768px){.skeleton-row{grid-template-columns:1fr}.skeleton-image{aspect-ratio:16/9}.skeleton-card{border-radius:16px}.skeleton-content{padding:20px}}
+  /* Mobile layout: 1 large + 1 column small (always large first) */
+  @media (max-width:768px){
+    .skeleton-row{grid-template-columns:1fr;display:flex;flex-direction:column}
+    .skeleton-row.skeleton-reverse{flex-direction:column} /* Large first on mobile */
+    .skeleton-large-card{order:1} /* Large always first */
+    .skeleton-small-grid{order:2;grid-template-columns:1fr}
+    .skeleton-large-image{aspect-ratio:16/9;min-height:300px}
+    .skeleton-image{aspect-ratio:16/9}
+    .skeleton-card,.skeleton-large-card{border-radius:16px}
+    .skeleton-content{padding:20px}
+    .skeleton-large-overlay{padding:24px}
+  }
   
   /* Dark mode skeleton */
   body.dark-mode .skeleton-header{background:rgba(20,20,20,0.95);border-bottom-color:rgba(255,255,255,0.08)}
-  body.dark-mode .skeleton-card{background:#1a1a1a;border-color:rgba(255,255,255,0.12)}
-  body.dark-mode .skeleton-image,body.dark-mode .skeleton-title,body.dark-mode .skeleton-text,body.dark-mode .skeleton-meta{background:linear-gradient(90deg,#2a2a2a 25%,#333 50%,#2a2a2a 75%);background-size:200% 100%}
+  body.dark-mode .skeleton-card,body.dark-mode .skeleton-large-card{background:#1a1a1a;border-color:rgba(255,255,255,0.12)}
+  body.dark-mode .skeleton-image,body.dark-mode .skeleton-large-image,body.dark-mode .skeleton-title,body.dark-mode .skeleton-text,body.dark-mode .skeleton-meta{background:linear-gradient(90deg,#2a2a2a 25%,#333 50%,#2a2a2a 75%);background-size:200% 100%}
+  body.dark-mode .skeleton-large-title,body.dark-mode .skeleton-large-meta{background:linear-gradient(90deg,rgba(255,255,255,0.1) 25%,rgba(255,255,255,0.15) 50%,rgba(255,255,255,0.1) 75%);background-size:200% 100%}
   </style>
   
   <style>
@@ -2204,63 +2237,97 @@
     </div>
   </aside>
   <main class="home" id="home">
-    <!-- Skeleton UI for initial loading -->
+    <!-- Skeleton UI for initial loading - Matches real layout -->
     <div id="skeletonUI" class="skeleton-container">
+      <!-- First group: 1 large + 4 small -->
       <div class="skeleton-row">
-        <div class="skeleton-card">
-          <div class="skeleton-image"></div>
-          <div class="skeleton-content">
-            <div class="skeleton-title"></div>
-            <div class="skeleton-text"></div>
-            <div class="skeleton-text" style="width:80%"></div>
-            <div class="skeleton-meta"></div>
+        <!-- Large post -->
+        <div class="skeleton-large-card">
+          <div class="skeleton-large-image"></div>
+          <div class="skeleton-large-overlay">
+            <div class="skeleton-large-title"></div>
+            <div class="skeleton-large-meta"></div>
           </div>
         </div>
-        <div class="skeleton-card">
-          <div class="skeleton-image"></div>
-          <div class="skeleton-content">
-            <div class="skeleton-title"></div>
-            <div class="skeleton-text"></div>
-            <div class="skeleton-text" style="width:80%"></div>
-            <div class="skeleton-meta"></div>
+        <!-- Small posts 2x2 grid -->
+        <div class="skeleton-small-grid">
+          <div class="skeleton-card">
+            <div class="skeleton-image"></div>
+            <div class="skeleton-content">
+              <div class="skeleton-title"></div>
+              <div class="skeleton-text"></div>
+              <div class="skeleton-meta"></div>
+            </div>
           </div>
-        </div>
-        <div class="skeleton-card">
-          <div class="skeleton-image"></div>
-          <div class="skeleton-content">
-            <div class="skeleton-title"></div>
-            <div class="skeleton-text"></div>
-            <div class="skeleton-text" style="width:80%"></div>
-            <div class="skeleton-meta"></div>
+          <div class="skeleton-card">
+            <div class="skeleton-image"></div>
+            <div class="skeleton-content">
+              <div class="skeleton-title"></div>
+              <div class="skeleton-text"></div>
+              <div class="skeleton-meta"></div>
+            </div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-image"></div>
+            <div class="skeleton-content">
+              <div class="skeleton-title"></div>
+              <div class="skeleton-text"></div>
+              <div class="skeleton-meta"></div>
+            </div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-image"></div>
+            <div class="skeleton-content">
+              <div class="skeleton-title"></div>
+              <div class="skeleton-text"></div>
+              <div class="skeleton-meta"></div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="skeleton-row">
-        <div class="skeleton-card">
-          <div class="skeleton-image"></div>
-          <div class="skeleton-content">
-            <div class="skeleton-title"></div>
-            <div class="skeleton-text"></div>
-            <div class="skeleton-text" style="width:80%"></div>
-            <div class="skeleton-meta"></div>
+      <!-- Second group: 1 large + 4 small (reversed on desktop only) -->
+      <div class="skeleton-row skeleton-reverse">
+        <!-- Small posts 2x2 grid -->
+        <div class="skeleton-small-grid">
+          <div class="skeleton-card">
+            <div class="skeleton-image"></div>
+            <div class="skeleton-content">
+              <div class="skeleton-title"></div>
+              <div class="skeleton-text"></div>
+              <div class="skeleton-meta"></div>
+            </div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-image"></div>
+            <div class="skeleton-content">
+              <div class="skeleton-title"></div>
+              <div class="skeleton-text"></div>
+              <div class="skeleton-meta"></div>
+            </div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-image"></div>
+            <div class="skeleton-content">
+              <div class="skeleton-title"></div>
+              <div class="skeleton-text"></div>
+              <div class="skeleton-meta"></div>
+            </div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-image"></div>
+            <div class="skeleton-content">
+              <div class="skeleton-title"></div>
+              <div class="skeleton-text"></div>
+              <div class="skeleton-meta"></div>
+            </div>
           </div>
         </div>
-        <div class="skeleton-card">
-          <div class="skeleton-image"></div>
-          <div class="skeleton-content">
-            <div class="skeleton-title"></div>
-            <div class="skeleton-text"></div>
-            <div class="skeleton-text" style="width:80%"></div>
-            <div class="skeleton-meta"></div>
-          </div>
-        </div>
-        <div class="skeleton-card">
-          <div class="skeleton-image"></div>
-          <div class="skeleton-content">
-            <div class="skeleton-title"></div>
-            <div class="skeleton-text"></div>
-            <div class="skeleton-text" style="width:80%"></div>
-            <div class="skeleton-meta"></div>
+        <!-- Large post -->
+        <div class="skeleton-large-card">
+          <div class="skeleton-large-image"></div>
+          <div class="skeleton-large-overlay">
+            <div class="skeleton-large-title"></div>
+            <div class="skeleton-large-meta"></div>
           </div>
         </div>
       </div>
@@ -3497,6 +3564,11 @@ async function loadHomeChunk(page = 1) {
       // 페이지 전환 시 항상 기존 게시물 제거
       container.innerHTML = '';
       
+      // ⚡ 홈 페이지 렌더링 후 즉시 프리페치 시작
+      setTimeout(() => {
+        prefetchVisiblePosts();
+      }, 500);
+      
       // 디바이스 타입 감지
       const isMobile = window.innerWidth <= 680;
       const isIpadPortrait = window.innerWidth > 680 && window.innerWidth <= 1100 && window.innerHeight > window.innerWidth;
@@ -3508,6 +3580,11 @@ async function loadHomeChunk(page = 1) {
       } else {
         renderDesktopLayout(uniquePosts, container);
       }
+      
+      // ⚡ 렌더링 완료 후 프리페치 트리거
+      setTimeout(() => {
+        prefetchVisiblePosts();
+      }, 300);
       
       console.log('페이지네이션 렌더링:', 'page=', page, 'totalPages=', totalPages);
       renderPagination('homePagination', page, totalPages, (p) => {
@@ -4017,9 +4094,10 @@ async function openPostOverlayById(id, updateURL = true) {
 
   const cached = state.postsCache[id];
   if(cached && cached.content && cached.content.rendered) {
+    // ⚡ 캐시된 데이터 사용 - 즉시 표시
+    console.log('✅ 캐시에서 게시물 로드:', id);
     await renderPostOverlay(cached);
     // [IMPACT-LOADING] 렌더 완료 후 로딩 해제
-    // 수정됨: 중복 스크롤 리셋 제거 (이미 오버레이 열 때 리셋됨)
     await nextFrame();
     closeLoading();
     state.isProcessing = false;
@@ -6678,20 +6756,81 @@ function prerenderRelatedPages() {
   updateSpeculationRules(urls);
 }
 
+// ⚡ 홈화면 게시물 프리페치 - 보이는 게시물들을 미리 로드
+function prefetchVisiblePosts() {
+  const cards = document.querySelectorAll('.magazine-large, .card');
+  let count = 0;
+  const maxPrefetch = 10; // 최대 10개 게시물 프리페치
+  
+  cards.forEach(card => {
+    if (count >= maxPrefetch) return;
+    
+    const rect = card.getBoundingClientRect();
+    // 화면에 보이거나 공 아래에 있는 게시물
+    const isVisible = rect.top >= -200 && rect.top <= window.innerHeight + 500;
+    
+    if (isVisible) {
+      const onClick = card.getAttribute('onclick');
+      if (onClick) {
+        const match = onClick.match(/openPostOverlayById\((\d+)\)/);
+        if (match && match[1]) {
+          const postId = parseInt(match[1]);
+          // 캐시에 없으면 프리페치
+          if (!state.postsCache[postId] || !state.postsCache[postId].content) {
+            prefetchPost(postId);
+            count++;
+          }
+        }
+      }
+    }
+  });
+  
+  console.log(`⚡ ${count}개 게시물 프리페치 시작`);
+}
+
+// ⚡ 개별 게시물 프리페치 (백그라운드)
+async function prefetchPost(postId) {
+  if (!postId || state.postsCache[postId]?.content) return;
+  
+  try {
+    console.log(`프리페치 시작: 게시물 ID ${postId}`);
+    const res = await fetch(api(`posts/${postId}`, true));
+    if (!res.ok) return;
+    
+    const post = await res.json();
+    state.postsCache[postId] = post;
+    console.log(`✅ 프리페치 완료: 게시물 ID ${postId}`);
+  } catch(e) {
+    console.warn(`프리페치 실패: 게시물 ID ${postId}`, e);
+  }
+}
+
 // 게시물 로드 후 프리렌더링 실행
 window.addEventListener('load', () => {
   setTimeout(() => {
     prerenderRelatedPages();
+    // ⚡ 추가: 보이는 게시물 프리페치
+    setTimeout(() => {
+      prefetchVisiblePosts();
+    }, 1000);
   }, 1000);
 });
 
 // 스크롤 시 프리렌더링 업데이트 (debounced)
 let prerenderTimeout;
+let prefetchTimeout;
 window.addEventListener('scroll', () => {
   clearTimeout(prerenderTimeout);
+  clearTimeout(prefetchTimeout);
+  
   prerenderTimeout = setTimeout(() => {
     prerenderRelatedPages();
   }, 500);
+  
+  // ⚡ 추가: 스크롤 시 보이는 게시물 프리페치
+  prefetchTimeout = setTimeout(() => {
+    prefetchVisiblePosts();
+  }, 800);
 }, { passive: true });
 </script>
 </body>
