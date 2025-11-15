@@ -2973,6 +2973,7 @@ function createCardNode(post) {
   } catch(e) { thumbUrl = ''; }
   imgEl.src = thumbUrl || placeholderDataURI(1200,800,'No Image');
   imgEl.loading = 'lazy'; // Lazy loading 추가
+  imgEl.decoding = 'async'; // 🚀 비동기 디코딩 추가
   imgEl.alt = (post.title && post.title.rendered) ? stripTags(post.title.rendered) : 'thumb';
   node.querySelector('.title').innerHTML = post.title && post.title.rendered ? post.title.rendered : '제목 없음';
   const avatarImg = node.querySelector('.author-avatar');
@@ -2983,6 +2984,7 @@ function createCardNode(post) {
     const avatarUrl = a.avatar_urls ? (a.avatar_urls['48']||a.avatar_urls['24']||'') : '';
     avatarImg.src = avatarUrl || placeholderDataURI(96,96,'U');
     avatarImg.loading = 'lazy'; // Lazy loading 추가
+    avatarImg.decoding = 'async'; // 🚀 비동기 디코딩 추가
     avatarImg.alt = a.name || 'author';
     authorNameEl.textContent = a.name || '익명';
   } else {
@@ -3023,6 +3025,9 @@ function createCardNode(post) {
   return node;
 }
 function renderMobileLayout(posts, container) {
+  // 🚀 최적화: DocumentFragment 사용으로 DOM 조작 최소화
+  const fragment = document.createDocumentFragment();
+  
   for(let i = 0; i < posts.length; i += 5) {
     const group = posts.slice(i, i + 5);
 
@@ -3032,7 +3037,7 @@ function renderMobileLayout(posts, container) {
       
       const largeContainer = createLargePostElement(group[0]);
       largeDiv.appendChild(largeContainer);
-      container.appendChild(largeDiv);
+      fragment.appendChild(largeDiv);
     }
 
     const smallPosts = group.slice(1, 5);
@@ -3051,9 +3056,12 @@ function renderMobileLayout(posts, container) {
       });
 
       smallDiv.appendChild(smallGrid);
-      container.appendChild(smallDiv);
+      fragment.appendChild(smallDiv);
     }
   }
+  
+  // 한 번에 DOM에 추가
+  container.appendChild(fragment);
 }
 // 큰 게시물 생성 헬퍼 함수 (중복 제거)
 function createLargePostElement(largePost) {
@@ -3062,7 +3070,7 @@ function createLargePostElement(largePost) {
 
   let heroUrl = largePost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
   largeDiv.innerHTML = `
-    <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero" loading="lazy">
+    <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero" loading="lazy" decoding="async">
     <div class="hero-overlay">
       <h2 class="hero-title">${largePost.title?.rendered || '제목 없음'}</h2>
       <div style="display:flex;align-items:center;gap:10px">
@@ -3101,6 +3109,9 @@ function createLargePostElement(largePost) {
 
 // 아이패드 세로모드 전용 렌더링 함수
 function renderIpadPortraitLayout(posts, container) {
+  // 🚀 최적화: DocumentFragment 사용으로 DOM 조작 최소화
+  const fragment = document.createDocumentFragment();
+  
   for(let i = 0; i < posts.length; i += 5) {
     const group = posts.slice(i, i + 5);
     
@@ -3112,7 +3123,7 @@ function renderIpadPortraitLayout(posts, container) {
       
       const largeContainer = createLargePostElement(group[0]);
       largeDiv.appendChild(largeContainer);
-      container.appendChild(largeDiv);
+      fragment.appendChild(largeDiv);
     }
     
     // 2-5번째 게시물 - 작은 게시물 2x2 그리드
@@ -3133,12 +3144,18 @@ function renderIpadPortraitLayout(posts, container) {
       });
       
       smallDiv.appendChild(smallGrid);
-      container.appendChild(smallDiv);
+      fragment.appendChild(smallDiv);
     }
   }
+  
+  // 한 번에 DOM에 추가
+  container.appendChild(fragment);
 }
 
 function renderDesktopLayout(posts, container) {
+  // 🚀 최적화: DocumentFragment 사용으로 DOM 조작 최소화
+  const fragment = document.createDocumentFragment();
+  
   for(let i = 0; i < posts.length; i += 5) {
     const group = posts.slice(i, i + 5);
     const row = document.createElement('div');
@@ -3174,8 +3191,11 @@ function renderDesktopLayout(posts, container) {
       row.appendChild(smallGrid);
     }
     
-    container.appendChild(row);
+    fragment.appendChild(row);
   }
+  
+  // 한 번에 DOM에 추가
+  container.appendChild(fragment);
 }
 async function loadHomeChunk(page = 1) {
   if(state.isProcessing || state.homeLoadPromise) return state.homeLoadPromise;
@@ -3189,41 +3209,62 @@ async function loadHomeChunk(page = 1) {
       const res = await fetch(api(`posts?per_page=${HOME_PER_PAGE}&page=${page}`));
       if(!res.ok) throw new Error('Failed to load');
 
-      // 방법 1: 헤더에서 읽기 시도
-      let totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '0');
-      let totalPosts = parseInt(res.headers.get('X-WP-Total') || '0');
+      // 🚀 최적화: 캐시에서 먼저 확인
+      let totalPages = 0;
+      let totalPosts = 0;
       
-      console.log('=== Page', page, '로딩 시작 ===');
-      console.log('Headers - TotalPages:', totalPages, 'TotalPosts:', totalPosts);
+      // 방법 1: localStorage 캐시에서 먼저 읽기 (가장 빠름)
+      const cached = localStorage.getItem('wpTotalCache');
+      if(cached) {
+        try {
+          const cacheData = JSON.parse(cached);
+          const cacheAge = Date.now() - cacheData.timestamp;
+          // 캐시가 5분 이내면 사용
+          if(cacheAge < 300000) {
+            totalPages = cacheData.totalPages;
+            totalPosts = cacheData.totalPosts;
+            console.log('✅ 캐시 사용 - TotalPages:', totalPages);
+          }
+        } catch(e) {
+          console.warn('캐시 파싱 실패:', e);
+        }
+      }
+      
+      // 방법 2: 헤더에서 읽기 (캐시가 없거나 만료된 경우)
+      if(totalPages === 0) {
+        totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '0');
+        totalPosts = parseInt(res.headers.get('X-WP-Total') || '0');
+        
+        console.log('=== Page', page, 'API 응답 수신 ===');
+        console.log('Headers - TotalPages:', totalPages, 'TotalPosts:', totalPosts);
+        
+        // 헤더로 계산
+        if(totalPages === 0 && totalPosts > 0) {
+          totalPages = Math.ceil(totalPosts / HOME_PER_PAGE);
+          console.log('Calculated totalPages from totalPosts:', totalPages);
+        }
+        
+        // 🚀 최적화: 헤더 정보를 localStorage에 캐싱
+        if(totalPages > 0 && totalPosts > 0) {
+          localStorage.setItem('wpTotalCache', JSON.stringify({
+            totalPages: totalPages,
+            totalPosts: totalPosts,
+            timestamp: Date.now()
+          }));
+          console.log('✅ 캐시 저장 완료');
+        }
+      }
 
       const posts = await res.json();
       console.log('받은 게시물 수:', posts.length);
       
-      // 방법 2: 헤더가 없으면 전체 게시물 수로 계산
-      if(totalPages === 0 && totalPosts > 0) {
-        totalPages = Math.ceil(totalPosts / HOME_PER_PAGE);
-        console.log('Calculated totalPages from totalPosts:', totalPages);
-      }
-      
-      // 방법 3: 헤더도 없고 totalPosts도 없으면, Netlify Functions로 재시도
-      if(totalPages === 0) {
-        console.log('헤더 정보 없음 - Netlify Functions로 재시도...');
-        const count = await getTotalPostsCount();
-        
-        if(count && count.totalPages > 0) {
-          totalPages = count.totalPages;
-          state.allPostsCount = count.total;
-          console.log('Netlify Functions 호출 성공 - TotalPages:', totalPages, 'Total:', count.total);
-        }
-      }
-      
-      // 방법 4: state에 저장된 값 사용
+      // 방법 3: state에 저장된 값 사용
       if(totalPages === 0 && state.homeTotal > 0) {
         totalPages = state.homeTotal;
         console.log('이전에 저장된 totalPages 사용:', totalPages);
       }
       
-      // 방법 5: 받은 게시물 개수로 추정 (최후의 수단)
+      // 방법 4: 받은 게시물 개수로 추정 (최후의 수단)
       if(totalPages === 0 && Array.isArray(posts)) {
         if(posts.length === HOME_PER_PAGE) {
           // 20개 받았다면 최소 현재 페이지 + 1
@@ -3928,7 +3969,7 @@ async function renderPostOverlay(post) {
         ${featuredUrl ? `
           <div class="post-thumbnail-container">
             <div class="post-thumbnail">
-              <img src="${featuredUrl}" alt="featured image">
+              <img src="${featuredUrl}" alt="featured image" loading="lazy" decoding="async">
             </div>
           </div>
         ` : ''}
@@ -3943,7 +3984,7 @@ async function renderPostOverlay(post) {
             <h1>${title}</h1>
             <div class="post-meta-info">
               <div class="meta-row">
-                <img src="${avatar || placeholderDataURI(96,96,'U')}" alt="author" class="author-avatar">
+                <img src="${avatar || placeholderDataURI(96,96,'U')}" alt="author" class="author-avatar" loading="lazy" decoding="async">
                 <strong>${authorName}</strong>
               </div>
               <div class="meta-row">
