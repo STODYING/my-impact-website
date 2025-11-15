@@ -2426,8 +2426,38 @@ const state = {
   searchDebounce: null,
   homeLoadPromise: null,
   initialScrollDone: {}, // 각 오버레이별 초기 스크롤 완료 여부
-  scrollListeners: {} // 스크롤 리스너 저장
+  scrollListeners: {}, // 스크롤 리스너 저장
+  cacheExpiry: 1000 * 60 * 10 // 캐시 만료 시간: 10분
 };
+
+// ⚡ 성능 최적화: localStorage 캐싱 함수
+function getCachedData(key) {
+  try {
+    const cached = localStorage.getItem(key);
+    if (!cached) return null;
+    
+    const data = JSON.parse(cached);
+    if (Date.now() - data.timestamp > state.cacheExpiry) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return data.value;
+  } catch (e) {
+    return null;
+  }
+}
+
+function setCachedData(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify({
+      value: value,
+      timestamp: Date.now()
+    }));
+  } catch (e) {
+    // localStorage 초과 시 무시
+    console.warn('localStorage full, skipping cache');
+  }
+}
 
 // [IMPACT-LOADING] A. Loading overlay controller (replaces showPageTransition)
 let __loadingTimer = null;
@@ -2526,9 +2556,12 @@ function nextFrame() {
   return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 }
 
-// Netlify Functions를 통한 WordPress API 호출
-function api(path) {
-  const p = path.includes('_embed') ? path : (path + (path.includes('?') ? '&' : '?') + '_embed');
+// Netlify Functions를 통한 WordPress API 호출 - 최적화: 필요할 때만 _embed
+function api(path, includeEmbed = false) {
+  let p = path;
+  if (includeEmbed && !path.includes('_embed')) {
+    p = path + (path.includes('?') ? '&' : '?') + '_embed';
+  }
   
   // Netlify Functions를 통한 프록시만 사용 (CORS 문제 해결)
   return `/.netlify/functions/wpProxy?path=${encodeURIComponent(p)}`;
@@ -2539,8 +2572,8 @@ async function getTotalPostsCount() {
   console.log('getTotalPostsCount 호출 (Netlify Functions 사용)...');
   
   try {
-    // Netlify Functions를 통한 호출 (per_page=1로 최소 데이터만)
-    const proxyUrl = api('posts?per_page=1&page=1');
+    // Netlify Functions를 통한 호출 (per_page=1로 최소 데이터만, _embed 불필요)
+    const proxyUrl = api('posts?per_page=1&page=1', false);
     console.log('  → Netlify Functions 호출:', proxyUrl);
     const res = await fetch(proxyUrl);
     
@@ -2973,7 +3006,6 @@ function createCardNode(post) {
   } catch(e) { thumbUrl = ''; }
   imgEl.src = thumbUrl || placeholderDataURI(1200,800,'No Image');
   imgEl.loading = 'lazy'; // Lazy loading 추가
-  imgEl.decoding = 'async'; // 🚀 비동기 디코딩 추가
   imgEl.alt = (post.title && post.title.rendered) ? stripTags(post.title.rendered) : 'thumb';
   node.querySelector('.title').innerHTML = post.title && post.title.rendered ? post.title.rendered : '제목 없음';
   const avatarImg = node.querySelector('.author-avatar');
@@ -2984,7 +3016,6 @@ function createCardNode(post) {
     const avatarUrl = a.avatar_urls ? (a.avatar_urls['48']||a.avatar_urls['24']||'') : '';
     avatarImg.src = avatarUrl || placeholderDataURI(96,96,'U');
     avatarImg.loading = 'lazy'; // Lazy loading 추가
-    avatarImg.decoding = 'async'; // 🚀 비동기 디코딩 추가
     avatarImg.alt = a.name || 'author';
     authorNameEl.textContent = a.name || '익명';
   } else {
@@ -3008,26 +3039,19 @@ function createCardNode(post) {
       }
     });
   }
-  let clickTimeout;
   node.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
 
     if(state.isProcessing) return;
-    // [IMPACT-LOADING] 클릭 즉시 로딩 표시
-    openLoading('게시물을 불러오는 중...', 100); // delay 짧게
-    clearTimeout(clickTimeout);
-    clickTimeout = setTimeout(() => {
-      openPostOverlayById(post.id);
-    }, 150);
+    // [IMPACT-LOADING] 클릭 즉시 로딩 표시 - 최적화: 지연 제거
+    openLoading('게시물을 불러오는 중...');
+    openPostOverlayById(post.id);
   });
 
   return node;
 }
 function renderMobileLayout(posts, container) {
-  // 🚀 최적화: DocumentFragment 사용으로 DOM 조작 최소화
-  const fragment = document.createDocumentFragment();
-  
   for(let i = 0; i < posts.length; i += 5) {
     const group = posts.slice(i, i + 5);
 
@@ -3037,7 +3061,7 @@ function renderMobileLayout(posts, container) {
       
       const largeContainer = createLargePostElement(group[0]);
       largeDiv.appendChild(largeContainer);
-      fragment.appendChild(largeDiv);
+      container.appendChild(largeDiv);
     }
 
     const smallPosts = group.slice(1, 5);
@@ -3056,12 +3080,9 @@ function renderMobileLayout(posts, container) {
       });
 
       smallDiv.appendChild(smallGrid);
-      fragment.appendChild(smallDiv);
+      container.appendChild(smallDiv);
     }
   }
-  
-  // 한 번에 DOM에 추가
-  container.appendChild(fragment);
 }
 // 큰 게시물 생성 헬퍼 함수 (중복 제거)
 function createLargePostElement(largePost) {
@@ -3070,7 +3091,7 @@ function createLargePostElement(largePost) {
 
   let heroUrl = largePost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
   largeDiv.innerHTML = `
-    <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero" loading="lazy" decoding="async">
+    <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero" loading="lazy">
     <div class="hero-overlay">
       <h2 class="hero-title">${largePost.title?.rendered || '제목 없음'}</h2>
       <div style="display:flex;align-items:center;gap:10px">
@@ -3091,17 +3112,14 @@ function createLargePostElement(largePost) {
   }
   largeDiv.appendChild(catWrap);
 
-  let clickTimeout;
   largeDiv.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
 
     if(state.isProcessing) return;
+    // 최적화: 지연 제거
     openLoading('게시물을 불러오는 중...');
-    clearTimeout(clickTimeout);
-    clickTimeout = setTimeout(() => {
-      openPostOverlayById(largePost.id);
-    }, 150);
+    openPostOverlayById(largePost.id);
   });
 
   return largeDiv;
@@ -3109,9 +3127,6 @@ function createLargePostElement(largePost) {
 
 // 아이패드 세로모드 전용 렌더링 함수
 function renderIpadPortraitLayout(posts, container) {
-  // 🚀 최적화: DocumentFragment 사용으로 DOM 조작 최소화
-  const fragment = document.createDocumentFragment();
-  
   for(let i = 0; i < posts.length; i += 5) {
     const group = posts.slice(i, i + 5);
     
@@ -3123,7 +3138,7 @@ function renderIpadPortraitLayout(posts, container) {
       
       const largeContainer = createLargePostElement(group[0]);
       largeDiv.appendChild(largeContainer);
-      fragment.appendChild(largeDiv);
+      container.appendChild(largeDiv);
     }
     
     // 2-5번째 게시물 - 작은 게시물 2x2 그리드
@@ -3144,18 +3159,12 @@ function renderIpadPortraitLayout(posts, container) {
       });
       
       smallDiv.appendChild(smallGrid);
-      fragment.appendChild(smallDiv);
+      container.appendChild(smallDiv);
     }
   }
-  
-  // 한 번에 DOM에 추가
-  container.appendChild(fragment);
 }
 
 function renderDesktopLayout(posts, container) {
-  // 🚀 최적화: DocumentFragment 사용으로 DOM 조작 최소화
-  const fragment = document.createDocumentFragment();
-  
   for(let i = 0; i < posts.length; i += 5) {
     const group = posts.slice(i, i + 5);
     const row = document.createElement('div');
@@ -3191,11 +3200,8 @@ function renderDesktopLayout(posts, container) {
       row.appendChild(smallGrid);
     }
     
-    fragment.appendChild(row);
+    container.appendChild(row);
   }
-  
-  // 한 번에 DOM에 추가
-  container.appendChild(fragment);
 }
 async function loadHomeChunk(page = 1) {
   if(state.isProcessing || state.homeLoadPromise) return state.homeLoadPromise;
@@ -3206,87 +3212,84 @@ async function loadHomeChunk(page = 1) {
   loadingEl.textContent = '로딩 중...';
   state.homeLoadPromise = new Promise(async (resolve, reject) => {
     try {
-      const res = await fetch(api(`posts?per_page=${HOME_PER_PAGE}&page=${page}`));
-      if(!res.ok) throw new Error('Failed to load');
+      // ⚡ 성능 최적화: 캐시 확인
+      const cacheKey = `home_page_${page}`;
+      const cachedPosts = getCachedData(cacheKey);
+      
+      let posts, totalPages, totalPosts;
+      
+      if (cachedPosts && Array.isArray(cachedPosts.posts)) {
+        console.log('✅ 캐시에서 홈 페이지', page, '로드');
+        posts = cachedPosts.posts;
+        totalPages = cachedPosts.totalPages || 1;
+        totalPosts = cachedPosts.totalPosts || 0;
+      } else {
+        console.log('🌐 서버에서 홈 페이지', page, '로드');
+        // 최적화: _embed는 필요할 때만 (홈에서는 미리 필요)
+        const res = await fetch(api(`posts?per_page=${HOME_PER_PAGE}&page=${page}`, true));
+        if(!res.ok) throw new Error('Failed to load');
 
-      // 🚀 최적화: 캐시에서 먼저 확인
-      let totalPages = 0;
-      let totalPosts = 0;
-      
-      // 방법 1: localStorage 캐시에서 먼저 읽기 (가장 빠름)
-      const cached = localStorage.getItem('wpTotalCache');
-      if(cached) {
-        try {
-          const cacheData = JSON.parse(cached);
-          const cacheAge = Date.now() - cacheData.timestamp;
-          // 캐시가 5분 이내면 사용
-          if(cacheAge < 300000) {
-            totalPages = cacheData.totalPages;
-            totalPosts = cacheData.totalPosts;
-            console.log('✅ 캐시 사용 - TotalPages:', totalPages);
-          }
-        } catch(e) {
-          console.warn('캐시 파싱 실패:', e);
-        }
-      }
-      
-      // 방법 2: 헤더에서 읽기 (캐시가 없거나 만료된 경우)
-      if(totalPages === 0) {
+        // 방법 1: 헤더에서 읽기 시도
         totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '0');
         totalPosts = parseInt(res.headers.get('X-WP-Total') || '0');
         
-        console.log('=== Page', page, 'API 응답 수신 ===');
+        console.log('=== Page', page, '로딩 시작 ===');
         console.log('Headers - TotalPages:', totalPages, 'TotalPosts:', totalPosts);
+
+        posts = await res.json();
+        console.log('받은 게시물 수:', posts.length);
         
-        // 헤더로 계산
+        // 방법 2: 헤더가 없으면 전체 게시물 수로 계산
         if(totalPages === 0 && totalPosts > 0) {
           totalPages = Math.ceil(totalPosts / HOME_PER_PAGE);
           console.log('Calculated totalPages from totalPosts:', totalPages);
         }
         
-        // 🚀 최적화: 헤더 정보를 localStorage에 캐싱
-        if(totalPages > 0 && totalPosts > 0) {
-          localStorage.setItem('wpTotalCache', JSON.stringify({
-            totalPages: totalPages,
-            totalPosts: totalPosts,
-            timestamp: Date.now()
-          }));
-          console.log('✅ 캐시 저장 완료');
+        // 방법 3: 헤더도 없고 totalPosts도 없으면, Netlify Functions로 재시도
+        if(totalPages === 0) {
+          console.log('헤더 정보 없음 - Netlify Functions로 재시도...');
+          const count = await getTotalPostsCount();
+          
+          if(count && count.totalPages > 0) {
+            totalPages = count.totalPages;
+            state.allPostsCount = count.total;
+            console.log('Netlify Functions 호출 성공 - TotalPages:', totalPages, 'Total:', count.total);
+          }
         }
-      }
-
-      const posts = await res.json();
-      console.log('받은 게시물 수:', posts.length);
-      
-      // 방법 3: state에 저장된 값 사용
-      if(totalPages === 0 && state.homeTotal > 0) {
-        totalPages = state.homeTotal;
-        console.log('이전에 저장된 totalPages 사용:', totalPages);
-      }
-      
-      // 방법 4: 받은 게시물 개수로 추정 (최후의 수단)
-      if(totalPages === 0 && Array.isArray(posts)) {
-        if(posts.length === HOME_PER_PAGE) {
-          // 20개 받았다면 최소 현재 페이지 + 1
-          totalPages = page + 1;
-          console.log('게시물 개수로 추정 (20개 = ', page, '페이지 이상):', totalPages);
-        } else if(posts.length > 0) {
-          // 20개 미만이면 현재가 마지막 페이지
+        
+        // 방법 4: state에 저장된 값 사용
+        if(totalPages === 0 && state.homeTotal > 0) {
+          totalPages = state.homeTotal;
+          console.log('이전에 저장된 totalPages 사용:', totalPages);
+        }
+        
+        // 방법 5: 받은 게시물 개수로 추정 (최후의 수단)
+        if(totalPages === 0 && Array.isArray(posts)) {
+          if(posts.length === HOME_PER_PAGE) {
+            // 20개 받았다면 최소 현재 페이지 + 1
+            totalPages = page + 1;
+            console.log('게시물 개수로 추정 (20개 = ', page, '페이지 이상):', totalPages);
+          } else if(posts.length > 0) {
+            // 20개 미만이면 현재가 마지막 페이지
+            totalPages = page;
+            console.log('현재가 마지막 페이지:', totalPages);
+          } else {
+            totalPages = Math.max(1, page - 1);
+            console.log('게시물 없음, 이전 페이지로:', totalPages);
+          }
+        }
+        
+        // 최소값 보장
+        if(totalPages === 0) totalPages = 1;
+        
+        // 현재 페이지가 totalPages보다 크면 조정
+        if(page > totalPages) {
+          console.warn('현재 페이지가 총 페이지보다 큼. 조정 필요');
           totalPages = page;
-          console.log('현재가 마지막 페이지:', totalPages);
-        } else {
-          totalPages = Math.max(1, page - 1);
-          console.log('게시물 없음, 이전 페이지로:', totalPages);
         }
-      }
-      
-      // 최소값 보장
-      if(totalPages === 0) totalPages = 1;
-      
-      // 현재 페이지가 totalPages보다 크면 조정
-      if(page > totalPages) {
-        console.warn('현재 페이지가 총 페이지보다 큼. 조정 필요');
-        totalPages = page;
+        
+        // ⚡ 성능 최적화: 캐시에 저장
+        setCachedData(cacheKey, { posts, totalPages, totalPosts });
       }
       
       state.homeTotal = totalPages;
@@ -3456,8 +3459,7 @@ function renderPagination(containerId, currentPage, totalPages, onPageClick) {
   }
   container.appendChild(nextBtn);
   
-  // 프리렌더링: 인접 페이지 미리 로드
-  prerenderAdjacentPages(currentPage, totalPages);
+  // 최적화: 프리렌더링 제거 (불필요한 리소스 사용)
   
   console.log('━━━ renderPagination 완료 ━━━\n');
 }
@@ -3600,7 +3602,8 @@ async function loadCategory(slug, page = 1) {
       return;
     }
 
-    const res = await fetch(api(`posts?categories=${catId}&per_page=20&page=${page}`));
+    // 최적화: 카테고리에서도 _embed 필요
+    const res = await fetch(api(`posts?categories=${catId}&per_page=20&page=${page}`, true));
     if(!res.ok) throw new Error('Failed');
 
     let totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '0');
@@ -3658,7 +3661,8 @@ async function loadEditors() {
   if(state.editorsLoaded) return;
   document.getElementById('editorsLoading').textContent = '로딩 중...';
   try {
-    const res = await fetch(api(`users?per_page=100`));
+    // 최적화: users API는 _embed 불필요
+    const res = await fetch(api(`users?per_page=100`, false));
     if(!res.ok) throw new Error('editors api fail ' + res.status);
     const users = await res.json();
     state.editorsList = Array.isArray(users) ? users : [];
@@ -3695,7 +3699,8 @@ async function loadRelatedPosts(categories, currentPostId) {
 
   try {
     const catId = categories[0].id;
-    const res = await fetch(api(`posts?categories=${catId}&per_page=8&exclude=${currentPostId}`));
+    // 최적화: 관련 게시물에서는 _embed 필요
+    const res = await fetch(api(`posts?categories=${catId}&per_page=8&exclude=${currentPostId}`, true));
     if(!res.ok) return [];
     const posts = await res.json();
 
@@ -3737,7 +3742,8 @@ function closeImageModal(skipHistory = false) {
 // slug로 게시물 ID를 찾는 함수
 async function getPostIdBySlug(slug) {
   try {
-    const res = await fetch(api(`posts?slug=${encodeURIComponent(slug)}&_embed`));
+    // 최적화: slug 검색에서는 _embed 필요
+    const res = await fetch(api(`posts?slug=${encodeURIComponent(slug)}`, true));
     if(!res.ok) return null;
     const posts = await res.json();
     if(Array.isArray(posts) && posts.length > 0) {
@@ -3882,7 +3888,8 @@ async function openPostOverlayById(id, updateURL = true) {
   `;
 
   try {
-    const res = await fetch(api(`posts/${id}?_embed`));
+    // 최적화: 게시물에서는 _embed 필수 (작성자, 이미지 등)
+    const res = await fetch(api(`posts/${id}`, true));
     if(!res.ok) throw new Error('post fetch failed ' + res.status);
     const post = await res.json();
 
@@ -3969,7 +3976,7 @@ async function renderPostOverlay(post) {
         ${featuredUrl ? `
           <div class="post-thumbnail-container">
             <div class="post-thumbnail">
-              <img src="${featuredUrl}" alt="featured image" loading="lazy" decoding="async">
+              <img src="${featuredUrl}" alt="featured image">
             </div>
           </div>
         ` : ''}
@@ -3984,7 +3991,7 @@ async function renderPostOverlay(post) {
             <h1>${title}</h1>
             <div class="post-meta-info">
               <div class="meta-row">
-                <img src="${avatar || placeholderDataURI(96,96,'U')}" alt="author" class="author-avatar" loading="lazy" decoding="async">
+                <img src="${avatar || placeholderDataURI(96,96,'U')}" alt="author" class="author-avatar">
                 <strong>${authorName}</strong>
               </div>
               <div class="meta-row">
@@ -5054,7 +5061,8 @@ const router = {
     }
     
     try {
-      const res = await fetch(api(`posts?author=${user.id}&per_page=100`));
+      // 최적화: 에디터 게시물에서는 _embed 필요
+      const res = await fetch(api(`posts?author=${user.id}&per_page=100`, true));
       const posts = await res.json();
       if(Array.isArray(posts) && posts.length > 0) {
         const uniquePosts = posts.filter((post, index, self) =>
@@ -6366,20 +6374,16 @@ window.addEventListener('resize', () => {
   }
 })();
 
-// ⚡ 성능 최적화: 이미지 lazy loading 강화
-if ('loading' in HTMLImageElement.prototype) {
-  const images = document.querySelectorAll('img[data-src]');
-  images.forEach(img => {
-    img.src = img.dataset.src;
-  });
-} else {
-  // Lazy loading polyfill for older browsers
+// ⚡ 성능 최적화: 이미지 lazy loading 강화 - 최적화: 중복 제거
+// 브라우저 네이티브 lazy loading을 우선 사용
+if (!('loading' in HTMLImageElement.prototype)) {
+  // 구형 브라우저만 polyfill 로드
   const script = document.createElement('script');
   script.src = 'https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.3.2/lazysizes.min.js';
   document.body.appendChild(script);
 }
 
-// ⚡ 성능 최적화: Intersection Observer로 이미지 지연 로딩
+// ⚡ 성능 최적화: Intersection Observer 최적화 - 한 번만 실행
 const imageObserver = new IntersectionObserver((entries, observer) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
@@ -6391,22 +6395,28 @@ const imageObserver = new IntersectionObserver((entries, observer) => {
       }
     }
   });
-}, { rootMargin: '50px' });
+}, { 
+  rootMargin: '100px', // 100px 미리 로드하여 부드러운 스크롤
+  threshold: 0.01 // 1%만 보여도 로드 시작
+});
 
-// MutationObserver로 동적으로 추가되는 이미지 감시
+// MutationObserver 최적화 - debounce 적용
+let observerTimeout;
 const mutationObserver = new MutationObserver((mutations) => {
-  mutations.forEach((mutation) => {
-    mutation.addedNodes.forEach((node) => {
-      if (node.tagName === 'IMG' && node.dataset.src) {
-        imageObserver.observe(node);
-      }
-      if (node.querySelectorAll) {
-        node.querySelectorAll('img[data-src]').forEach(img => {
-          imageObserver.observe(img);
-        });
-      }
+  clearTimeout(observerTimeout);
+  observerTimeout = setTimeout(() => {
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node.tagName === 'IMG' && node.dataset.src) {
+          imageObserver.observe(node);
+        } else if (node.querySelectorAll) {
+          node.querySelectorAll('img[data-src]').forEach(img => {
+            imageObserver.observe(img);
+          });
+        }
+      });
     });
-  });
+  }, 50); // 50ms debounce
 });
 mutationObserver.observe(document.body, {
   childList: true,
