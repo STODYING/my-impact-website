@@ -5806,9 +5806,10 @@ window.addEventListener('popstate', async (e) => {
   const postOverlay = document.getElementById('postOverlay');
   const imageModal = document.getElementById('imageModal');
   
-  // 이미지 모달이 열려있으면 닫기
+  // 이미지 모달이 열려있으면 닫기 (히스토리 변경 없이)
   if(imageModal && (imageModal.style.display === 'flex' || imageModal.classList.contains('active'))) {
-    closeImageModal(true); // skipHistory=true로 무한 루프 방지
+    closeImageModal(true);
+    e.preventDefault();
     return;
   }
   
@@ -6401,14 +6402,15 @@ if(globalNavSearch) {
   });
 }
 
-// popstate 이벤트 핸들러 (뒤로가기/앞으로가기 처리)
+// popstate 이벤트 핸들러 (뒤로가기/앞으로가기 처리) - 중복 제거
 window.addEventListener('popstate', async (e) => {
   const path = window.location.pathname;
   const imageModal = document.getElementById('imageModal');
   
-  // 이미지 모달이 열려있으면 닫기
+  // 이미지 모달이 열려있으면 닫기 (히스토리 변경 없이)
   if(imageModal && (imageModal.style.display === 'flex' || imageModal.classList.contains('active'))) {
-    closeImageModal(true); // skipHistory=true로 무한 루프 방지
+    closeImageModal(true);
+    e.preventDefault();
     return;
   }
   
