@@ -90,6 +90,33 @@
   .page-transition{position:fixed;top:0;left:0;right:0;bottom:0;background:#f6f7f9;z-index:10001;opacity:0;pointer-events:none;transition:opacity .3s ease;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:500;color:#111}
   .page-transition.active{opacity:1;pointer-events:all}
   @keyframes spin{to{transform:rotate(360deg)}}
+  
+  /* ⚡ Skeleton UI - Critical Styles */
+  .skeleton-container{padding:0 20px;max-width:100%;margin:0 auto;margin-top:100px}
+  @media (max-width:1280px){.skeleton-container{max-width:1400px}}
+  .skeleton-header{position:fixed;top:0;left:0;right:0;height:72px;background:rgba(255,255,255,0.95);border-bottom:1px solid rgba(0,0,0,0.06);z-index:1200;backdrop-filter:blur(10px)}
+  .skeleton-row{display:grid;gap:24px;margin-bottom:48px}
+  .skeleton-card{background:#fff;border-radius:20px;overflow:hidden;border:1px solid rgba(0,0,0,0.06)}
+  .skeleton-image{width:100%;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:skeleton-loading 1.5s infinite}
+  .skeleton-content{padding:24px}
+  .skeleton-title{height:24px;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:skeleton-loading 1.5s infinite;border-radius:4px;margin-bottom:12px}
+  .skeleton-text{height:16px;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:skeleton-loading 1.5s infinite;border-radius:4px;margin-bottom:8px}
+  .skeleton-meta{height:14px;width:60%;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:skeleton-loading 1.5s infinite;border-radius:4px}
+  @keyframes skeleton-loading{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  
+  /* Desktop (3 columns) */
+  @media (min-width:1281px){.skeleton-row{grid-template-columns:repeat(3,1fr)}.skeleton-image{aspect-ratio:1.5/1}}
+  
+  /* Tablet (2 columns) */
+  @media (min-width:769px) and (max-width:1280px){.skeleton-row{grid-template-columns:repeat(2,1fr)}.skeleton-image{aspect-ratio:1.5/1}}
+  
+  /* Mobile (1 column) */
+  @media (max-width:768px){.skeleton-row{grid-template-columns:1fr}.skeleton-image{aspect-ratio:16/9}.skeleton-card{border-radius:16px}.skeleton-content{padding:20px}}
+  
+  /* Dark mode skeleton */
+  body.dark-mode .skeleton-header{background:rgba(20,20,20,0.95);border-bottom-color:rgba(255,255,255,0.08)}
+  body.dark-mode .skeleton-card{background:#1a1a1a;border-color:rgba(255,255,255,0.12)}
+  body.dark-mode .skeleton-image,body.dark-mode .skeleton-title,body.dark-mode .skeleton-text,body.dark-mode .skeleton-meta{background:linear-gradient(90deg,#2a2a2a 25%,#333 50%,#2a2a2a 75%);background-size:200% 100%}
   </style>
   
   <style>
@@ -2177,6 +2204,67 @@
     </div>
   </aside>
   <main class="home" id="home">
+    <!-- Skeleton UI for initial loading -->
+    <div id="skeletonUI" class="skeleton-container">
+      <div class="skeleton-row">
+        <div class="skeleton-card">
+          <div class="skeleton-image"></div>
+          <div class="skeleton-content">
+            <div class="skeleton-title"></div>
+            <div class="skeleton-text"></div>
+            <div class="skeleton-text" style="width:80%"></div>
+            <div class="skeleton-meta"></div>
+          </div>
+        </div>
+        <div class="skeleton-card">
+          <div class="skeleton-image"></div>
+          <div class="skeleton-content">
+            <div class="skeleton-title"></div>
+            <div class="skeleton-text"></div>
+            <div class="skeleton-text" style="width:80%"></div>
+            <div class="skeleton-meta"></div>
+          </div>
+        </div>
+        <div class="skeleton-card">
+          <div class="skeleton-image"></div>
+          <div class="skeleton-content">
+            <div class="skeleton-title"></div>
+            <div class="skeleton-text"></div>
+            <div class="skeleton-text" style="width:80%"></div>
+            <div class="skeleton-meta"></div>
+          </div>
+        </div>
+      </div>
+      <div class="skeleton-row">
+        <div class="skeleton-card">
+          <div class="skeleton-image"></div>
+          <div class="skeleton-content">
+            <div class="skeleton-title"></div>
+            <div class="skeleton-text"></div>
+            <div class="skeleton-text" style="width:80%"></div>
+            <div class="skeleton-meta"></div>
+          </div>
+        </div>
+        <div class="skeleton-card">
+          <div class="skeleton-image"></div>
+          <div class="skeleton-content">
+            <div class="skeleton-title"></div>
+            <div class="skeleton-text"></div>
+            <div class="skeleton-text" style="width:80%"></div>
+            <div class="skeleton-meta"></div>
+          </div>
+        </div>
+        <div class="skeleton-card">
+          <div class="skeleton-image"></div>
+          <div class="skeleton-content">
+            <div class="skeleton-title"></div>
+            <div class="skeleton-text"></div>
+            <div class="skeleton-text" style="width:80%"></div>
+            <div class="skeleton-meta"></div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="rowsContainer"></div>
     <div id="homeLoading" style="text-align:center;color:#666;padding:36px 0">로딩 중...</div>
     <div class="pagination" id="homePagination"></div>
@@ -2996,7 +3084,53 @@ function renderNavList() {
     navList.appendChild(li);
   });
 }
-function createCardNode(post) {
+// ⚡ Image Optimization Helper
+function optimizeImage(imgEl, thumbUrl, alt, priority = false) {
+  if (!thumbUrl || thumbUrl.startsWith('data:')) {
+    imgEl.src = thumbUrl || placeholderDataURI(1200, 800, 'No Image');
+    imgEl.alt = alt;
+    return;
+  }
+  
+  // Generate responsive image sizes
+  const sizes = [400, 800, 1200, 1600];
+  const srcsetParts = sizes.map(size => {
+    const url = new URL(thumbUrl);
+    // WordPress image size parameters
+    url.searchParams.set('w', size);
+    return `${url.toString()} ${size}w`;
+  }).join(', ');
+  
+  // Set srcset for responsive images
+  if (srcsetParts) {
+    imgEl.srcset = srcsetParts;
+    imgEl.sizes = '(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw';
+  }
+  
+  // Set loading priority
+  if (priority) {
+    imgEl.loading = 'eager';
+    imgEl.fetchpriority = 'high';
+    // Preload critical images
+    const preloadLink = document.createElement('link');
+    preloadLink.rel = 'preload';
+    preloadLink.as = 'image';
+    preloadLink.href = thumbUrl;
+    if (srcsetParts) {
+      preloadLink.imageSrcset = srcsetParts;
+      preloadLink.imageSizes = imgEl.sizes;
+    }
+    document.head.appendChild(preloadLink);
+  } else {
+    imgEl.loading = 'lazy';
+    imgEl.decoding = 'async';
+  }
+  
+  imgEl.src = thumbUrl;
+  imgEl.alt = alt;
+}
+
+function createCardNode(post, priority = false) {
   const tpl = document.getElementById('cardTpl');
   const node = tpl.content.firstElementChild.cloneNode(true);
   const imgEl = node.querySelector('.thumb img');
@@ -3004,9 +3138,9 @@ function createCardNode(post) {
   try {
     thumbUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
   } catch(e) { thumbUrl = ''; }
-  imgEl.src = thumbUrl || placeholderDataURI(1200,800,'No Image');
-  imgEl.loading = 'lazy'; // Lazy loading 추가
-  imgEl.alt = (post.title && post.title.rendered) ? stripTags(post.title.rendered) : 'thumb';
+  
+  const alt = (post.title && post.title.rendered) ? stripTags(post.title.rendered) : 'thumb';
+  optimizeImage(imgEl, thumbUrl, alt, priority);
   node.querySelector('.title').innerHTML = post.title && post.title.rendered ? post.title.rendered : '제목 없음';
   const avatarImg = node.querySelector('.author-avatar');
   const authorNameEl = node.querySelector('.author-name');
@@ -3015,7 +3149,8 @@ function createCardNode(post) {
     const a = post._embedded.author[0];
     const avatarUrl = a.avatar_urls ? (a.avatar_urls['48']||a.avatar_urls['24']||'') : '';
     avatarImg.src = avatarUrl || placeholderDataURI(96,96,'U');
-    avatarImg.loading = 'lazy'; // Lazy loading 추가
+    avatarImg.loading = 'lazy';
+    avatarImg.decoding = 'async';
     avatarImg.alt = a.name || 'author';
     authorNameEl.textContent = a.name || '익명';
   } else {
@@ -3054,12 +3189,13 @@ function createCardNode(post) {
 function renderMobileLayout(posts, container) {
   for(let i = 0; i < posts.length; i += 5) {
     const group = posts.slice(i, i + 5);
+    const isFirstGroup = (i === 0); // Priority for first viewport
 
     if(group[0]) {
       const largeDiv = document.createElement('div');
       largeDiv.className = 'magazine-row mobile-large-post';
       
-      const largeContainer = createLargePostElement(group[0]);
+      const largeContainer = createLargePostElement(group[0], isFirstGroup);
       largeDiv.appendChild(largeContainer);
       container.appendChild(largeDiv);
     }
@@ -3072,9 +3208,11 @@ function renderMobileLayout(posts, container) {
       const smallGrid = document.createElement('div');
       smallGrid.className = 'magazine-small-grid mobile-grid';
 
-      smallPosts.forEach(post => {
+      smallPosts.forEach((post, idx) => {
         if(post) {
-          const card = createCardNode(post);
+          // Priority for first few posts in viewport
+          const priority = isFirstGroup && idx < 2;
+          const card = createCardNode(post, priority);
           smallGrid.appendChild(card);
         }
       });
@@ -3085,13 +3223,16 @@ function renderMobileLayout(posts, container) {
   }
 }
 // 큰 게시물 생성 헬퍼 함수 (중복 제거)
-function createLargePostElement(largePost) {
+function createLargePostElement(largePost, priority = false) {
   const largeDiv = document.createElement('div');
   largeDiv.className = 'magazine-large';
 
   let heroUrl = largePost._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+  const loadingAttr = priority ? 'eager' : 'lazy';
+  const fetchPriorityAttr = priority ? ' fetchpriority="high"' : '';
+  
   largeDiv.innerHTML = `
-    <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero" loading="lazy">
+    <img class="hero" src="${heroUrl || placeholderDataURI(1200,800,'No Image')}" alt="hero" loading="${loadingAttr}"${fetchPriorityAttr} decoding="async">
     <div class="hero-overlay">
       <h2 class="hero-title">${largePost.title?.rendered || '제목 없음'}</h2>
       <div style="display:flex;align-items:center;gap:10px">
@@ -3100,6 +3241,15 @@ function createLargePostElement(largePost) {
       </div>
     </div>
   `;
+  
+  // Preload critical hero images
+  if (priority && heroUrl && !heroUrl.startsWith('data:')) {
+    const preloadLink = document.createElement('link');
+    preloadLink.rel = 'preload';
+    preloadLink.as = 'image';
+    preloadLink.href = heroUrl;
+    document.head.appendChild(preloadLink);
+  }
 
   const catWrap = document.createElement('div');
   catWrap.className = 'hero-cats';
@@ -3129,6 +3279,7 @@ function createLargePostElement(largePost) {
 function renderIpadPortraitLayout(posts, container) {
   for(let i = 0; i < posts.length; i += 5) {
     const group = posts.slice(i, i + 5);
+    const isFirstGroup = (i === 0);
     
     // 첫 번째 게시물 - 큰 게시물
     if(group[0]) {
@@ -3136,7 +3287,7 @@ function renderIpadPortraitLayout(posts, container) {
       largeDiv.className = 'magazine-row';
       largeDiv.style.gridTemplateColumns = '1fr';
       
-      const largeContainer = createLargePostElement(group[0]);
+      const largeContainer = createLargePostElement(group[0], isFirstGroup);
       largeDiv.appendChild(largeContainer);
       container.appendChild(largeDiv);
     }
@@ -3151,9 +3302,10 @@ function renderIpadPortraitLayout(posts, container) {
       const smallGrid = document.createElement('div');
       smallGrid.className = 'magazine-small-grid';
       
-      smallPosts.forEach(post => {
+      smallPosts.forEach((post, idx) => {
         if(post) {
-          const card = createCardNode(post);
+          const priority = isFirstGroup && idx < 2;
+          const card = createCardNode(post, priority);
           smallGrid.appendChild(card);
         }
       });
@@ -3171,6 +3323,7 @@ function renderDesktopLayout(posts, container) {
     row.className = 'magazine-row';
 
     const isEven = Math.floor(i / 5) % 2 === 0;
+    const isFirstGroup = (i === 0);
     if(!isEven) {
       row.classList.add('reverse');
     }
@@ -3178,16 +3331,17 @@ function renderDesktopLayout(posts, container) {
     // 작은 게시물 그리드 생성
     const smallGrid = document.createElement('div');
     smallGrid.className = 'magazine-small-grid';
-    group.slice(1, 5).forEach(post => {
+    group.slice(1, 5).forEach((post, idx) => {
       if(post) {
-        const card = createCardNode(post);
+        const priority = isFirstGroup && idx < 3;
+        const card = createCardNode(post, priority);
         smallGrid.appendChild(card);
       }
     });
 
     // 큰 게시물과 작은 게시물 순서 배치
     if(group[0]) {
-      const largeDiv = createLargePostElement(group[0]);
+      const largeDiv = createLargePostElement(group[0], isFirstGroup);
       
       if(isEven) {
         row.appendChild(largeDiv);
@@ -3333,6 +3487,12 @@ async function loadHomeChunk(page = 1) {
 
       uniquePosts.forEach(p => state.postsCache[p.id] = p);
       const container = document.getElementById('rowsContainer');
+
+      // ⚡ Remove skeleton UI when real content is ready
+      const skeletonUI = document.getElementById('skeletonUI');
+      if (skeletonUI) {
+        skeletonUI.style.display = 'none';
+      }
 
       // 페이지 전환 시 항상 기존 게시물 제거
       container.innerHTML = '';
@@ -3976,7 +4136,7 @@ async function renderPostOverlay(post) {
         ${featuredUrl ? `
           <div class="post-thumbnail-container">
             <div class="post-thumbnail">
-              <img src="${featuredUrl}" alt="featured image">
+              <img src="${featuredUrl}" alt="${stripTags(title) || 'featured image'}" loading="eager" fetchpriority="high" decoding="async">
             </div>
           </div>
         ` : ''}
@@ -4005,7 +4165,7 @@ async function renderPostOverlay(post) {
         </div>
       </div>
     </div>
-    <div class="post-content">${contentHTML}</div>
+    <div class="post-content" id="postContent-${post.id}">${contentHTML}</div>
     
     <div class="share-section" style="
       max-width: 800px;
@@ -4130,13 +4290,27 @@ async function renderPostOverlay(post) {
     <div id="relatedPostsContainer"></div>
   `;
   
-  article.querySelectorAll('.post-content img').forEach(img=>{
+  // ⚡ Optimize all images in post content
+  article.querySelectorAll('.post-content img').forEach((img, index)=>{
     img.style.maxWidth = '100%';
     img.style.height = 'auto';
     img.style.display = 'block';
     img.style.margin = '12px 0';
     img.style.cursor = 'pointer';
     img.style.pointerEvents = 'auto';
+    
+    // Add lazy loading for images not in first viewport
+    if (index > 2) {
+      img.loading = 'lazy';
+    } else {
+      img.loading = 'eager';
+    }
+    img.decoding = 'async';
+    
+    // Add alt text if missing
+    if (!img.alt) {
+      img.alt = stripTags(title) || 'Post image';
+    }
     
     img.addEventListener('click', (e) => {
       e.preventDefault();
@@ -6434,6 +6608,91 @@ resourceHints.forEach(hint => {
   if (hint.rel === 'preconnect') link.crossOrigin = '';
   document.head.appendChild(link);
 });
+
+// ⚡ 프리렌더링 최적화: Speculation Rules 동적 업데이트
+function updateSpeculationRules(urls = []) {
+  try {
+    const speculationScript = document.getElementById('speculationRules');
+    if (!speculationScript) return;
+    
+    // 중복 제거
+    const uniqueUrls = [...new Set(urls)].slice(0, 10); // 최대 10개
+    
+    const rules = {
+      prefetch: [{
+        source: "list",
+        urls: uniqueUrls
+      }],
+      prerender: [{
+        source: "list", 
+        urls: uniqueUrls.slice(0, 3) // 상위 3개만 프리렌더링
+      }]
+    };
+    
+    speculationScript.textContent = JSON.stringify(rules, null, 2);
+    console.log('✅ Speculation rules updated:', uniqueUrls.length, 'URLs');
+  } catch (e) {
+    console.warn('Speculation rules update failed:', e);
+  }
+}
+
+// ⚡ 게시물 로드 후 관련 페이지 프리렌더링
+function prerenderRelatedPages() {
+  const currentUrl = window.location.origin;
+  const urls = [];
+  
+  // 홈페이지 항상 프리렌더링
+  urls.push(`${currentUrl}/`);
+  
+  // 현재 보이는 게시물들의 URL 수집 (viewport 내)
+  const cards = document.querySelectorAll('.magazine-large, .card');
+  let count = 0;
+  
+  cards.forEach(card => {
+    if (count >= 5) return; // 최대 5개
+    
+    const rect = card.getBoundingClientRect();
+    const isInViewport = rect.top >= 0 && rect.top <= window.innerHeight * 2;
+    
+    if (isInViewport) {
+      // 게시물 ID 추출 (onClick에서)
+      const onClick = card.getAttribute('onclick');
+      if (onClick) {
+        const match = onClick.match(/openPostOverlayById\((\d+)\)/);
+        if (match && match[1]) {
+          urls.push(`${currentUrl}/?p=${match[1]}`);
+          count++;
+        }
+      }
+    }
+  });
+  
+  // 카테고리 페이지 프리렌더링 (네비게이션에서)
+  const navLinks = document.querySelectorAll('.nav-list li');
+  navLinks.forEach((link, idx) => {
+    if (idx < 3 && link.dataset && link.dataset.slug) {
+      urls.push(`${currentUrl}/?category=${link.dataset.slug}`);
+    }
+  });
+  
+  updateSpeculationRules(urls);
+}
+
+// 게시물 로드 후 프리렌더링 실행
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    prerenderRelatedPages();
+  }, 1000);
+});
+
+// 스크롤 시 프리렌더링 업데이트 (debounced)
+let prerenderTimeout;
+window.addEventListener('scroll', () => {
+  clearTimeout(prerenderTimeout);
+  prerenderTimeout = setTimeout(() => {
+    prerenderRelatedPages();
+  }, 500);
+}, { passive: true });
 </script>
 </body>
 </html>
