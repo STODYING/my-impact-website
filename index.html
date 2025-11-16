@@ -6689,87 +6689,143 @@ resourceHints.forEach(hint => {
   document.head.appendChild(link);
 });
 
-// ⚡ 프리렌더링 최적화: Speculation Rules 동적 업데이트
+// ⚡ 프리렌더링 최적화: Speculation Rules 동적 업데이트 (고급 버전)
 function updateSpeculationRules(urls = []) {
   try {
     const speculationScript = document.getElementById('speculationRules');
     if (!speculationScript) return;
     
-    // 중복 제거
-    const uniqueUrls = [...new Set(urls)].slice(0, 10); // 최대 10개
+    // 중복 제거 및 유효성 검사
+    const uniqueUrls = [...new Set(urls)].filter(url => {
+      return url && typeof url === 'string' && (url.startsWith('http') || url.startsWith('/'));
+    });
     
+    const prerender = uniqueUrls.slice(0, 5); // 상위 5개만 프리렌더링 (리소스 절감)
+    const prefetch = uniqueUrls.slice(0, 15); // 최대 15개 프리페치
+    
+    // Speculation Rules API (Chrome 120+)
     const rules = {
       prefetch: [{
         source: "list",
-        urls: uniqueUrls
+        urls: prefetch
       }],
       prerender: [{
         source: "list", 
-        urls: uniqueUrls.slice(0, 3) // 상위 3개만 프리렌더링
+        urls: prerender
       }]
     };
     
     speculationScript.textContent = JSON.stringify(rules, null, 2);
-    console.log('✅ Speculation rules updated:', uniqueUrls.length, 'URLs');
+    console.log('✅ Speculation rules 업데이트 완료');
+    console.log(`   📄 Prerender: ${prerender.length}개 URL`);
+    console.log(`   🔗 Prefetch: ${prefetch.length}개 URL`);
+    prerender.forEach(url => console.log(`     ✓ ${url}`));
   } catch (e) {
-    console.warn('Speculation rules update failed:', e);
+    console.warn('❌ Speculation rules 업데이트 실패:', e);
   }
 }
 
-// ⚡ 게시물 로드 후 관련 페이지 프리렌더링
+// ⚡ 향상된 페이지 프리렌더링 함수 - 게시물, 에디터, 카테고리 모두 포함
 function prerenderRelatedPages() {
   const currentUrl = window.location.origin;
-  const urls = [];
+  const urls = new Set();
   
-  // 홈페이지 항상 프리렌더링
-  urls.push(`${currentUrl}/`);
+  // 1️⃣ 홈페이지 항상 프리렌더링
+  urls.add(`${currentUrl}/`);
   
-  // 현재 보이는 게시물들의 URL 수집 (viewport 내)
+  // 2️⃣ 현재 보이는 게시물들의 URL 수집 (viewport 내)
   const cards = document.querySelectorAll('.magazine-large, .card');
-  let count = 0;
+  let postCount = 0;
   
   cards.forEach(card => {
-    if (count >= 5) return; // 최대 5개
+    if (postCount >= 8) return; // 최대 8개 게시물
     
     const rect = card.getBoundingClientRect();
-    const isInViewport = rect.top >= 0 && rect.top <= window.innerHeight * 2;
+    // viewport 위아래 300px 범위 내의 요소
+    const isInViewport = rect.top >= -300 && rect.top <= window.innerHeight + 300;
     
     if (isInViewport) {
-      // 게시물 ID 추출 (onClick에서)
       const onClick = card.getAttribute('onclick');
       if (onClick) {
         const match = onClick.match(/openPostOverlayById\((\d+)\)/);
         if (match && match[1]) {
-          urls.push(`${currentUrl}/?p=${match[1]}`);
-          count++;
+          const postUrl = `${currentUrl}/?p=${match[1]}`;
+          urls.add(postUrl);
+          postCount++;
+          console.log(`📝 게시물 프리렌더링: p=${match[1]}`);
         }
       }
     }
   });
   
-  // 카테고리 페이지 프리렌더링 (네비게이션에서)
-  const navLinks = document.querySelectorAll('.nav-list li');
-  navLinks.forEach((link, idx) => {
-    if (idx < 3 && link.dataset && link.dataset.slug) {
-      urls.push(`${currentUrl}/?category=${link.dataset.slug}`);
+  // 3️⃣ 카테고리 페이지 프리렌더링 (모든 네비게이션 링크)
+  const navLinks = document.querySelectorAll('.nav-list li, [data-category]');
+  let catCount = 0;
+  navLinks.forEach((link) => {
+    if (catCount >= 5) return;
+    const slug = link.dataset?.slug || link.textContent?.trim().toLowerCase();
+    if (slug && slug !== 'home') {
+      const catUrl = `${currentUrl}/?category=${slug}`;
+      urls.add(catUrl);
+      console.log(`📂 카테고리 프리렌더링: ${slug}`);
+      catCount++;
     }
   });
   
-  updateSpeculationRules(urls);
+  // 4️⃣ 에디터 페이지 프리렌더링
+  try {
+    const editorLink = document.querySelector('[href*="editor"], [onclick*="editor"], .editor-button');
+    if (editorLink) {
+      const editorUrls = [
+        `${currentUrl}/editor/`,
+        `${currentUrl}/?page=editor`,
+        `${currentUrl}/?mode=editor`
+      ];
+      editorUrls.forEach(url => urls.add(url));
+      console.log(`✏️ 에디터 페이지 프리렌더링`);
+    }
+  } catch (e) {
+    console.log('📋 에디터 페이지 감지 안 됨');
+  }
+  
+  // 5️⃣ 정렬/필터 페이지 (인기순, 최신순, 조회수 등)
+  const sortPages = [
+    `${currentUrl}/?sort=popular`,
+    `${currentUrl}/?sort=latest`,
+    `${currentUrl}/?sort=views`,
+    `${currentUrl}/?sort=trending`
+  ];
+  sortPages.forEach(url => urls.add(url));
+  console.log(`📊 정렬 페이지 4개 추가됨`);
+  
+  // 6️⃣ 검색 페이지 (준비)
+  urls.add(`${currentUrl}/?search=`);
+  
+  // 7️⃣ 페이지네이션 (다음 페이지)
+  const pageParams = ['?page=2', '?page=3', '?offset=10', '?page=2&category='];
+  pageParams.forEach(param => {
+    urls.add(`${currentUrl}/${param}`);
+  });
+  console.log(`📑 페이지네이션 페이지 추가됨`);
+  
+  const finalUrls = Array.from(urls);
+  console.log(`🎯 총 ${finalUrls.length}개 페이지 프리렌더링 대기중`);
+  updateSpeculationRules(finalUrls);
 }
 
-// ⚡ 홈화면 게시물 프리페치 - 보이는 게시물들을 미리 로드
+// ⚡ 홈화면 게시물 프리페치 - 보이는 게시물들을 미리 로드 (향상된 버전)
 function prefetchVisiblePosts() {
   const cards = document.querySelectorAll('.magazine-large, .card');
   let count = 0;
-  const maxPrefetch = 10; // 최대 10개 게시물 프리페치
+  const maxPrefetch = 15; // 최대 15개 게시물 프리페치 (향상됨)
+  const fetched = [];
   
   cards.forEach(card => {
     if (count >= maxPrefetch) return;
     
     const rect = card.getBoundingClientRect();
-    // 화면에 보이거나 공 아래에 있는 게시물
-    const isVisible = rect.top >= -200 && rect.top <= window.innerHeight + 500;
+    // 화면에 보이거나 아래에 있는 게시물
+    const isVisible = rect.top >= -500 && rect.top <= window.innerHeight + 800;
     
     if (isVisible) {
       const onClick = card.getAttribute('onclick');
@@ -6780,6 +6836,7 @@ function prefetchVisiblePosts() {
           // 캐시에 없으면 프리페치
           if (!state.postsCache[postId] || !state.postsCache[postId].content) {
             prefetchPost(postId);
+            fetched.push(postId);
             count++;
           }
         }
@@ -6787,35 +6844,81 @@ function prefetchVisiblePosts() {
     }
   });
   
-  console.log(`⚡ ${count}개 게시물 프리페치 시작`);
+  if (count > 0) {
+    console.log(`⚡ ${count}개 게시물 프리페치 시작: [${fetched.join(', ')}]`);
+  }
 }
 
-// ⚡ 개별 게시물 프리페치 (백그라운드)
+// ⚡ 개별 게시물 프리페치 (백그라운드 - 향상된 버전)
 async function prefetchPost(postId) {
   if (!postId || state.postsCache[postId]?.content) return;
   
   try {
-    console.log(`프리페치 시작: 게시물 ID ${postId}`);
-    const res = await fetch(api(`posts/${postId}`, true));
-    if (!res.ok) return;
+    // priority 낮게 설정 (다른 요청 방해 안 함)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5초 타임아웃
+    
+    const res = await fetch(api(`posts/${postId}`, true), {
+      signal: controller.signal,
+      priority: 'low' // Chrome 표준
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!res.ok) {
+      console.warn(`❌ 게시물 프리페치 실패 (${res.status}): ID ${postId}`);
+      return;
+    }
     
     const post = await res.json();
     state.postsCache[postId] = post;
     console.log(`✅ 프리페치 완료: 게시물 ID ${postId}`);
   } catch(e) {
-    console.warn(`프리페치 실패: 게시물 ID ${postId}`, e);
+    if (e.name !== 'AbortError') {
+      console.warn(`⚠️ 프리페치 오류 (ID ${postId}):`, e.message);
+    }
   }
+}
+
+// ⚡ 관련 페이지 프리페치 (에디터, 검색, 필터 등)
+function prefetchRelatedPages() {
+  const currentUrl = window.location.origin;
+  
+  // 주요 페이지들을 Prefetch 링크로 추가
+  const pages = [
+    { url: `${currentUrl}/?sort=popular`, title: '인기 게시물' },
+    { url: `${currentUrl}/?sort=latest`, title: '최신 게시물' },
+    { url: `${currentUrl}/editor/`, title: '에디터' }
+  ];
+  
+  pages.forEach(page => {
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.href = page.url;
+    link.as = 'document';
+    link.onload = () => console.log(`📄 프리페치 완료: ${page.title}`);
+    document.head.appendChild(link);
+  });
+  
+  console.log(`🔗 관련 페이지 ${pages.length}개 프리페치 링크 추가됨`);
 }
 
 // 게시물 로드 후 프리렌더링 실행
 window.addEventListener('load', () => {
   setTimeout(() => {
+    console.log('🚀 페이지 로드 완료 - 프리렌더링 시작');
     prerenderRelatedPages();
+    
     // ⚡ 추가: 보이는 게시물 프리페치
     setTimeout(() => {
       prefetchVisiblePosts();
-    }, 1000);
-  }, 1000);
+      
+      // ⚡ 추가: 관련 페이지 프리페치 (에디터, 인기 등)
+      setTimeout(() => {
+        prefetchRelatedPages();
+      }, 800);
+    }, 500);
+  }, 300);
 });
 
 // 스크롤 시 프리렌더링 업데이트 (debounced)
@@ -6826,6 +6929,7 @@ window.addEventListener('scroll', () => {
   clearTimeout(prefetchTimeout);
   
   prerenderTimeout = setTimeout(() => {
+    console.log('📜 스크롤 감지 - 프리렌더링 업데이트');
     prerenderRelatedPages();
   }, 500);
   
