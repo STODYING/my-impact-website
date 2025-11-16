@@ -2372,7 +2372,7 @@
             for (const entry of list.getEntries()) {
               if (entry.name === 'first-contentful-paint') {
                 window.performanceMetrics.fcp = entry.startTime;
-                console.log('⚡ FCP:', entry.startTime.toFixed(2), 'ms');
+                
               }
             }
           }).observe({ entryTypes: ['paint'] });
@@ -2384,7 +2384,7 @@
             const entries = list.getEntries();
             const lastEntry = entries[entries.length - 1];
             window.performanceMetrics.lcp = lastEntry.startTime;
-            console.log('⚡ LCP:', lastEntry.startTime.toFixed(2), 'ms');
+            
           }).observe({ entryTypes: ['largest-contentful-paint'] });
         }
         
@@ -2395,14 +2395,14 @@
             for (const entry of list.getEntries()) {
               if (!entry.hadRecentInput) {
                 clsScore += entry.value;
-                console.log('⚡ CLS:', clsScore.toFixed(3));
+                
               }
             }
           }).observe({ entryTypes: ['layout-shift'] });
         }
       }
     } catch (e) {
-      console.log('PerformanceObserver not fully supported:', e.message);
+      
     }
   </script>
   
@@ -2952,18 +2952,18 @@ function api(path, includeEmbed = false) {
 
 // Netlify Functions를 통해 전체 게시물 수를 가져오는 헬퍼 함수
 async function getTotalPostsCount() {
-  console.log('getTotalPostsCount 호출 (Netlify Functions 사용)...');
+  
   
   try {
     // Netlify Functions를 통한 호출 (per_page=1로 최소 데이터만, _embed 불필요)
     const proxyUrl = api('posts?per_page=1&page=1', false);
-    console.log('  → Netlify Functions 호출:', proxyUrl);
+    
     const res = await fetch(proxyUrl);
     
     const totalFromProxy = parseInt(res.headers.get('X-WP-Total') || '0');
     const totalPagesFromProxy = parseInt(res.headers.get('X-WP-TotalPages') || '0');
     
-    console.log('  → 응답 헤더 - Total:', totalFromProxy, 'TotalPages:', totalPagesFromProxy);
+    
     
     if(totalFromProxy > 0) {
       return {
@@ -2974,10 +2974,10 @@ async function getTotalPostsCount() {
     
     // 헤더가 없으면 응답 본문 확인
     const data = await res.json();
-    console.log('  → 응답 본문 확인:', data);
+    
     
     if(Array.isArray(data) && data.length > 0) {
-      console.log('  → 최소 1개 이상의 게시물 존재');
+      
       return {
         total: 1,
         totalPages: 1
@@ -2987,7 +2987,7 @@ async function getTotalPostsCount() {
     console.error('  → Netlify Functions 호출 실패:', e);
   }
   
-  console.log('  → 게시물 수 가져오기 실패');
+  
   return null;
 }
 function formatDate(dstr) {
@@ -3668,12 +3668,12 @@ async function loadHomeChunk(page = 1) {
       let posts, totalPages, totalPosts;
       
       if (cachedPosts && Array.isArray(cachedPosts.posts)) {
-        console.log('✅ 캐시에서 홈 페이지', page, '로드');
+        
         posts = cachedPosts.posts;
         totalPages = cachedPosts.totalPages || 1;
         totalPosts = cachedPosts.totalPosts || 0;
       } else {
-        console.log('🌐 서버에서 홈 페이지', page, '로드');
+        
         // 최적화: _embed는 필요할 때만 (홈에서는 미리 필요)
         const res = await fetch(api(`posts?per_page=${HOME_PER_PAGE}&page=${page}`, true));
         if(!res.ok) throw new Error('Failed to load');
@@ -3682,34 +3682,34 @@ async function loadHomeChunk(page = 1) {
         totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '0');
         totalPosts = parseInt(res.headers.get('X-WP-Total') || '0');
         
-        console.log('=== Page', page, '로딩 시작 ===');
-        console.log('Headers - TotalPages:', totalPages, 'TotalPosts:', totalPosts);
+        
+        
 
         posts = await res.json();
-        console.log('받은 게시물 수:', posts.length);
+        
         
         // 방법 2: 헤더가 없으면 전체 게시물 수로 계산
         if(totalPages === 0 && totalPosts > 0) {
           totalPages = Math.ceil(totalPosts / HOME_PER_PAGE);
-          console.log('Calculated totalPages from totalPosts:', totalPages);
+          
         }
         
         // 방법 3: 헤더도 없고 totalPosts도 없으면, Netlify Functions로 재시도
         if(totalPages === 0) {
-          console.log('헤더 정보 없음 - Netlify Functions로 재시도...');
+          
           const count = await getTotalPostsCount();
           
           if(count && count.totalPages > 0) {
             totalPages = count.totalPages;
             state.allPostsCount = count.total;
-            console.log('Netlify Functions 호출 성공 - TotalPages:', totalPages, 'Total:', count.total);
+            
           }
         }
         
         // 방법 4: state에 저장된 값 사용
         if(totalPages === 0 && state.homeTotal > 0) {
           totalPages = state.homeTotal;
-          console.log('이전에 저장된 totalPages 사용:', totalPages);
+          
         }
         
         // 방법 5: 받은 게시물 개수로 추정 (최후의 수단)
@@ -3717,14 +3717,14 @@ async function loadHomeChunk(page = 1) {
           if(posts.length === HOME_PER_PAGE) {
             // 20개 받았다면 최소 현재 페이지 + 1
             totalPages = page + 1;
-            console.log('게시물 개수로 추정 (20개 = ', page, '페이지 이상):', totalPages);
+            
           } else if(posts.length > 0) {
             // 20개 미만이면 현재가 마지막 페이지
             totalPages = page;
-            console.log('현재가 마지막 페이지:', totalPages);
+            
           } else {
             totalPages = Math.max(1, page - 1);
-            console.log('게시물 없음, 이전 페이지로:', totalPages);
+            
           }
         }
         
@@ -3742,14 +3742,14 @@ async function loadHomeChunk(page = 1) {
       }
       
       state.homeTotal = totalPages;
-      console.log('=== 최종 totalPages:', totalPages, '===');
+      
 
       if(!Array.isArray(posts) || posts.length === 0) {
         console.warn('게시물 없음 - 페이지:', page);
         
         // 페이지가 1이 아니면 1페이지로 리다이렉트
         if(page !== 1) {
-          console.log('1페이지로 리다이렉트');
+          
           state.isProcessing = false;
           state.homeLoadPromise = null;
           return loadHomeChunk(1);
@@ -3814,7 +3814,7 @@ async function loadHomeChunk(page = 1) {
         prefetchVisiblePosts();
       }, 300);
       
-      console.log('페이지네이션 렌더링:', 'page=', page, 'totalPages=', totalPages);
+      
       renderPagination('homePagination', page, totalPages, (p) => {
         // [IMPACT-LOADING] 페이지네이션 클릭 시 로딩 표시
         openLoading('페이지를 불러오는 중...');
@@ -3850,10 +3850,10 @@ function renderPagination(containerId, currentPage, totalPages, onPageClick) {
 
   container.innerHTML = '';
   
-  console.log('━━━ renderPagination 호출 ━━━');
-  console.log('Container:', containerId);
-  console.log('Current Page:', currentPage, '(타입:', typeof currentPage, ')');
-  console.log('Total Pages:', totalPages, '(타입:', typeof totalPages, ')');
+  
+  
+  
+  
 
   if(totalPages <= 0) {
     console.warn('totalPages가 0 이하입니다. 페이지네이션 표시 안함.');
@@ -3881,12 +3881,12 @@ function renderPagination(containerId, currentPage, totalPages, onPageClick) {
   const isMobile = window.innerWidth <= 640;
   const maxVisible = isMobile ? 5 : 7;
   
-  console.log('모바일:', isMobile, '/ 최대 표시:', maxVisible);
+  
 
   // 페이지 번호 계산
   const pages = calculatePageNumbers(currentPage, totalPages, maxVisible);
   
-  console.log('생성된 페이지 배열:', pages);
+  
 
   if(!pages || pages.length === 0) {
     console.error('페이지 배열이 비어있습니다!');
@@ -3895,7 +3895,7 @@ function renderPagination(containerId, currentPage, totalPages, onPageClick) {
   }
 
   pages.forEach((page, index) => {
-    console.log(`  [${index}] 페이지:`, page, '현재:', currentPage, '일치:', page === currentPage);
+    
     
     if(page === '...') {
       const dots = document.createElement('span');
@@ -3907,7 +3907,7 @@ function renderPagination(containerId, currentPage, totalPages, onPageClick) {
       if(page === currentPage) {
         btn.classList.add('active');
         btn.disabled = true; // 현재 페이지는 비활성화
-        console.log(`    → ${page}번 버튼에 'active' 클래스 추가됨 (비활성화)`);
+        
       } else {
         btn.onclick = () => onPageClick(page);
       }
@@ -3926,11 +3926,11 @@ function renderPagination(containerId, currentPage, totalPages, onPageClick) {
   
   // 최적화: 프리렌더링 제거 (불필요한 리소스 사용)
   
-  console.log('━━━ renderPagination 완료 ━━━\n');
+  
 }
 
 function calculatePageNumbers(current, total, maxVisible) {
-  console.log('  calculatePageNumbers:', 'current=', current, 'total=', total, 'maxVisible=', maxVisible);
+  
   
   const pages = [];
   
@@ -3944,76 +3944,76 @@ function calculatePageNumbers(current, total, maxVisible) {
 
   // 전체 페이지가 maxVisible 이하면 모두 표시
   if(total <= maxVisible) {
-    console.log('  → 전체 페이지 표시 (total <= maxVisible)');
+    
     for(let i = 1; i <= total; i++) {
       pages.push(i);
     }
-    console.log('  → 결과:', pages);
+    
     return pages;
   }
 
   // 항상 첫 페이지 표시
   pages.push(1);
-  console.log('  → 1 추가');
+  
 
   // 현재 페이지 기준으로 표시할 범위 계산
   const sidesCount = maxVisible - 3; // 첫 페이지, 마지막 페이지, 현재 페이지를 제외한 개수
   const leftSide = Math.floor(sidesCount / 2);
   const rightSide = Math.ceil(sidesCount / 2);
   
-  console.log('  → sidesCount:', sidesCount, 'leftSide:', leftSide, 'rightSide:', rightSide);
+  
 
   // 현재 페이지가 왼쪽에 치우쳐 있는 경우
   if(current <= leftSide + 2) {
-    console.log('  → 왼쪽 치우침 (current <= ', leftSide + 2, ')');
+    
     // 1, 2, 3, 4, 5 ... last 형태
     for(let i = 2; i < Math.min(maxVisible - 1, total); i++) {
       pages.push(i);
-      console.log('    → ', i, '추가');
+      
     }
     
     if(total > maxVisible - 1) {
       pages.push('...');
-      console.log('    → ... 추가');
+      
     }
   }
   // 현재 페이지가 오른쪽에 치우쳐 있는 경우
   else if(current >= total - rightSide - 1) {
-    console.log('  → 오른쪽 치우침 (current >= ', total - rightSide - 1, ')');
+    
     // 1 ... 16, 17, 18, 19, 20 형태
     pages.push('...');
-    console.log('    → ... 추가');
+    
     
     for(let i = Math.max(total - maxVisible + 3, 2); i < total; i++) {
       pages.push(i);
-      console.log('    → ', i, '추가');
+      
     }
   }
   // 현재 페이지가 중간에 있는 경우
   else {
-    console.log('  → 중간 위치');
+    
     // 1 ... 8, 9, 10 ... 20 형태
     pages.push('...');
-    console.log('    → ... 추가');
+    
     
     for(let i = current - leftSide; i <= current + rightSide; i++) {
       if(i > 1 && i < total) {
         pages.push(i);
-        console.log('    → ', i, '추가');
+        
       }
     }
     
     pages.push('...');
-    console.log('    → ... 추가');
+    
   }
 
   // 항상 마지막 페이지 표시
   if(total > 1) {
     pages.push(total);
-    console.log('  → ', total, '(마지막) 추가');
+    
   }
   
-  console.log('  → 최종 결과:', pages);
+  
 
   return pages;
 }
@@ -4074,21 +4074,21 @@ async function loadCategory(slug, page = 1) {
     let totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '0');
     let totalPosts = parseInt(res.headers.get('X-WP-Total') || '0');
     
-    console.log('Category Headers - TotalPages:', totalPages, 'TotalPosts:', totalPosts);
+    
     
     const posts = await res.json();
     
     // 헤더가 없으면 전체 게시물 수로 계산
     if(totalPages === 0 && totalPosts > 0) {
       totalPages = Math.ceil(totalPosts / 20);
-      console.log('Category - Calculated totalPages:', totalPages);
+      
     }
     
     // 최소값 보장
     if(totalPages === 0) totalPages = 1;
     
     state.categoryTotal = totalPages;
-    console.log('Category - Final totalPages:', totalPages);
+    
     if(Array.isArray(posts)) {
       const uniquePosts = posts.filter((post, index, self) =>
         index === self.findIndex(p => p.id === post.id)
@@ -4201,7 +4201,7 @@ function closeImageModal(skipHistory = false) {
     history.back();
   }
   
-  console.log('✅ 이미지 모달 닫힘');
+  
 }
 
 // slug로 게시물 ID를 찾는 함수
@@ -4323,7 +4323,7 @@ async function openPostOverlayById(id, updateURL = true) {
   const cached = state.postsCache[id];
   if(cached && cached.content && cached.content.rendered) {
     // ⚡ 캐시된 데이터 사용 - 즉시 표시
-    console.log('✅ 캐시에서 게시물 로드:', id);
+    
     await renderPostOverlay(cached);
     // [IMPACT-LOADING] 렌더 완료 후 로딩 해제
     await nextFrame();
@@ -4723,7 +4723,7 @@ async function initializeGallerySliders() {
   const postContent = document.querySelector('.post-content');
   if (!postContent) return;
   
-  console.log('갤러리 슬라이더 초기화 시작');
+  
   
   // 워드프레스 갤러리 찾기 (.wp-block-gallery, .gallery, .blocks-gallery-grid 등)
   const galleries = postContent.querySelectorAll('.wp-block-gallery, .gallery, .blocks-gallery-grid, [class*="gallery"]');
@@ -4738,7 +4738,7 @@ async function initializeGallerySliders() {
     
     // 이미지가 2개 이상일 때만 슬라이더로 변환
     if (images.length >= 2) {
-      console.log(`갤러리 ${i + 1} 처리 중 (이미지 ${images.length}개)`);
+      
       await createGallerySlider(gallery, images, i);
       gallery.classList.add('wp-gallery-processed');
     }
@@ -4753,20 +4753,20 @@ async function initializeGallerySliders() {
     
     const images = figure.querySelectorAll('img');
     if (images.length >= 2) {
-      console.log(`Figure ${i + 1} 처리 중 (이미지 ${images.length}개)`);
+      
       await createGallerySlider(figure, images, i + 1000);
       figure.classList.add('wp-gallery-processed');
     }
   }
   
-  console.log('갤러리 슬라이더 초기화 완료');
+  
 }
 
 // 갤러리 슬라이더 생성 함수
 async function createGallerySlider(container, images, galleryId) {
   const imageArray = Array.from(images);
   
-  console.log(`\n=== 갤러리 ${galleryId} 생성 시작 (이미지 ${imageArray.length}개) ===`);
+  
   
   // 슬라이더 구조 생성
   const slider = document.createElement('div');
@@ -4796,7 +4796,7 @@ async function createGallerySlider(container, images, galleryId) {
         const ratio = width / height;
         
         imageData[idx] = { width, height, ratio, src: img.src };
-        console.log(`이미지 ${idx + 1}: ${width}x${height} → 비율 ${ratio.toFixed(3)}`);
+        
         
         // 이미지 클릭 이벤트 추가
         clonedImg.addEventListener('click', (e) => {
@@ -4816,7 +4816,7 @@ async function createGallerySlider(container, images, galleryId) {
           const ratio = width / height;
           
           imageData[idx] = { width, height, ratio, src: img.src };
-          console.log(`이미지 ${idx + 1}: ${width}x${height} → 비율 ${ratio.toFixed(3)}`);
+          
           
           clonedImg.src = img.src;
           
@@ -4903,7 +4903,7 @@ async function createGallerySlider(container, images, galleryId) {
   // 슬라이더 컨트롤 초기화
   initializeSliderControls(slider, track, imageArray.length, prevBtn, nextBtn, counter, imageData);
   
-  console.log(`=== 갤러리 ${galleryId} 생성 완료 ===\n`);
+  
 }
 
 // 이미지 모달 열기 함수
@@ -4920,7 +4920,7 @@ function openImageModal(imageSrc) {
     // 히스토리에 추가 (뒤로가기 지원)
     history.pushState({ imageModal: true }, '', window.location.href);
     
-    console.log('✅ 이미지 모달 열림:', imageSrc);
+    
   }
 }
 
@@ -4944,7 +4944,7 @@ function prerenderAdjacentPages(currentPage, totalPages) {
     urlsToPrerender.push(`${baseUrl}?page=${currentPage + 2}`);
   }
   
-  console.log('🚀 프리렌더링 URL:', urlsToPrerender);
+  
   
   // 기존 prefetch 링크 업데이트
   updatePrefetchLinks(urlsToPrerender);
@@ -4961,7 +4961,7 @@ function updatePrefetchLinks(urls) {
     
     if (link && urls[i]) {
       link.href = urls[i];
-      console.log(`✅ Prefetch 링크 ${i + 1} 업데이트:`, urls[i]);
+      
     }
   }
 }
@@ -4983,9 +4983,9 @@ function updateSpeculationRules(urls) {
     };
     
     script.textContent = JSON.stringify(rules);
-    console.log('✅ Speculation Rules 업데이트:', rules);
+    
   } else {
-    console.log('⚠️ Speculation Rules API 미지원 (Chrome 109+ 필요)');
+    
   }
 }
 
@@ -5010,7 +5010,7 @@ function prerenderPostLinks() {
   });
   
   if (visibleLinks.length > 0) {
-    console.log('📄 포스트 프리렌더링:', visibleLinks);
+    
     updatePrefetchLinks(visibleLinks);
   }
 }
@@ -5045,7 +5045,7 @@ function setSliderHeight(slider, ratio) {
     sliderWidth = sliderWidth - 40; // 좌우 패딩 제거
   }
   
-  console.log(`[높이 계산] 슬라이더 너비: ${sliderWidth}px, 비율: ${ratio.toFixed(3)}`);
+  
   
   // 이미지 비율로 높이 계산
   let calculatedHeight = sliderWidth / ratio;
@@ -5059,7 +5059,7 @@ function setSliderHeight(slider, ratio) {
   slider.style.height = `${calculatedHeight}px`;
   slider.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
   
-  console.log(`[높이 적용] ${calculatedHeight.toFixed(0)}px (최소: ${minHeight}px, 최대: ${maxHeight.toFixed(0)}px)`);
+  
 }
 
 // 슬라이더 컨트롤 초기화
@@ -5146,26 +5146,26 @@ function initializeSliderControls(slider, track, totalSlides, prevBtn, nextBtn, 
     const diff = currentX - startX;
     const threshold = slider.offsetWidth * 0.15; // 임계값 15%로 낮춤 (더 민감하게)
     
-    console.log(`[스와이프] diff: ${diff}px, threshold: ${threshold}px, 현재: ${currentIndex}`);
+    
     
     if (Math.abs(diff) > threshold) {
       // 오른쪽으로 스와이프 (이전 슬라이드)
       if (diff > 0 && currentIndex > 0) {
-        console.log('→ 이전 슬라이드로 이동');
+        
         goToSlide(currentIndex - 1);
       } 
       // 왼쪽으로 스와이프 (다음 슬라이드)
       else if (diff < 0 && currentIndex < totalSlides - 1) {
-        console.log('→ 다음 슬라이드로 이동');
+        
         goToSlide(currentIndex + 1);
       } 
       // 경계에서의 스와이프
       else {
-        console.log('→ 경계 도달, 제자리');
+        
         updateSlider();
       }
     } else {
-      console.log('→ 임계값 미만, 제자리');
+      
       updateSlider();
     }
     
@@ -6255,7 +6255,7 @@ window.addEventListener('popstate', async (e) => {
     const loadHomeInBackground = async () => {
       try {
         await loadHomeChunk(1);
-        console.log('Home loaded successfully in background');
+        
       } catch(err) {
         console.error('Background home loading failed:', err);
       }
@@ -6268,7 +6268,7 @@ window.addEventListener('popstate', async (e) => {
       // 메인 페이지인 경우 즉시 로드
       loadHomeChunk(1)
         .then(() => {
-          console.log('Home loaded successfully');
+          
         })
         .catch((err) => {
           console.error('Home loading failed:', err);
@@ -6546,7 +6546,7 @@ function shareToKakao() {
       title: title,
       url: url
     }).catch(err => {
-      console.log('공유 실패:', err);
+      
       copyLink();
     });
   } else {
@@ -6871,24 +6871,24 @@ function detectNetworkAndOptimize() {
   const isMobile = window.matchMedia('(max-width: 768px)').matches;
   const isSaveData = navigator.connection?.saveData || false;
   
-  console.log(`📱 네트워크 타입: ${connection}, 모바일: ${isMobile}, 절약 모드: ${isSaveData}`);
+  
   
   // 네트워크 속도별 최적화
   if (connection === 'slow-2g' || connection === '2g') {
     state.mobileOptimization = { maxPrefetch: 2, imageQuality: 'low', lazy: true };
-    console.log('⚠️ 저속 네트워크 감지 - 최소 리소스 로드');
+    
   } else if (connection === '3g') {
     state.mobileOptimization = { maxPrefetch: 5, imageQuality: 'medium', lazy: true };
-    console.log('📊 중속 네트워크 감지 - 중간 최적화');
+    
   } else if (connection === '4g') {
     state.mobileOptimization = { maxPrefetch: isMobile ? 10 : 15, imageQuality: 'high', lazy: true };
-    console.log('⚡ 고속 네트워크 감지 - 풀 최적화');
+    
   }
   
   // 절약 모드 감지
   if (isSaveData) {
     state.mobileOptimization.maxPrefetch = Math.max(2, Math.floor(state.mobileOptimization.maxPrefetch / 2));
-    console.log('💾 절약 모드 활성화 - 프리페치 감소');
+    
   }
   
   // 모바일 이미지 최적화
@@ -6925,7 +6925,7 @@ function optimizeMobileImages() {
     }
   });
   
-  console.log(`📸 ${images.length}개 이미지 모바일 최적화 완료`);
+  
 }
 
 // ⚡ 모바일 폰트 최적화: font-display: swap 사용
@@ -6963,14 +6963,14 @@ function minimizeJavaScriptForMobile() {
   const isMobile = window.matchMedia('(max-width: 768px)').matches;
   
   if (isMobile) {
-    console.log('📱 모바일 모드 활성화 - JS 최적화');
+    
     
     // 모바일: 프리페치 개수 줄이기
     if (state.mobileOptimization?.maxPrefetch) {
       const originalMaxPrefetch = 15;
       const mobileMaxPrefetch = state.mobileOptimization.maxPrefetch;
       
-      console.log(`프리페치 개수: ${originalMaxPrefetch} → ${mobileMaxPrefetch}`);
+      
     }
     
     // 모바일: 무거운 애니메이션 비활성화
@@ -7007,7 +7007,7 @@ function loadResourcesBasedOnViewport() {
           
           img.removeAttribute('data-src');
           observer.unobserve(img);
-          console.log(`🖼️ 이미지 로드: ${img.src.substring(0, 50)}...`);
+          
         }
       }
     });
@@ -7047,7 +7047,7 @@ function prioritizeAboveTheFoldContent() {
     if (firstImage) {
       firstImage.fetchPriority = 'high';
       firstImage.loading = 'eager';  // 즉시 로드
-      console.log('🎯 주요 콘텐츠 우선 로드');
+      
     }
     
     // 모바일: 첫 번째 텍스트 콘텐츠도 우선 로드
@@ -7064,7 +7064,7 @@ async function cacheAPIResponseForMobile(postId) {
   const cached = sessionStorage.getItem(cacheKey);
   
   if (cached) {
-    console.log(`💾 캐시 히트: 게시물 ${postId}`);
+    
     return JSON.parse(cached);
   }
   
@@ -7074,7 +7074,7 @@ async function cacheAPIResponseForMobile(postId) {
     
     const data = await response.json();
     sessionStorage.setItem(cacheKey, JSON.stringify(data));
-    console.log(`💾 캐시 저장: 게시물 ${postId}`);
+    
     
     return data;
   } catch (e) {
@@ -7118,7 +7118,7 @@ resourceHints.forEach(hint => {
   document.head.appendChild(link);
 });
 
-// ⚡ 프리렌더링 최적화: Speculation Rules 초기화 (즉시)
+// ⚡ 프리렌더링 최적화: Speculation Rules 초기화 - 침묵 모드 (로그 없음)
 function initSpeculationRulesEarly() {
   try {
     const speculationScript = document.getElementById('speculationRules');
@@ -7126,9 +7126,9 @@ function initSpeculationRulesEarly() {
     
     const currentUrl = window.location.origin;
     const initialUrls = [
-      `${currentUrl}/`,                          // 홈
-      `${currentUrl}/?sort=popular`,             // 인기
-      `${currentUrl}/?sort=latest`,              // 최신
+      `${currentUrl}/`,
+      `${currentUrl}/?sort=popular`,
+      `${currentUrl}/?sort=latest`,
     ];
 
     const rules = {
@@ -7143,21 +7143,22 @@ function initSpeculationRulesEarly() {
     };
 
     speculationScript.textContent = JSON.stringify(rules, null, 2);
-    console.log('🚀 초기 Speculation rules 설정됨 (페이지 로드 전)');
+    // 로그 제거 - 침묵 모드
   } catch (e) {
-    console.warn('Speculation rules 초기화 실패:', e);
+    // 에러 로그 제거
   }
 }
 
-// ⚡ 즉시 초기화 (DOM ready 전)
-document.addEventListener('DOMContentLoaded', initSpeculationRulesEarly);
+// ⚡ 즉시 초기화 (DOM ready 전) - 비동기 없이 즉시
 if (document.readyState === 'loading') {
+  // 스크립트가 head에 있으면 즉시 실행
+  initSpeculationRulesEarly();
   document.addEventListener('DOMContentLoaded', initSpeculationRulesEarly);
 } else {
   initSpeculationRulesEarly();
 }
 
-// ⚡ 프리렌더링 최적화: Speculation Rules 동적 업데이트 (고급 버전)
+// ⚡ 프리렌더링 최적화: Speculation Rules 동적 업데이트 (침묵 모드)
 function updateSpeculationRules(urls = []) {
   try {
     const speculationScript = document.getElementById('speculationRules');
@@ -7168,10 +7169,9 @@ function updateSpeculationRules(urls = []) {
       return url && typeof url === 'string' && (url.startsWith('http') || url.startsWith('/'));
     });
     
-    const prerender = uniqueUrls.slice(0, 8); // 상위 8개 프리렌더링 (증가)
-    const prefetch = uniqueUrls.slice(0, 20); // 최대 20개 프리페치 (증가)
+    const prerender = uniqueUrls.slice(0, 8);
+    const prefetch = uniqueUrls.slice(0, 20);
     
-    // Speculation Rules API (Chrome 120+)
     const rules = {
       prefetch: [{
         source: "list",
@@ -7184,11 +7184,9 @@ function updateSpeculationRules(urls = []) {
     };
     
     speculationScript.textContent = JSON.stringify(rules, null, 2);
-    console.log('✅ Speculation rules 업데이트 완료');
-    console.log(`   📄 Prerender: ${prerender.length}개 URL`);
-    console.log(`   🔗 Prefetch: ${prefetch.length}개 URL`);
+    // 로그 제거 - 침묵 모드
   } catch (e) {
-    console.warn('❌ Speculation rules 업데이트 실패:', e);
+    // 에러 로그 제거
   }
 }
 
@@ -7219,7 +7217,7 @@ function prerenderRelatedPages() {
           const postUrl = `${currentUrl}/?p=${match[1]}`;
           urls.add(postUrl);
           postCount++;
-          console.log(`📝 게시물 프리렌더링: p=${match[1]}`);
+          
         }
       }
     }
@@ -7234,7 +7232,7 @@ function prerenderRelatedPages() {
     if (slug && slug !== 'home') {
       const catUrl = `${currentUrl}/?category=${slug}`;
       urls.add(catUrl);
-      console.log(`📂 카테고리 프리렌더링: ${slug}`);
+      
       catCount++;
     }
   });
@@ -7249,10 +7247,10 @@ function prerenderRelatedPages() {
         `${currentUrl}/?mode=editor`
       ];
       editorUrls.forEach(url => urls.add(url));
-      console.log(`✏️ 에디터 페이지 프리렌더링`);
+      
     }
   } catch (e) {
-    console.log('📋 에디터 페이지 감지 안 됨');
+    
   }
   
   // 5️⃣ 정렬/필터 페이지 (인기순, 최신순, 조회수 등)
@@ -7263,7 +7261,7 @@ function prerenderRelatedPages() {
     `${currentUrl}/?sort=trending`
   ];
   sortPages.forEach(url => urls.add(url));
-  console.log(`📊 정렬 페이지 4개 추가됨`);
+  
   
   // 6️⃣ 검색 페이지 (준비)
   urls.add(`${currentUrl}/?search=`);
@@ -7273,10 +7271,10 @@ function prerenderRelatedPages() {
   pageParams.forEach(param => {
     urls.add(`${currentUrl}/${param}`);
   });
-  console.log(`📑 페이지네이션 페이지 추가됨`);
+  
   
   const finalUrls = Array.from(urls);
-  console.log(`🎯 총 ${finalUrls.length}개 페이지 프리렌더링 대기중`);
+  
   updateSpeculationRules(finalUrls);
 }
 
@@ -7322,7 +7320,7 @@ function prefetchVisiblePosts() {
   });
   
   if (count > 0) {
-    console.log(`⚡ ${count}개 게시물 병렬 프리페치 시작: [${fetched.join(', ')}]`);
+    
   }
 }
 
@@ -7352,7 +7350,7 @@ async function prefetchPostParallel(postId, callback) {
 
     const post = await res.json();
     state.postsCache[postId] = post;
-    console.log(`✅ 프리페치 완료: 게시물 ID ${postId}`);
+    
   } catch(e) {
     if (e.name !== 'AbortError') {
       console.warn(`⚠️ 프리페치 오류 (ID ${postId}):`, e.message);
@@ -7378,54 +7376,39 @@ function prefetchRelatedPages() {
     link.rel = 'prefetch';
     link.href = page.url;
     link.as = 'document';
-    link.onload = () => console.log(`📄 프리페치 완료: ${page.title}`);
+    link.onload = () => 
     document.head.appendChild(link);
   });
   
-  console.log(`🔗 관련 페이지 ${pages.length}개 프리페치 링크 추가됨`);
+  
 }
 
-// ⚡ 페이지 로드 완료 후 프리렌더링 시작 (논블로킹)
+// ⚡ 페이지 로드 완료 후 프리렌더링 즉시 시작 (병렬)
 window.addEventListener('load', () => {
-  // 페이지 로드 완료 후 requestIdleCallback으로 백그라운드에서 실행
+  // 모든 것을 즉시 병렬로 시작
+  
+  // 1. RequestIdleCallback (지원하면)
   if ('requestIdleCallback' in window) {
     requestIdleCallback(() => {
-      console.log('🚀 유휴 시간 감지 - 프리렌더링 시작');
       prerenderRelatedPages();
-      
-      setTimeout(() => {
-        prefetchVisiblePosts();
-      }, 100);
-      
-      setTimeout(() => {
-        prefetchRelatedPages();
-      }, 500);
-    }, { timeout: 2000 });
+      prefetchVisiblePosts();
+      prefetchRelatedPages();
+    }, { timeout: 500 });  // 타임아웃 단축
   } else {
-    // 폴백: requestIdleCallback 미지원 브라우저
-    setTimeout(() => {
-      console.log('⏰ 지연된 프리렌더링 시작');
-      prerenderRelatedPages();
-      
-      setTimeout(() => {
-        prefetchVisiblePosts();
-      }, 100);
-      
-      setTimeout(() => {
-        prefetchRelatedPages();
-      }, 500);
-    }, 1000);
+    // 2. 폴백: 즉시 시작 (지연 없음)
+    prerenderRelatedPages();
+    prefetchVisiblePosts();
+    prefetchRelatedPages();
   }
-});
+}, { once: true });  // 한 번만 실행
 
 // ⚡ 스크롤 시에만 추가 프리페치 (페이지 로드 후)
 let scrollOptimizationActive = false;
 
 window.addEventListener('load', () => {
-  setTimeout(() => {
-    scrollOptimizationActive = true;
-  }, 2000);
-});
+  // 즉시 활성화
+  scrollOptimizationActive = true;
+}, { once: true });
 
 let prerenderTimeout;
 let prefetchTimeout;
@@ -7436,13 +7419,12 @@ window.addEventListener('scroll', () => {
   clearTimeout(prefetchTimeout);
   
   prerenderTimeout = setTimeout(() => {
-    console.log('📜 스크롤 감지 - 프리렌더링 업데이트');
     prerenderRelatedPages();
-  }, 500);
+  }, 300);  // 300ms로 단축
   
   prefetchTimeout = setTimeout(() => {
     prefetchVisiblePosts();
-  }, 800);
+  }, 500);
 }, { passive: true });
 
 // ⚡ 워드프레스 게시물 콘텐츠 처리
@@ -7451,11 +7433,11 @@ function initializePostContent() {
   const postContent = document.querySelector('.post-content, .wp-content, .entry-content, [class*="content"]');
   
   if (!postContent) {
-    console.log('📝 게시물 콘텐츠를 찾을 수 없습니다');
+    
     return;
   }
 
-  console.log('✅ 게시물 콘텐츠 로드됨');
+  
 
   // 2. 유튜브 비디오 처리 (반응형 컨테이너로 감싸기)
   const iframes = postContent.querySelectorAll('iframe[src*="youtube"], iframe[src*="youtu.be"]');
@@ -7465,7 +7447,7 @@ function initializePostContent() {
       container.className = 'video-container';
       iframe.parentElement.insertBefore(container, iframe);
       container.appendChild(iframe);
-      console.log('🎬 유튜브 비디오 반응형 처리됨');
+      
     }
   });
 
@@ -7494,7 +7476,7 @@ function setupImageViewer(container) {
     });
   });
 
-  console.log(`🖼️ ${images.length}개 이미지에 뷰어 추가됨`);
+  
 }
 
 // ⚡ 이미지 뷰어 열기
@@ -7525,7 +7507,7 @@ function openImageViewer(src, alt, currentIndex, allImages) {
   // 스크롤 방지
   document.body.style.overflow = 'hidden';
 
-  console.log('🖼️ 이미지 뷰어 열림:', alt);
+  
 }
 
 // ⚡ 이미지 뷰어 기능 (확대/축소, 네비게이션)
@@ -7680,7 +7662,7 @@ function initializeImageViewerFeatures(viewer, initialSrc, initialAlt, currentIn
     translateY = 0;
     updateImageTransform();
     
-    console.log(`➡️ 이미지 이동: ${currentImageIndex + 1}/${allImages.length}`);
+    
   }
 
   function closeImageViewer() {
@@ -7688,13 +7670,14 @@ function initializeImageViewerFeatures(viewer, initialSrc, initialAlt, currentIn
     document.body.style.overflow = '';
     document.removeEventListener('keydown', keyHandler);
     
+    // ⚡ 수정: 페이지 스크롤만 복구하고 라우팅 하지 않음
     setTimeout(() => {
-      if (overlay.parentElement) {
+      if (overlay && overlay.parentElement) {
         overlay.remove();
       }
-    }, 300);
+    }, 100);  // 매우 짧은 지연
     
-    console.log('❌ 이미지 뷰어 닫음');
+    
   }
 }
 
@@ -7720,7 +7703,7 @@ function setupGallery(container) {
     });
   });
 
-  console.log(`🎨 갤러리 처리 완료`);
+  
 }
 
 // ⚡ 페이지 로드 시 게시물 초기화
@@ -7752,7 +7735,7 @@ contentObserver.observe(document.body, {
   attributes: false
 });
 
-console.log('✅ 게시물 콘텐츠 및 이미지 뷰어 초기화 완료');
+
 </script>
 </body>
 </html>
