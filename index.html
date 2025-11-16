@@ -7666,18 +7666,23 @@ function initializeImageViewerFeatures(viewer, initialSrc, initialAlt, currentIn
   }
 
   function closeImageViewer() {
+    // 페이드아웃 애니메이션
     overlay.classList.remove('active');
+    
+    // 스크롤 복구
     document.body.style.overflow = '';
+    
+    // 키보드 이벤트 리스너 제거
     document.removeEventListener('keydown', keyHandler);
     
-    // ⚡ 수정: 페이지 스크롤만 복구하고 라우팅 하지 않음
+    // 오버레이 제거 (애니메이션 후)
     setTimeout(() => {
       if (overlay && overlay.parentElement) {
         overlay.remove();
       }
-    }, 100);  // 매우 짧은 지연
+    }, 300);
     
-    
+    // ⚡ 중요: 여기서 페이지 이동을 하지 않음 (현재 게시물 페이지에 머물기)
   }
 }
 
