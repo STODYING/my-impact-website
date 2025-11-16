@@ -150,6 +150,17 @@
   body.dark-mode .skeleton-card,body.dark-mode .skeleton-large-card{background:#1a1a1a;border-color:rgba(255,255,255,0.12)}
   body.dark-mode .skeleton-image,body.dark-mode .skeleton-large-image,body.dark-mode .skeleton-title,body.dark-mode .skeleton-text,body.dark-mode .skeleton-meta{background:linear-gradient(90deg,#2a2a2a 25%,#333 50%,#2a2a2a 75%);background-size:200% 100%}
   body.dark-mode .skeleton-large-title,body.dark-mode .skeleton-large-meta{background:linear-gradient(90deg,rgba(255,255,255,0.1) 25%,rgba(255,255,255,0.15) 50%,rgba(255,255,255,0.1) 75%);background-size:200% 100%}
+  
+  /* ⚡ 모바일 최적화: 이미지 로딩 개선 */
+  img, picture { content-visibility: auto; }
+  img[loading="lazy"] { content-visibility: auto; }
+  
+  /* ⚡ 폰트 디스플레이 최적화 */
+  @font-face {
+    font-family: 'Noto Sans KR';
+    font-display: swap;
+    src: url('https://fonts.gstatic.com/s/notoSansKr/...') format('woff2');
+  }
   </style>
   
   <style>
@@ -6637,22 +6648,223 @@ if (!('loading' in HTMLImageElement.prototype)) {
   document.body.appendChild(script);
 }
 
-// ⚡ 성능 최적화: Intersection Observer 최적화 - 한 번만 실행
-const imageObserver = new IntersectionObserver((entries, observer) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const img = entry.target;
-      if (img.dataset.src) {
-        img.src = img.dataset.src;
-        img.removeAttribute('data-src');
-        observer.unobserve(img);
+// ⚡ 모바일 성능 최적화: 네트워크 상태 감지
+function detectNetworkAndOptimize() {
+  const connection = navigator.connection?.effectiveType || '4g';
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
+  const isSaveData = navigator.connection?.saveData || false;
+  
+  console.log(`📱 네트워크 타입: ${connection}, 모바일: ${isMobile}, 절약 모드: ${isSaveData}`);
+  
+  // 네트워크 속도별 최적화
+  if (connection === 'slow-2g' || connection === '2g') {
+    state.mobileOptimization = { maxPrefetch: 2, imageQuality: 'low', lazy: true };
+    console.log('⚠️ 저속 네트워크 감지 - 최소 리소스 로드');
+  } else if (connection === '3g') {
+    state.mobileOptimization = { maxPrefetch: 5, imageQuality: 'medium', lazy: true };
+    console.log('📊 중속 네트워크 감지 - 중간 최적화');
+  } else if (connection === '4g') {
+    state.mobileOptimization = { maxPrefetch: isMobile ? 10 : 15, imageQuality: 'high', lazy: true };
+    console.log('⚡ 고속 네트워크 감지 - 풀 최적화');
+  }
+  
+  // 절약 모드 감지
+  if (isSaveData) {
+    state.mobileOptimization.maxPrefetch = Math.max(2, Math.floor(state.mobileOptimization.maxPrefetch / 2));
+    console.log('💾 절약 모드 활성화 - 프리페치 감소');
+  }
+  
+  // 모바일 이미지 최적화
+  if (isMobile) {
+    optimizeMobileImages();
+  }
+  
+  return state.mobileOptimization;
+}
+
+// ⚡ 이미지 최적화: 모바일용 작은 이미지 우선 로드
+function optimizeMobileImages() {
+  const images = document.querySelectorAll('img[data-src], img[src*="impactceo.art"]');
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
+  
+  images.forEach(img => {
+    if (isMobile) {
+      // 모바일: 화질 낮춤 + 크기 축소
+      const src = img.dataset.src || img.src;
+      if (src && !src.includes('?')) {
+        // WordPress 이미지 최적화 파라미터
+        img.dataset.src = `${src}?w=600&q=75`;  // 모바일: 600px, 75% 화질
+      }
+      
+      // loading="lazy" 속성 자동 추가
+      if (!img.hasAttribute('loading')) {
+        img.setAttribute('loading', 'lazy');
+      }
+      
+      // 모바일에서 aspect-ratio 설정
+      if (!img.style.aspectRatio) {
+        img.style.aspectRatio = '16/9';
       }
     }
   });
-}, { 
-  rootMargin: '100px', // 100px 미리 로드하여 부드러운 스크롤
-  threshold: 0.01 // 1%만 보여도 로드 시작
-});
+  
+  console.log(`📸 ${images.length}개 이미지 모바일 최적화 완료`);
+}
+
+// ⚡ 모바일 폰트 최적화: font-display: swap 사용
+function optimizeMobileFonts() {
+  // 기존 폰트 링크 제거 (비동기 로드)
+  const fontLink = document.querySelector('link[href*="fonts.googleapis.com"]');
+  if (fontLink) {
+    fontLink.setAttribute('rel', 'preload');
+    fontLink.setAttribute('as', 'style');
+    fontLink.setAttribute('onload', "this.rel='stylesheet'");
+  }
+}
+
+// ⚡ 모바일 레이아웃 최적화: 보이는 것부터 렌더링
+function optimizeMobileLayout() {
+  const cards = document.querySelectorAll('.card, .magazine-large');
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
+  
+  if (isMobile) {
+    // 모바일: 스크롤 범위 내 카드만 렌더링
+    cards.forEach(card => {
+      const rect = card.getBoundingClientRect();
+      const isVisible = rect.top < window.innerHeight + 500;
+      
+      if (!isVisible) {
+        // 화면 밖: 렌더링 중지
+        card.style.contentVisibility = 'auto';
+      }
+    });
+  }
+}
+
+// ⚡ 모바일 JavaScript 최소화: 불필요한 기능 비활성화
+function minimizeJavaScriptForMobile() {
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
+  
+  if (isMobile) {
+    console.log('📱 모바일 모드 활성화 - JS 최적화');
+    
+    // 모바일: 프리페치 개수 줄이기
+    if (state.mobileOptimization?.maxPrefetch) {
+      const originalMaxPrefetch = 15;
+      const mobileMaxPrefetch = state.mobileOptimization.maxPrefetch;
+      
+      console.log(`프리페치 개수: ${originalMaxPrefetch} → ${mobileMaxPrefetch}`);
+    }
+    
+    // 모바일: 무거운 애니메이션 비활성화
+    const style = document.createElement('style');
+    style.textContent = `
+      @media (max-width: 768px) {
+        * { animation-duration: 0s !important; }
+        .page-transition { animation: none !important; }
+        .skeleton-loading { animation: none !important; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
+// ⚡ Viewport 기반 리소스 로드 (모바일 최적화)
+function loadResourcesBasedOnViewport() {
+  const images = document.querySelectorAll('img[data-src]');
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        const dataSrc = img.dataset.src;
+        
+        if (dataSrc) {
+          // 모바일: 화질 낮춤
+          if (isMobile) {
+            img.src = dataSrc.includes('?') ? `${dataSrc}&w=600` : `${dataSrc}?w=600`;
+          } else {
+            img.src = dataSrc;
+          }
+          
+          img.removeAttribute('data-src');
+          observer.unobserve(img);
+          console.log(`🖼️ 이미지 로드: ${img.src.substring(0, 50)}...`);
+        }
+      }
+    });
+  }, {
+    rootMargin: '50px',  // 모바일: 50px 미리 로드 (배터리 절감)
+    threshold: 0.01
+  });
+  
+  images.forEach(img => observer.observe(img));
+}
+
+// ⚡ 모바일 CSS 미니마이징: 불필요한 스타일 제거
+function minifyMobileCSS() {
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
+  
+  if (isMobile) {
+    // 모바일: 데스크톱 전용 스타일 제거
+    const desktopStyles = document.querySelectorAll('style, link[rel="stylesheet"]');
+    
+    desktopStyles.forEach(style => {
+      const content = style.textContent || '';
+      if (content.includes('@media (min-width: 1281px)')) {
+        // 데스크톱 CSS는 병렬 로드하되 우선순위 낮춤
+        style.setAttribute('media', '(min-width: 1281px)');
+      }
+    });
+  }
+}
+
+// ⚡ 주요 콘텐츠 우선 로드 (모바일 LCP 최적화)
+function prioritizeAboveTheFoldContent() {
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
+  
+  if (isMobile) {
+    // 모바일: 첫 번째 이미지에 fetchpriority="high" 설정
+    const firstImage = document.querySelector('img[data-src], img');
+    if (firstImage) {
+      firstImage.fetchPriority = 'high';
+      firstImage.loading = 'eager';  // 즉시 로드
+      console.log('🎯 주요 콘텐츠 우선 로드');
+    }
+    
+    // 모바일: 첫 번째 텍스트 콘텐츠도 우선 로드
+    const firstText = document.querySelector('h1, h2, .title, .headline');
+    if (firstText) {
+      firstText.style.contentVisibility = 'visible';
+    }
+  }
+}
+
+// ⚡ 모바일 API 응답 캐싱 (30분)
+async function cacheAPIResponseForMobile(postId) {
+  const cacheKey = `post_${postId}_mobile`;
+  const cached = sessionStorage.getItem(cacheKey);
+  
+  if (cached) {
+    console.log(`💾 캐시 히트: 게시물 ${postId}`);
+    return JSON.parse(cached);
+  }
+  
+  try {
+    const response = await fetch(api(`posts/${postId}`, true));
+    if (!response.ok) throw new Error('API 실패');
+    
+    const data = await response.json();
+    sessionStorage.setItem(cacheKey, JSON.stringify(data));
+    console.log(`💾 캐시 저장: 게시물 ${postId}`);
+    
+    return data;
+  } catch (e) {
+    console.warn(`⚠️ API 캐싱 실패: ${postId}`, e.message);
+    return null;
+  }
+}
 
 // MutationObserver 최적화 - debounce 적용
 let observerTimeout;
@@ -6906,7 +7118,17 @@ function prefetchRelatedPages() {
 // 게시물 로드 후 프리렌더링 실행
 window.addEventListener('load', () => {
   setTimeout(() => {
-    console.log('🚀 페이지 로드 완료 - 프리렌더링 시작');
+    console.log('🚀 페이지 로드 완료 - 최적화 시작');
+    
+    // ⚡ 모바일 최적화 감지 및 적용
+    detectNetworkAndOptimize();
+    optimizeMobileImages();
+    optimizeMobileFonts();
+    optimizeMobileLayout();
+    minimizeJavaScriptForMobile();
+    loadResourcesBasedOnViewport();
+    prioritizeAboveTheFoldContent();
+    
     prerenderRelatedPages();
     
     // ⚡ 추가: 보이는 게시물 프리페치
@@ -6920,6 +7142,14 @@ window.addEventListener('load', () => {
     }, 500);
   }, 300);
 });
+
+// 네트워크 상태 변화 감지
+if (navigator.connection) {
+  navigator.connection.addEventListener('change', () => {
+    console.log('🔄 네트워크 상태 변화 감지');
+    detectNetworkAndOptimize();
+  });
+}
 
 // 스크롤 시 프리렌더링 업데이트 (debounced)
 let prerenderTimeout;
