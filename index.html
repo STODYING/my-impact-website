@@ -4182,19 +4182,35 @@ async function loadRelatedPosts(categories, currentPostId) {
   }
 }
 
-function openImageModal(imgSrc) {
-  const modal = document.getElementById('imageModal');
-  const modalImg = document.getElementById('modalImage');
-  modalImg.src = imgSrc;
-  modal.classList.add('active');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeImageModal(skipHistory = false) {
+function closeImageModal(skipHistory = false, restoreScrollData = null) {
   const modal = document.getElementById('imageModal');
   modal.style.display = 'none';
   modal.classList.remove('active');
-  document.body.style.overflow = '';
+  
+  // 스크롤 위치 복원 (제공된 경우)
+  if (restoreScrollData) {
+    // 약간의 지연을 두고 스크롤 위치 복원 (렌더링 완료 대기)
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const postOverlay = document.getElementById('postOverlay');
+        const categoryOverlay = document.getElementById('categoryOverlay');
+        const searchOverlay = document.getElementById('searchOverlay');
+        
+        if (postOverlay && postOverlay.classList.contains('active')) {
+          postOverlay.scrollTop = restoreScrollData.post || 0;
+        }
+        if (categoryOverlay && categoryOverlay.classList.contains('active')) {
+          categoryOverlay.scrollTop = restoreScrollData.category || 0;
+        }
+        if (searchOverlay && searchOverlay.classList.contains('active')) {
+          searchOverlay.scrollTop = restoreScrollData.search || 0;
+        }
+        if (restoreScrollData.window) {
+          window.scrollTo(0, restoreScrollData.window);
+        }
+      });
+    });
+  }
 }
 
 // slug로 게시물 ID를 찾는 함수
@@ -4905,13 +4921,31 @@ function openImageModal(imageSrc) {
   const modalImg = document.getElementById('modalImage');
   
   if (modal && modalImg) {
+    // 현재 스크롤 위치 저장 (페이지 및 오버레이)
+    const postOverlay = document.getElementById('postOverlay');
+    const categoryOverlay = document.getElementById('categoryOverlay');
+    const searchOverlay = document.getElementById('searchOverlay');
+    
+    const scrollData = {
+      window: window.scrollY,
+      post: postOverlay?.scrollTop || 0,
+      category: categoryOverlay?.scrollTop || 0,
+      search: searchOverlay?.scrollTop || 0
+    };
+    
     modalImg.src = imageSrc;
     modal.style.display = 'flex';
     modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
     
-    // 히스토리에 이미지 모달 상태 추가 (뒤로가기 지원)
-    history.pushState({ imageModal: true }, '', window.location.href);
+    // body의 현재 overflow 상태 저장
+    const currentOverflow = document.body.style.overflow;
+    
+    // 히스토리에 이미지 모달 상태 + 스크롤 위치 저장
+    history.pushState({ 
+      imageModal: true, 
+      scrollData: scrollData,
+      bodyOverflow: currentOverflow 
+    }, '', window.location.href);
   }
 }
 
@@ -6625,10 +6659,11 @@ window.addEventListener('popstate', async (e) => {
   const path = window.location.pathname;
   const imageModal = document.getElementById('imageModal');
   
-  // 이미지 모달이 열려있으면 닫기 (히스토리 변경 없이)
+  // 이미지 모달이 열려있으면 닫기 (스크롤 위치 복원)
   if(imageModal && (imageModal.style.display === 'flex' || imageModal.classList.contains('active'))) {
-    closeImageModal(true);
-    e.preventDefault();
+    // 이전 상태의 스크롤 데이터 가져오기
+    const scrollData = e.state?.scrollData || null;
+    closeImageModal(true, scrollData);
     return;
   }
   
