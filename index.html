@@ -6059,6 +6059,17 @@ window.addEventListener('popstate', async (e) => {
   const postOverlay = document.getElementById('postOverlay');
   const imageModal = document.getElementById('imageModal');
   
+  // ⚡ 새로운 이미지 뷰어가 열려있으면 닫기만 하고 더 이상 진행하지 않음
+  const imageViewer = document.querySelector('.image-viewer-overlay.active');
+  if(imageViewer) {
+    // 뷰어 닫기 버튼 찾아서 클릭
+    const closeBtn = imageViewer.querySelector('.image-viewer-close');
+    if(closeBtn) {
+      closeBtn.click();
+    }
+    return; // 라우팅 중단
+  }
+  
   // 이미지 모달이 열려있으면 닫기만 하고 더 이상 진행하지 않음
   if(imageModal && (imageModal.style.display === 'flex' || imageModal.classList.contains('active'))) {
     closeImageModal();
@@ -6658,6 +6669,16 @@ if(globalNavSearch) {
 window.addEventListener('popstate', async (e) => {
   const path = window.location.pathname;
   const imageModal = document.getElementById('imageModal');
+  
+  // ⚡ 새로운 이미지 뷰어가 열려있으면 닫기
+  const imageViewer = document.querySelector('.image-viewer-overlay.active');
+  if(imageViewer) {
+    const closeBtn = imageViewer.querySelector('.image-viewer-close');
+    if(closeBtn) {
+      closeBtn.click();
+    }
+    return; // 라우팅 중단
+  }
   
   // 이미지 모달이 열려있으면 닫기 (스크롤 위치 복원)
   if(imageModal && (imageModal.style.display === 'flex' || imageModal.classList.contains('active'))) {
@@ -7698,28 +7719,42 @@ function initializeImageViewerFeatures(viewer, initialSrc, initialAlt, currentIn
   }
 
   function closeImageViewer() {
+    // ⚡ 저장된 스크롤 위치 가져오기
+    const scrollY = parseInt(document.body.dataset.scrollPosition || '0');
+    
+    // ⚡ 1단계: 오버레이 숨기기 (fade out)
     overlay.classList.remove('active');
     
-    // ⚡ 저장된 스크롤 위치 복원
-    const scrollY = document.body.dataset.scrollPosition || '0';
-    
-    // 스타일 복원
-    document.body.style.overflow = '';
+    // ⚡ 2단계: 스타일 복원 (순서 중요!)
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
+    document.body.style.overflow = '';
     
-    // 스크롤 위치 복원 (즉시)
-    window.scrollTo(0, parseInt(scrollY));
+    // ⚡ 3단계: 스크롤 위치 복원 (여러 방법 동시 적용)
+    // requestAnimationFrame으로 다음 프레임에서 실행
+    requestAnimationFrame(() => {
+      window.scrollTo(0, scrollY);
+      document.documentElement.scrollTop = scrollY;
+      document.body.scrollTop = scrollY;
+    });
     
+    // ⚡ 4단계: 이벤트 리스너 제거
     document.removeEventListener('keydown', keyHandler);
     
-    // DOM 제거
+    // ⚡ 5단계: 히스토리 상태 변경 방지
+    if (window.history && window.history.scrollRestoration) {
+      window.history.scrollRestoration = 'manual';
+    }
+    
+    // ⚡ 6단계: DOM 제거
     setTimeout(() => {
       if (overlay && overlay.parentElement) {
         overlay.remove();
       }
-    }, 100);
+      // 스크롤 복원 재확인
+      window.scrollTo(0, scrollY);
+    }, 50);
     
     
   }
