@@ -2721,7 +2721,7 @@
   </section>
 
   <div class="image-modal" id="imageModal">
-    <button class="image-modal-close" onclick="closeImageModal()">✕</button>
+    <button class="image-modal-close" onclick="history.back()">✕</button>
     <img id="modalImage" src="" alt="확대 이미지">
   </div>
 
@@ -4195,11 +4195,6 @@ function closeImageModal(skipHistory = false) {
   modal.style.display = 'none';
   modal.classList.remove('active');
   document.body.style.overflow = '';
-  
-  // 이미지 모달만 닫고 현재 페이지 유지 (홈으로 가지 않음)
-  // history.back()을 호출하지 않음
-  
-  
 }
 
 // slug로 게시물 ID를 찾는 함수
@@ -4915,10 +4910,8 @@ function openImageModal(imageSrc) {
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
     
-    // 히스토리에 추가 (뒤로가기 지원)
+    // 히스토리에 이미지 모달 상태 추가 (뒤로가기 지원)
     history.pushState({ imageModal: true }, '', window.location.href);
-    
-    
   }
 }
 
@@ -6032,10 +6025,9 @@ window.addEventListener('popstate', async (e) => {
   const postOverlay = document.getElementById('postOverlay');
   const imageModal = document.getElementById('imageModal');
   
-  // 이미지 모달이 열려있으면 닫기 (히스토리 변경 없이)
+  // 이미지 모달이 열려있으면 닫기만 하고 더 이상 진행하지 않음
   if(imageModal && (imageModal.style.display === 'flex' || imageModal.classList.contains('active'))) {
-    closeImageModal(true);
-    e.preventDefault();
+    closeImageModal();
     return;
   }
   
@@ -6233,7 +6225,7 @@ window.addEventListener('popstate', async (e) => {
     if (imageModal) {
       imageModal.addEventListener('click', (e) => {
         if(e.target.id === 'imageModal' || e.target.classList.contains('image-modal')) {
-          closeImageModal();
+          history.back();
         }
       });
     }
