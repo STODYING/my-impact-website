@@ -7510,6 +7510,10 @@ function openImageViewer(src, alt, currentIndex, allImages) {
   const existing = document.querySelector('.image-viewer-overlay');
   if (existing) existing.remove();
 
+  // ⚡ 현재 스크롤 위치 저장
+  const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+  document.body.dataset.scrollPosition = scrollY;
+  
   // 뷰어 HTML 생성
   const viewer = document.createElement('div');
   viewer.className = 'image-viewer-overlay active';
@@ -7529,8 +7533,11 @@ function openImageViewer(src, alt, currentIndex, allImages) {
   // 이미지 뷰어 기능 초기화
   initializeImageViewerFeatures(viewer, src, alt, currentIndex, allImages);
 
-  // 스크롤 방지
+  // ⚡ 스크롤 방지 (위치 고정 방식)
   document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${scrollY}px`;
+  document.body.style.width = '100%';
 
   
 }
@@ -7692,15 +7699,27 @@ function initializeImageViewerFeatures(viewer, initialSrc, initialAlt, currentIn
 
   function closeImageViewer() {
     overlay.classList.remove('active');
+    
+    // ⚡ 저장된 스크롤 위치 복원
+    const scrollY = document.body.dataset.scrollPosition || '0';
+    
+    // 스타일 복원
     document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    
+    // 스크롤 위치 복원 (즉시)
+    window.scrollTo(0, parseInt(scrollY));
+    
     document.removeEventListener('keydown', keyHandler);
     
-    // ⚡ 수정: 페이지 스크롤만 복구하고 라우팅 하지 않음
+    // DOM 제거
     setTimeout(() => {
       if (overlay && overlay.parentElement) {
         overlay.remove();
       }
-    }, 100);  // 매우 짧은 지연
+    }, 100);
     
     
   }
