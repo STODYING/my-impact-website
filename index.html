@@ -4196,10 +4196,8 @@ function closeImageModal(skipHistory = false) {
   modal.classList.remove('active');
   document.body.style.overflow = '';
   
-  // X 버튼이나 배경 클릭으로 닫을 때만 히스토리 뒤로 가기
-  if (!skipHistory && history.state && history.state.imageModal) {
-    history.back();
-  }
+  // 이미지 모달만 닫고 현재 페이지 유지 (홈으로 가지 않음)
+  // history.back()을 호출하지 않음
   
   
 }
@@ -5407,8 +5405,6 @@ const router = {
     await nextFrame();
   },
   closePost: () => {
-    console.log('🔵 router.closePost 호출됨!');
-    console.trace('호출 스택:');
     const overlay = document.getElementById('postOverlay');
     overlay.classList.remove('active');
     document.body.style.overflow = '';
@@ -6308,20 +6304,9 @@ window.addEventListener('popstate', async (e) => {
       
       document.addEventListener('keydown', (e) => {
         if(e.key === 'Escape') {
-          console.log('⚡ 글로벌 ESC 키 눌림');
-          
-          // 이미지 뷰어 체크
-          const imageViewerOverlay = document.querySelector('.image-viewer-overlay');
-          if(imageViewerOverlay && imageViewerOverlay.classList.contains('active')) {
-            console.log('⚡ image-viewer-overlay 활성화됨 - 글로벌 핸들러 스킵');
-            return;
-          }
-          
           if(document.getElementById('imageModal').classList.contains('active')) {
-            console.log('⚡ imageModal 닫기');
             closeImageModal();
           } else if(document.getElementById('postOverlay').classList.contains('active')) {
-            console.log('⚡ postOverlay 닫기 - router.closePost 호출');
             router.closePost();
           } else if(document.getElementById('searchOverlay').classList.contains('active')) {
             closeSearch();
@@ -7641,13 +7626,7 @@ function initializeImageViewerFeatures(viewer, initialSrc, initialAlt, currentIn
   document.addEventListener('keydown', keyHandler);
 
   // ⚡ 닫기 버튼
-  closeBtn.addEventListener('click', (e) => {
-    console.log('❌ X 버튼 클릭됨');
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    closeImageViewer();
-  });
+  closeBtn.addEventListener('click', closeImageViewer);
 
   // ⚡ 오버레이 클릭 시 닫기 (이미지 제외)
   overlay.addEventListener('click', (e) => {
@@ -7685,7 +7664,6 @@ function initializeImageViewerFeatures(viewer, initialSrc, initialAlt, currentIn
   }
 
   function closeImageViewer() {
-    console.log('🔴 closeImageViewer 호출됨');
     overlay.classList.remove('active');
     document.body.style.overflow = '';
     document.removeEventListener('keydown', keyHandler);
@@ -7694,11 +7672,10 @@ function initializeImageViewerFeatures(viewer, initialSrc, initialAlt, currentIn
     setTimeout(() => {
       if (overlay && overlay.parentElement) {
         overlay.remove();
-        console.log('✅ 이미지 뷰어 오버레이 제거 완료');
       }
     }, 100);  // 매우 짧은 지연
     
-    console.log('🔴 closeImageViewer 완료 - router.closePost나 history.back 호출 안함');
+    
   }
 }
 
