@@ -4190,26 +4190,28 @@ function closeImageModal(skipHistory = false, restoreScrollData = null) {
   // 스크롤 위치 복원 (제공된 경우)
   if (restoreScrollData) {
     // 약간의 지연을 두고 스크롤 위치 복원 (렌더링 완료 대기)
-    requestAnimationFrame(() => {
+    setTimeout(() => {
       requestAnimationFrame(() => {
-        const postOverlay = document.getElementById('postOverlay');
-        const categoryOverlay = document.getElementById('categoryOverlay');
-        const searchOverlay = document.getElementById('searchOverlay');
-        
-        if (postOverlay && postOverlay.classList.contains('active')) {
-          postOverlay.scrollTop = restoreScrollData.post || 0;
-        }
-        if (categoryOverlay && categoryOverlay.classList.contains('active')) {
-          categoryOverlay.scrollTop = restoreScrollData.category || 0;
-        }
-        if (searchOverlay && searchOverlay.classList.contains('active')) {
-          searchOverlay.scrollTop = restoreScrollData.search || 0;
-        }
-        if (restoreScrollData.window) {
-          window.scrollTo(0, restoreScrollData.window);
-        }
+        requestAnimationFrame(() => {
+          const postOverlay = document.getElementById('postOverlay');
+          const categoryOverlay = document.getElementById('categoryOverlay');
+          const searchOverlay = document.getElementById('searchOverlay');
+          
+          if (postOverlay && postOverlay.classList.contains('active')) {
+            postOverlay.scrollTop = restoreScrollData.post || 0;
+          }
+          if (categoryOverlay && categoryOverlay.classList.contains('active')) {
+            categoryOverlay.scrollTop = restoreScrollData.category || 0;
+          }
+          if (searchOverlay && searchOverlay.classList.contains('active')) {
+            searchOverlay.scrollTop = restoreScrollData.search || 0;
+          }
+          if (restoreScrollData.window) {
+            window.scrollTo(0, restoreScrollData.window);
+          }
+        });
       });
-    });
+    }, 50); // 50ms 딜레이 추가하여 DOM 업데이트 완료 보장
   }
 }
 
@@ -6061,7 +6063,15 @@ window.addEventListener('popstate', async (e) => {
   
   // 이미지 모달이 열려있으면 닫기만 하고 더 이상 진행하지 않음
   if(imageModal && (imageModal.style.display === 'flex' || imageModal.classList.contains('active'))) {
-    closeImageModal();
+    // 스크롤 데이터 복원
+    const scrollData = e.state?.scrollData || null;
+    closeImageModal(true, scrollData);
+    
+    // 현재 URL을 다시 히스토리에 저장하여 추가 네비게이션 방지
+    const currentPath = window.location.pathname;
+    if (e.state && !e.state.imageModal) {
+      history.replaceState(e.state, '', currentPath + window.location.search + window.location.hash);
+    }
     return;
   }
   
@@ -6674,6 +6684,14 @@ window.addEventListener('popstate', async (e) => {
     // 이전 상태의 스크롤 데이터 가져오기
     const scrollData = e.state?.scrollData || null;
     closeImageModal(true, scrollData);
+    
+    // 현재 URL을 다시 히스토리에 푸시하여 추가 네비게이션 방지
+    // 단, 이미 올바른 상태면 푸시하지 않음
+    const currentPath = window.location.pathname;
+    if (e.state && !e.state.imageModal) {
+      // 이미지 모달 닫힌 상태를 히스토리에 저장
+      history.replaceState(e.state, '', currentPath + window.location.search + window.location.hash);
+    }
     return;
   }
   
