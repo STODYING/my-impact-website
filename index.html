@@ -6067,11 +6067,8 @@ window.addEventListener('popstate', async (e) => {
     const scrollData = e.state?.scrollData || null;
     closeImageModal(true, scrollData);
     
-    // 현재 URL을 다시 히스토리에 저장하여 추가 네비게이션 방지
-    const currentPath = window.location.pathname;
-    if (e.state && !e.state.imageModal) {
-      history.replaceState(e.state, '', currentPath + window.location.search + window.location.hash);
-    }
+    // 이미지 모달을 닫은 후에는 어떤 추가 네비게이션도 실행하지 않음
+    // event.preventDefault()는 popstate에서 작동하지 않으므로 return으로 처리
     return;
   }
   
@@ -6685,13 +6682,7 @@ window.addEventListener('popstate', async (e) => {
     const scrollData = e.state?.scrollData || null;
     closeImageModal(true, scrollData);
     
-    // 현재 URL을 다시 히스토리에 푸시하여 추가 네비게이션 방지
-    // 단, 이미 올바른 상태면 푸시하지 않음
-    const currentPath = window.location.pathname;
-    if (e.state && !e.state.imageModal) {
-      // 이미지 모달 닫힌 상태를 히스토리에 저장
-      history.replaceState(e.state, '', currentPath + window.location.search + window.location.hash);
-    }
+    // 이미지 모달을 닫은 후에는 어떤 추가 네비게이션도 실행하지 않음
     return;
   }
   
