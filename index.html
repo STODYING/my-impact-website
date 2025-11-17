@@ -6055,6 +6055,11 @@ async function checkURLAndLoadPost() {
   return false;
 }
 window.addEventListener('popstate', async (e) => {
+  // ⚡ 이미지 뷰어를 닫는 중이면 라우팅 중단 (급발진 방지)
+  if (window.__imageViewerClosing) {
+    return;
+  }
+  
   const pathname = window.location.pathname;
   const postOverlay = document.getElementById('postOverlay');
   const imageModal = document.getElementById('imageModal');
@@ -7681,11 +7686,19 @@ function initializeImageViewerFeatures(viewer, initialSrc, initialAlt, currentIn
   document.addEventListener('keydown', keyHandler);
 
   // ⚡ 닫기 버튼
-  closeBtn.addEventListener('click', closeImageViewer);
+  closeBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    closeImageViewer();
+  });
 
   // ⚡ 오버레이 클릭 시 닫기 (이미지 제외)
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
       closeImageViewer();
     }
   });
@@ -7722,6 +7735,9 @@ function initializeImageViewerFeatures(viewer, initialSrc, initialAlt, currentIn
     // ⚡ 저장된 스크롤 위치 가져오기
     const scrollY = parseInt(document.body.dataset.scrollPosition || '0');
     
+    // ⚡ popstate 이벤트 무시 플래그 설정 (라우팅 방지)
+    window.__imageViewerClosing = true;
+    
     // ⚡ 히스토리 상태 변경 방지 (제일 먼저!)
     if (window.history && window.history.scrollRestoration) {
       window.history.scrollRestoration = 'manual';
@@ -7729,6 +7745,9 @@ function initializeImageViewerFeatures(viewer, initialSrc, initialAlt, currentIn
     
     // ⚡ 이벤트 리스너 제거
     document.removeEventListener('keydown', keyHandler);
+    
+    // ⚡ 오버레이에서 active 클래스 제거 (popstate 핸들러가 감지하지 않도록)
+    overlay.classList.remove('active');
     
     // ⚡ 오버레이 숨기기 (애니메이션 없이 즉시)
     overlay.style.display = 'none';
@@ -7747,6 +7766,8 @@ function initializeImageViewerFeatures(viewer, initialSrc, initialAlt, currentIn
       if (overlay && overlay.parentElement) {
         overlay.remove();
       }
+      // 플래그 제거
+      delete window.__imageViewerClosing;
     }, 0);
     
     
