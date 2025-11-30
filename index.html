@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <!-- 수정됨: 모바일 화면 회전 시 텍스트 크기 고정 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IMPACT – MAKE A IMPACT</title>
   <meta name="description" content="Innovation Management Passion Acceleration Creativity Technology" id="metaDescription">
   
@@ -57,6 +57,35 @@
     ]
   }
   </script>
+
+<script>
+(function(){
+  // 간단한 프리렌더/프리페치 설정 — 중요 페이지만
+  const pages = [
+    window.location.origin + '/',
+    window.location.origin + '/about',
+    window.location.origin + '/editors'
+  ];
+  // update <link rel=prefetch> placeholders
+  const p1 = document.getElementById('prefetchLink1');
+  const p2 = document.getElementById('prefetchLink2');
+  const p3 = document.getElementById('prefetchLink3');
+  try {
+    if(p1) p1.href = pages[0];
+    if(p2) p2.href = pages[1];
+    if(p3) p3.href = pages[2];
+  } catch(e){}
+  // speculation rules update for Chrome
+  try {
+    const sr = document.getElementById('speculationRules');
+    const obj = {
+      "prefetch": [{"source":"list","urls":pages}],
+      "prerender": [{"source":"list","urls":pages}]
+    };
+    sr.textContent = JSON.stringify(obj);
+  } catch(e){}
+})();
+</script>
 
   <!-- Google Analytics - 비동기 로딩 최적화 -->
   <script>
@@ -641,7 +670,7 @@
     width: 0%;
     height: 3px;
     background: linear-gradient(90deg, #ff6b35, #ff8c5a);
-    z-index: 10000;
+    z-index: 10003;
     transition: width 0.1s ease;
     display: none;
   }
@@ -1699,7 +1728,7 @@
     border-radius: 50%;
     font-size: 24px;
     cursor: pointer;
-    z-index: 1100;
+    z-index: 1000;
     opacity: 0;
     transform: translateY(20px);
     pointer-events: none;
@@ -1892,6 +1921,7 @@
   }
   .about-page, .editors-overlay {
     padding: 40px 20px;
+    z-index: 10005; /* about overlay should appear above progress bar and to-top */
   }
 
   .about-page .wrap {
@@ -2352,6 +2382,56 @@
   
   <!-- ⚡ 성능 최적화: 리소스 우선순위 힌트 -->
   <link rel="preload" as="image" href="/logo.png" type="image/png">
+
+<script>
+async function enhanceSearchResults(resultsContainer) {
+  if(!resultsContainer) return;
+  const items = resultsContainer.querySelectorAll('.search-result-item');
+  if(!items || items.length === 0) return;
+  for(const item of items) {
+    try {
+      const href = item.querySelector('a')?.href;
+      if(!href) continue;
+      // call proxy API to fetch post content (best-effort)
+      const path = href.replace(window.location.origin, '');
+      const res = await fetch(`/.netlify/functions/wpProxy?path=${encodeURIComponent(path + '?_embed')}`);
+      if(!res.ok) continue;
+      const data = await res.json();
+      // if returns array (posts endpoint), pick first
+      const content = data.content?.rendered || data.excerpt?.rendered || (Array.isArray(data) && data[0]?.excerpt?.rendered) || '';
+      const tmp = document.createElement('div');
+      tmp.innerHTML = content;
+      const text = tmp.textContent || tmp.innerText || '';
+      const snippet = text.trim().slice(0, 200);
+      const p = document.createElement('p');
+      p.className = 'search-item-snippet';
+      p.style.color = '#666';
+      p.style.marginTop = '8px';
+      p.textContent = snippet + (text.length > 200 ? '…' : '');
+      item.appendChild(p);
+    } catch(e) {
+      // ignore per-item failures
+      console.warn('enhanceSearchResults error', e);
+    }
+  }
+}
+// Hook: call this when search results are populated
+document.addEventListener('DOMContentLoaded', () => {
+  const observer = new MutationObserver((list) => {
+    for(const m of list) {
+      if(m.addedNodes.length) {
+        m.addedNodes.forEach(n => {
+          if(n.nodeType === 1 && n.matches && n.matches('#searchResults, .search-results, .search-list')) {
+            enhanceSearchResults(n);
+          }
+        });
+      }
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+});
+</script>
+
 </head>
 <body>
   <!-- ⚡ 성능 최적화: 초기 로딩 스크립트 -->
@@ -2412,7 +2492,7 @@
     <div class="header-inner wrap">
       <div class="brand">
         <div class="logo" id="logoBtn" onclick="goToHome()">
-          <img src="/logo.png" alt="IMPACT logo" width="36" height="36" style="width:36px;height:36px;border-radius:8px;object-fit:cover;" fetchpriority="high">
+          <img src="/logo.png" alt="IMPACT logo" width="36" height="36" style="width:36px;height:36px;border-radius:8px;object-fit:cover;" fetchpriority="high" loading="lazy">
           <div class="logo-text">
             <div class="main-text">IMPACT</div>
             <small>MAKE A IMPACT</small>
@@ -2434,7 +2514,7 @@
     <div class="header-inner wrap">
       <div class="brand">
         <div class="logo" onclick="goToHome()">
-          <img src="/logo.png" alt="IMPACT logo" style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
+          <img src="/logo.png" alt="IMPACT logo" style="width:36px;height:36px;border-radius:8px;object-fit:cover;" loading="lazy">
           <div class="logo-text">
             <div class="main-text">IMPACT</div>
             <small>MAKE A IMPACT</small>
@@ -2722,7 +2802,7 @@
 
   <div class="image-modal" id="imageModal">
     <button class="image-modal-close" onclick="history.back()">✕</button>
-    <img id="modalImage" src="" alt="확대 이미지">
+    <img id="modalImage" src="" alt="확대 이미지" loading="lazy">
   </div>
 
   <button class="to-top" id="toTopBtn" onclick="scrollToTopButton()">↑</button>
@@ -2759,12 +2839,12 @@
   </footer>
   <template id="cardTpl">
     <article class="card">
-      <div class="thumb"><img src="" alt=""></div>
+      <div class="thumb"><img src="" alt="" loading="lazy"></div>
       <div class="card-body">
         <div class="cat-row"></div>
         <h3 class="title"></h3>
         <div class="meta">
-          <img class="author-avatar" src="" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+          <img class="author-avatar" src="" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;" loading="lazy">
           <div>
             <div class="author-name"></div>
             <div class="date" style="font-size:12px;color:#777"></div>
@@ -2775,7 +2855,7 @@
   </template>
   <template id="editorTpl">
     <div class="editor-card">
-      <img class="editor-avatar" src="" alt="">
+      <img class="editor-avatar" src="" alt="" loading="lazy">
       <div class="editor-name"></div>
       <div class="editor-bio"></div>
     </div>
@@ -4468,7 +4548,7 @@ async function renderPostOverlay(post) {
             <h1>${title}</h1>
             <div class="post-meta-info">
               <div class="meta-row">
-                <img src="${avatar || placeholderDataURI(96,96,'U')}" alt="author" class="author-avatar">
+                <img src="${avatar || placeholderDataURI(96,96,'U')}" alt="author" class="author-avatar" loading="lazy">
                 <strong>${authorName}</strong>
               </div>
               <div class="meta-row">
@@ -4595,7 +4675,7 @@ async function renderPostOverlay(post) {
          tabindex="0" 
          data-editor-id="${authorData.id}"
          style="cursor: pointer;">
-      <img src="${avatar || placeholderDataURI(96,96,'U')}" alt="${authorName}" class="author-profile-avatar">
+      <img src="${avatar || placeholderDataURI(96,96,'U')}" alt="${authorName}" class="author-profile-avatar" loading="lazy">
       <div class="author-profile-info">
         <div class="author-profile-name">${authorName}</div>
         <div class="author-profile-bio">${authorData.description || '에디터 소개가 없습니다.'}</div>
@@ -7538,7 +7618,7 @@ function openImageViewer(src, alt, currentIndex, allImages) {
   viewer.className = 'image-viewer-overlay active';
   viewer.innerHTML = `
     <div class="image-viewer-container">
-      <img src="${src}" alt="${alt}" class="image-viewer-img" draggable="false">
+      <img src="${src}" alt="${alt}" class="image-viewer-img" draggable="false" loading="lazy">
       <div class="image-viewer-close"></div>
       <div class="image-viewer-info">${alt}</div>
       <div class="image-viewer-controls">
@@ -7570,6 +7650,18 @@ function initializeImageViewerFeatures(viewer, initialSrc, initialAlt, currentIn
   const infoDiv = viewer.querySelector('.image-viewer-info');
   
   let scale = 1;
+  // 추가: 데스크탑용 줌 버튼 삽입
+  const zoomControls = document.createElement('div');
+  zoomControls.className = 'image-viewer-zoom-controls';
+  zoomControls.innerHTML = '<button class="zoom-out" aria-label="zoom out">−</button><button class="zoom-in" aria-label="zoom in">+</button>';
+  container.appendChild(zoomControls);
+
+  // 스타일(간단)
+  const style = document.createElement('style');
+  style.textContent = '.image-viewer-zoom-controls{position:absolute;top:20px;left:20px;z-index:10002;display:flex;gap:8px}.image-viewer-zoom-controls button{width:40px;height:40px;border-radius:8px;border:none;background:rgba(255,255,255,0.08);color:#fff;font-size:20px;cursor:pointer}';
+  viewer.appendChild(style);
+
+  let scale = 1;
   let currentImageIndex = currentIndex;
   let isPanning = false;
   let startX = 0;
@@ -7590,6 +7682,26 @@ function initializeImageViewerFeatures(viewer, initialSrc, initialAlt, currentIn
       isPanning = true;
     }
   }, { passive: true });
+
+  // 줌 버튼 핸들러
+  zoomControls.querySelector('.zoom-in').addEventListener('click', () => {
+    scale = Math.min(4, +(scale + 0.25).toFixed(2));
+    updateImageTransform();
+  });
+  zoomControls.querySelector('.zoom-out').addEventListener('click', () => {
+    scale = Math.max(1, +(scale - 0.25).toFixed(2));
+    updateImageTransform();
+  });
+
+  // Ctrl + wheel (or wheel with metaKey on mac) 로 데스크탑에서 줌
+  container.addEventListener('wheel', (ev) => {
+    if (ev.ctrlKey || ev.metaKey) {
+      ev.preventDefault();
+      const delta = ev.deltaY > 0 ? -0.1 : 0.1;
+      scale = Math.min(4, Math.max(1, +(scale + delta).toFixed(2)));
+      updateImageTransform();
+    }
+  }, { passive: false });
 
   container.addEventListener('touchmove', (e) => {
     if (e.touches.length === 2) {
@@ -7719,23 +7831,35 @@ function initializeImageViewerFeatures(viewer, initialSrc, initialAlt, currentIn
   function closeImageViewer() {
     // ⚡ 저장된 스크롤 위치 가져오기
     const scrollY = parseInt(document.body.dataset.scrollPosition || '0');
-    
+
     // ⚡ 이벤트 리스너 제거
     document.removeEventListener('keydown', keyHandler);
-    
+
     // ⚡ 오버레이 제거
     if (overlay && overlay.parentElement) {
       overlay.remove();
     }
-    
+
     // ⚡ 스타일 복원
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
     document.body.style.overflow = '';
-    
-    // ⚡ 스크롤 위치 복원
-    window.scrollTo(0, scrollY);
+
+    // ⚡ 스크롤 위치 복원 — 만약 포스트 오버레이 내부였다면 해당 오버레이의 scrollTop을 복원
+    try {
+      const postOverlay = document.getElementById('postOverlay');
+      if (postOverlay && postOverlay.classList.contains('active')) {
+        // restore scroll inside overlay if we saved it
+        const overlayScroll = parseInt(document.body.dataset.overlayScroll || '0');
+        postOverlay.scrollTop = overlayScroll;
+      } else {
+        // restore window scroll for normal pages
+        window.scrollTo({ top: scrollY, behavior: 'instant' });
+      }
+    } catch (e) {
+      window.scrollTo(0, scrollY);
+    }
   }
 }
 
@@ -7795,5 +7919,28 @@ contentObserver.observe(document.body, {
 
 
 </script>
+
+<script>
+document.addEventListener('click', function(e){
+  const more = e.target.closest('.post-more-btn, .more-btn, .read-more');
+  if(more) {
+    // show about overlay on top and ensure it's scrolled to top
+    const about = document.getElementById('aboutPage') || document.querySelector('.about-page');
+    if(about) {
+      about.classList.add('active');
+      about.style.zIndex = 10005;
+      about.scrollTop = 0;
+      // ensure progress bar and to-top are below (they have lower z-index)
+      const progress = document.getElementById('progressBar');
+      if(progress) progress.classList.remove('active');
+      const pt = document.getElementById('postToTopBtn');
+      if(pt) pt.classList.remove('show');
+      document.body.style.overflow = 'hidden';
+    }
+    e.preventDefault();
+  }
+});
+</script>
+
 </body>
 </html>
