@@ -2,28 +2,39 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <!-- 수정됨: 모바일 화면 회전 시 텍스트 크기 고정 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <!-- 수정됨: 핀치줌 허용으로 변경 (접근성 및 이미지 확대 개선) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
   <title>IMPACT – MAKE A IMPACT</title>
-  <meta name="description" content="Innovation Management Passion Acceleration Creativity Technology" id="metaDescription">
+  <meta name="description" content="Innovation Management Passion Acceleration Creativity Technology - 사회적 이슈와 기술 변화를 분석해 일상의 문제를 발견하고 그 본질을 탐구하는 플랫폼" id="metaDescription">
+  
+  <!-- SEO 개선: 추가 메타 태그 -->
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="googlebot" content="index, follow" />
+  <meta name="bingbot" content="index, follow" />
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" id="ogType">
   <meta property="og:url" content="https://impactceo.art/" id="ogUrl">
   <meta property="og:title" content="IMPACT – MAKE A IMPACT" id="ogTitle">
-  <meta property="og:description" content="Innovation Management Passion Acceleration Creativity Technology" id="ogDescription">
+  <meta property="og:description" content="Innovation Management Passion Acceleration Creativity Technology - 사회적 이슈와 기술 변화를 분석해 일상의 문제를 발견하고 그 본질을 탐구하는 플랫폼" id="ogDescription">
   <meta property="og:image" content="https://impactceo.art/logo.png" id="ogImage">
+  <meta property="og:site_name" content="IMPACT">
+  <meta property="og:locale" content="ko_KR">
   
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image" id="twitterCard">
   <meta property="twitter:url" content="https://impactceo.art/" id="twitterUrl">
   <meta property="twitter:title" content="IMPACT – MAKE A IMPACT" id="twitterTitle">
-  <meta property="twitter:description" content="Innovation Management Passion Acceleration Creativity Technology" id="twitterDescription">
+  <meta property="twitter:description" content="Innovation Management Passion Acceleration Creativity Technology - 사회적 이슈와 기술 변화를 분석해 일상의 문제를 발견하고 그 본질을 탐구하는 플랫폼" id="twitterDescription">
   <meta property="twitter:image" content="https://impactceo.art/logo.png" id="twitterImage">
   <meta name="naver-site-verification" content="75a4e73cbf2b7f3acb2c71fac1ea821a9c13ae85" />
   
-  <!-- Canonical URL for SEO -->
+  <!-- Canonical URL for SEO - 동적으로 업데이트됨 -->
   <link rel="canonical" href="https://impactceo.art/" id="canonicalUrl">
+  
+  <!-- SEO 개선: 대체 언어 페이지 (hreflang) -->
+  <link rel="alternate" hreflang="ko" href="https://impactceo.art/" />
+  <link rel="alternate" hreflang="x-default" href="https://impactceo.art/" />
   
   <!-- 최적화된 리소스 힌트 -->
   <link rel="preconnect" href="https://www.googletagmanager.com">
@@ -35,10 +46,9 @@
   <link rel="dns-prefetch" href="https://public-api.wordpress.com">
   
   <!-- 프리렌더링 힌트 (주요 페이지들을 미리 로드) -->
-  <!-- 이 링크들은 JavaScript로 동적으로 업데이트됩니다 -->
-  <link rel="prefetch" id="prefetchLink1" as="document">
-  <link rel="prefetch" id="prefetchLink2" as="document">
-  <link rel="prefetch" id="prefetchLink3" as="document">
+  <link rel="prefetch" id="prefetchLink1" href="/about" as="document">
+  <link rel="prefetch" id="prefetchLink2" href="/editors" as="document">
+  <link rel="prefetch" id="prefetchLink3" href="/search" as="document">
   
   <!-- Speculation Rules API for Chrome (최신 프리렌더링) -->
   <script type="speculationrules" id="speculationRules">
@@ -46,14 +56,42 @@
     "prefetch": [
       {
         "source": "list",
-        "urls": []
+        "urls": ["/about", "/editors", "/search"]
       }
     ],
     "prerender": [
       {
         "source": "list",
-        "urls": []
+        "urls": ["/"]
       }
+    ]
+  }
+  </script>
+  
+  <!-- SEO 개선: JSON-LD 구조화된 데이터 (기본) -->
+  <script type="application/ld+json" id="jsonLdStructuredData">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "IMPACT",
+    "alternateName": "임팩트 매거진",
+    "url": "https://impactceo.art/",
+    "description": "사회적 이슈와 기술 변화를 분석해 일상의 문제를 발견하고 그 본질을 탐구하는 플랫폼",
+    "publisher": {
+      "@type": "Organization",
+      "name": "IMPACT",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://impactceo.art/logo.png"
+      }
+    },
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://impactceo.art/search?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    },
+    "sameAs": [
+      "https://www.instagram.com/ceo_impact_official"
     ]
   }
   </script>
@@ -809,12 +847,38 @@
     .nav-overlay {
       width: 100vw;
       left: 0;
+      display: flex;
+      flex-direction: column;
     }
     
     .nav-close {
       position: absolute;
       top: 26px;
       right: 24px;
+    }
+    
+    /* 모바일 nav-overlay 하단에 footer 링크 배치 */
+    .nav-overlay > div {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .nav-overlay .nav-footer-links {
+      margin-top: auto;
+      padding-bottom: 20px;
+    }
+  }
+  
+  /* 모바일 nav-overlay에서 읽음 진행바 및 위로가기 버튼 z-index 조정 */
+  @media (max-width: 680px) {
+    .nav-overlay.active ~ .progress-bar {
+      z-index: 1999;
+    }
+    
+    .nav-overlay.active ~ .to-top,
+    .nav-overlay.active ~ .post-to-top {
+      z-index: 1999;
     }
   }
   .nav-overlay.active { transform: translateX(0); }
@@ -3015,11 +3079,11 @@ function stripTags(str='') {
   return str.replace(/<\/?[^>]+(>|$)/g, "");
 }
 
-// OG 메타태그 업데이트 함수
+// OG 메타태그 업데이트 함수 - SEO 개선: canonical URL도 함께 업데이트
 function updateMetaTags(data) {
   const defaults = {
     title: 'IMPACT – MAKE A IMPACT',
-    description: 'Innovation Management Passion Acceleration Creativity Technology',
+    description: 'Innovation Management Passion Acceleration Creativity Technology - 사회적 이슈와 기술 변화를 분석해 일상의 문제를 발견하고 그 본질을 탐구하는 플랫폼',
     image: `${window.location.origin}/logo.png`,
     url: window.location.href,
     type: 'website'
@@ -3033,6 +3097,21 @@ function updateMetaTags(data) {
   // Description
   const metaDesc = document.getElementById('metaDescription');
   if(metaDesc) metaDesc.setAttribute('content', metaData.description);
+  
+  // SEO 개선: Canonical URL 동적 업데이트
+  const canonicalUrl = document.getElementById('canonicalUrl');
+  if(canonicalUrl) {
+    // URL에서 쿼리 파라미터 제거하여 깨끗한 canonical URL 생성
+    let cleanUrl = metaData.url;
+    try {
+      const urlObj = new URL(metaData.url);
+      // 불필요한 파라미터 제거
+      urlObj.searchParams.delete('_');
+      urlObj.searchParams.delete('timestamp');
+      cleanUrl = urlObj.toString();
+    } catch(e) {}
+    canonicalUrl.setAttribute('href', cleanUrl);
+  }
   
   // Open Graph
   const ogType = document.getElementById('ogType');
@@ -3425,7 +3504,7 @@ function optimizeImage(imgEl, thumbUrl, alt, priority = false) {
   imgEl.alt = alt;
 }
 
-function createCardNode(post, priority = false) {
+function createCardNode(post, priority = false, showExcerpt = false) {
   const tpl = document.getElementById('cardTpl');
   const node = tpl.content.firstElementChild.cloneNode(true);
   const imgEl = node.querySelector('.thumb img');
@@ -3437,6 +3516,20 @@ function createCardNode(post, priority = false) {
   const alt = (post.title && post.title.rendered) ? stripTags(post.title.rendered) : 'thumb';
   optimizeImage(imgEl, thumbUrl, alt, priority);
   node.querySelector('.title').innerHTML = post.title && post.title.rendered ? post.title.rendered : '제목 없음';
+  
+  // SEO 개선: 검색 결과에 발췌문(excerpt) 추가
+  if(showExcerpt && post.excerpt && post.excerpt.rendered) {
+    const excerptText = stripTags(post.excerpt.rendered).trim().substring(0, 100);
+    if(excerptText) {
+      const excerptEl = document.createElement('p');
+      excerptEl.className = 'card-excerpt';
+      excerptEl.textContent = excerptText + (excerptText.length >= 100 ? '...' : '');
+      excerptEl.style.cssText = 'font-size:13px;color:#666;margin:8px 0;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;';
+      const titleEl = node.querySelector('.title');
+      titleEl.parentNode.insertBefore(excerptEl, titleEl.nextSibling);
+    }
+  }
+  
   const avatarImg = node.querySelector('.author-avatar');
   const authorNameEl = node.querySelector('.author-name');
   const dateEl = node.querySelector('.date');
@@ -3469,6 +3562,12 @@ function createCardNode(post, priority = false) {
       }
     });
   }
+  
+  // SEO 개선: 검색 결과에 게시물 링크 추가 (data 속성)
+  node.dataset.postId = post.id;
+  node.dataset.postSlug = post.slug || '';
+  node.dataset.postUrl = `https://impactceo.art/post/${post.slug || post.id}`;
+  
   node.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -5806,7 +5905,8 @@ async function performSearch(query, mode) {
           
           for(let i = start; i < end; i++) {
             state.postsCache[uniquePosts[i].id] = uniquePosts[i];
-            const card = createCardNode(uniquePosts[i]);
+            // SEO 개선: 검색 결과에서는 발췌문(excerpt) 표시
+            const card = createCardNode(uniquePosts[i], false, true);
             resultsEl.appendChild(card);
           }
           
@@ -5951,8 +6051,34 @@ async function checkURLAndLoadPost() {
     return true;
   }
   
-  // 새로운 URL 패턴: /editors
+  // 새로운 URL 패턴: /editors 또는 /editors?editor=ID
   if(pathname === '/editors') {
+    const editorParam = urlParams.get('editor');
+    if(editorParam) {
+      // /editors?editor=ID 형식 - 특정 에디터 프로필 표시
+      const editorId = parseInt(editorParam);
+      if(!isNaN(editorId)) {
+        // 에디터 목록 먼저 로드 후 해당 에디터 프로필 표시
+        (async () => {
+          await router.openEditors(false);
+          // 에디터 목록 로딩 완료 대기
+          let attempts = 0;
+          const checkEditors = async () => {
+            if(state.editorsList.length === 0 && attempts < 10) {
+              attempts++;
+              await new Promise(r => setTimeout(r, 200));
+              return checkEditors();
+            }
+            const editor = state.editorsList.find(e => e.id === editorId);
+            if(editor) {
+              await router.openEditorProfile(editor, false);
+            }
+          };
+          await checkEditors();
+        })();
+        return true;
+      }
+    }
     router.openEditors(false);
     return true;
   }
@@ -7529,9 +7655,15 @@ function openImageViewer(src, alt, currentIndex, allImages) {
   const existing = document.querySelector('.image-viewer-overlay');
   if (existing) existing.remove();
 
-  // ⚡ 현재 스크롤 위치 저장
+  // ⚡ 현재 스크롤 위치 저장 (메인 페이지 및 게시물 오버레이)
   const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
   document.body.dataset.scrollPosition = scrollY;
+  
+  // ⚡ 게시물 오버레이 스크롤 위치 저장 (이미지 닫을 때 복원용)
+  const postOverlay = document.getElementById('postOverlay');
+  if (postOverlay && postOverlay.classList.contains('active')) {
+    document.body.dataset.postScrollPosition = postOverlay.scrollTop;
+  }
   
   // 뷰어 HTML 생성
   const viewer = document.createElement('div');
@@ -7719,6 +7851,7 @@ function initializeImageViewerFeatures(viewer, initialSrc, initialAlt, currentIn
   function closeImageViewer() {
     // ⚡ 저장된 스크롤 위치 가져오기
     const scrollY = parseInt(document.body.dataset.scrollPosition || '0');
+    const postScrollY = parseInt(document.body.dataset.postScrollPosition || '0');
     
     // ⚡ 이벤트 리스너 제거
     document.removeEventListener('keydown', keyHandler);
@@ -7728,14 +7861,26 @@ function initializeImageViewerFeatures(viewer, initialSrc, initialAlt, currentIn
       overlay.remove();
     }
     
-    // ⚡ 스타일 복원
+    // ⚡ 스타일 복원 (게시물 오버레이가 열려있으면 overflow: hidden 유지)
+    const postOverlay = document.getElementById('postOverlay');
+    const isPostOverlayActive = postOverlay && postOverlay.classList.contains('active');
+    
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
-    document.body.style.overflow = '';
     
-    // ⚡ 스크롤 위치 복원
-    window.scrollTo(0, scrollY);
+    if (isPostOverlayActive) {
+      // 게시물 오버레이가 열려있으면 overflow: hidden 유지
+      document.body.style.overflow = 'hidden';
+      // 게시물 오버레이 스크롤 위치 복원
+      requestAnimationFrame(() => {
+        postOverlay.scrollTop = postScrollY;
+      });
+    } else {
+      document.body.style.overflow = '';
+      // ⚡ 스크롤 위치 복원 (메인 페이지)
+      window.scrollTo(0, scrollY);
+    }
   }
 }
 
