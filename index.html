@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <!-- 수정됨: 모바일 화면 회전 시 텍스트 크기 고정 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
   <title>IMPACT – MAKE A IMPACT</title>
   <meta name="description" content="Innovation Management Passion Acceleration Creativity Technology" id="metaDescription">
   
@@ -299,6 +299,22 @@
       font-size: 12px;
     }
   }
+  </style>
+  
+  <style>
+    /* CSS Variables for z-index management */
+    :root {
+      --nav-z: 2000;
+      --about-z: 2500;
+    }
+
+    .nav-overlay {
+      z-index: var(--nav-z);
+    }
+
+    .about-page {
+      z-index: var(--about-z);
+    }
   </style>
   
   <!-- ⚡ Critical CSS: Above-the-fold 최적화 -->
