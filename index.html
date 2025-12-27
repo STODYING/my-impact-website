@@ -5628,8 +5628,9 @@ const router = {
         history.pushState({page: 'category', slug: prev.category}, '', newUrl);
         router.openCategory(prev.category, false);
       } else if(prev.page === 'editor' && prev.editor) {
-        const newUrl = `${window.location.origin}${window.location.pathname}?editor=${prev.editor}`;
-        history.pushState({page: 'editor', id: prev.editor}, '', newUrl);
+        const editorSlug = prev.editorSlug || prev.editor;
+        const newUrl = `${window.location.origin}/editors/${encodeURIComponent(editorSlug)}`;
+        history.pushState({page: 'editor', id: prev.editor, slug: editorSlug}, '', newUrl);
         router.openEditors(false);
         setTimeout(async () => {
           if(state.editorsList.length === 0) {
@@ -5839,8 +5840,9 @@ const router = {
       document.getElementById('editorPostsLoading').textContent = '';
 
       if(updateURL) {
-        const newUrl = `${window.location.origin}/editors?editor=${user.id}`;
-        history.pushState({page:'editor', id:user.id}, '', newUrl);
+        const editorSlug = user.slug || user.name || user.id;
+        const newUrl = `${window.location.origin}/editors/${encodeURIComponent(editorSlug)}`;
+        history.pushState({page:'editor', id:user.id, slug:editorSlug}, '', newUrl);
       }
       
       // [IMPACT-LOADING] 완료 후 스크롤 리셋 및 로딩 해제
@@ -6881,32 +6883,37 @@ window.addEventListener('popstate', async (e) => {
   
   // /search 체크
   if(path === '/search') {
-    await openNavlessSearch(false);
-    // 저장된 검색 상태 복원
+    // 저장된 검색 상태 먼저 확인 (openNavlessSearch가 초기화하기 전에)
+    let savedQuery = null;
+    let savedScrollPos = null;
     try {
-      const savedQuery = sessionStorage.getItem('lastSearchQuery');
-      const savedScrollPos = sessionStorage.getItem('searchScrollPosition');
-      
-      if(savedQuery) {
-        const searchInput = document.getElementById('searchInput');
-        if(searchInput) {
-          searchInput.value = savedQuery;
-          // 검색 실행
-          await performSearch(savedQuery, 'overlay');
-          
-          // 스크롤 위치 복원
-          if(savedScrollPos) {
-            setTimeout(() => {
-              const searchOverlay = document.getElementById('searchOverlay');
-              if(searchOverlay) {
-                searchOverlay.scrollTop = parseInt(savedScrollPos, 10);
-              }
-            }, 100);
-          }
+      savedQuery = sessionStorage.getItem('lastSearchQuery');
+      savedScrollPos = sessionStorage.getItem('searchScrollPosition');
+    } catch(e) {
+      console.error('sessionStorage 접근 실패:', e);
+    }
+    
+    // 검색 오버레이 열기 (초기화 포함)
+    await openNavlessSearch(false);
+    
+    // 저장된 검색 상태 복원
+    if(savedQuery) {
+      const searchInput = document.getElementById('searchInput');
+      if(searchInput) {
+        searchInput.value = savedQuery;
+        // 검색 실행 (fullSearch 모드로)
+        await performSearch(savedQuery, 'fullSearch');
+        
+        // 스크롤 위치 복원
+        if(savedScrollPos) {
+          setTimeout(() => {
+            const searchOverlay = document.getElementById('searchOverlay');
+            if(searchOverlay) {
+              searchOverlay.scrollTop = parseInt(savedScrollPos, 10);
+            }
+          }, 100);
         }
       }
-    } catch(e) {
-      console.error('검색 상태 복원 실패:', e);
     }
     return;
   }
@@ -6917,24 +6924,29 @@ window.addEventListener('popstate', async (e) => {
     return;
   }
   
-  // /editors 체크
-  if(path === '/editors') {
+  // /editors 또는 /editors/사용자이름 체크
+  if(path === '/editors' || path.startsWith('/editors/')) {
     await router.openEditors(false);
     
-    // editor 파라미터 확인
-    const params = new URLSearchParams(window.location.search);
-    const editorId = params.get('editor');
-    
-    if(editorId) {
-      // 에디터 목록 로드
-      if(state.editorsList.length === 0) {
-        await loadEditors();
-      }
+    // /editors/사용자이름 형식 체크
+    if(path.startsWith('/editors/') && path !== '/editors/') {
+      const editorSlug = decodeURIComponent(path.replace('/editors/', ''));
       
-      // 에디터 프로필 열기
-      const editor = state.editorsList.find(e => e.id === parseInt(editorId));
-      if(editor) {
-        await router.openEditorProfile(editor, false);
+      if(editorSlug) {
+        // 에디터 목록 로드
+        if(state.editorsList.length === 0) {
+          await loadEditors();
+        }
+        
+        // 에디터 프로필 찾기 (slug 또는 name으로)
+        const editor = state.editorsList.find(e => 
+          e.slug === editorSlug || 
+          e.name === editorSlug || 
+          String(e.id) === editorSlug
+        );
+        if(editor) {
+          await router.openEditorProfile(editor, false);
+        }
       }
     }
     return;
@@ -6985,32 +6997,37 @@ async function handleInitialRoute() {
   
   // /search 체크
   if(path === '/search') {
-    await openNavlessSearch(false);
-    // 저장된 검색 상태 복원
+    // 저장된 검색 상태 먼저 확인 (openNavlessSearch가 초기화하기 전에)
+    let savedQuery = null;
+    let savedScrollPos = null;
     try {
-      const savedQuery = sessionStorage.getItem('lastSearchQuery');
-      const savedScrollPos = sessionStorage.getItem('searchScrollPosition');
-      
-      if(savedQuery) {
-        const searchInput = document.getElementById('searchInput');
-        if(searchInput) {
-          searchInput.value = savedQuery;
-          // 검색 실행
-          await performSearch(savedQuery, 'overlay');
-          
-          // 스크롤 위치 복원
-          if(savedScrollPos) {
-            setTimeout(() => {
-              const searchOverlay = document.getElementById('searchOverlay');
-              if(searchOverlay) {
-                searchOverlay.scrollTop = parseInt(savedScrollPos, 10);
-              }
-            }, 100);
-          }
+      savedQuery = sessionStorage.getItem('lastSearchQuery');
+      savedScrollPos = sessionStorage.getItem('searchScrollPosition');
+    } catch(e) {
+      console.error('sessionStorage 접근 실패:', e);
+    }
+    
+    // 검색 오버레이 열기 (초기화 포함)
+    await openNavlessSearch(false);
+    
+    // 저장된 검색 상태 복원
+    if(savedQuery) {
+      const searchInput = document.getElementById('searchInput');
+      if(searchInput) {
+        searchInput.value = savedQuery;
+        // 검색 실행 (fullSearch 모드로)
+        await performSearch(savedQuery, 'fullSearch');
+        
+        // 스크롤 위치 복원
+        if(savedScrollPos) {
+          setTimeout(() => {
+            const searchOverlay = document.getElementById('searchOverlay');
+            if(searchOverlay) {
+              searchOverlay.scrollTop = parseInt(savedScrollPos, 10);
+            }
+          }, 100);
         }
       }
-    } catch(e) {
-      console.error('검색 상태 복원 실패:', e);
     }
     return;
   }
@@ -7021,24 +7038,29 @@ async function handleInitialRoute() {
     return;
   }
   
-  // /editors 체크
-  if(path === '/editors') {
+  // /editors 또는 /editors/사용자이름 체크
+  if(path === '/editors' || path.startsWith('/editors/')) {
     await router.openEditors(false);
     
-    // editor 파라미터 확인
-    const params = new URLSearchParams(window.location.search);
-    const editorId = params.get('editor');
-    
-    if(editorId) {
-      // 에디터 목록 로드
-      if(state.editorsList.length === 0) {
-        await loadEditors();
-      }
+    // /editors/사용자이름 형식 체크
+    if(path.startsWith('/editors/') && path !== '/editors/') {
+      const editorSlug = decodeURIComponent(path.replace('/editors/', ''));
       
-      // 에디터 프로필 열기
-      const editor = state.editorsList.find(e => e.id === parseInt(editorId));
-      if(editor) {
-        await router.openEditorProfile(editor, false);
+      if(editorSlug) {
+        // 에디터 목록 로드
+        if(state.editorsList.length === 0) {
+          await loadEditors();
+        }
+        
+        // 에디터 프로필 찾기 (slug 또는 name으로)
+        const editor = state.editorsList.find(e => 
+          e.slug === editorSlug || 
+          e.name === editorSlug || 
+          String(e.id) === editorSlug
+        );
+        if(editor) {
+          await router.openEditorProfile(editor, false);
+        }
       }
     }
     return;
