@@ -7,12 +7,23 @@
   <title>IMPACT – MAKE A IMPACT</title>
   <meta name="description" content="Innovation Management Passion Acceleration Creativity Technology" id="metaDescription">
   
+  <!-- SEO: robots 및 googlebot 힌트 -->
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="googlebot" content="index, follow">
+  <meta name="bingbot" content="index, follow">
+  
+  <!-- SEO: 프리렌더링 서비스용 메타 태그 (Netlify Prerender, Prerender.io 등) -->
+  <meta name="fragment" content="!">
+  <meta name="prerender-status-code" content="200">
+  
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" id="ogType">
   <meta property="og:url" content="https://impactceo.art/" id="ogUrl">
   <meta property="og:title" content="IMPACT – MAKE A IMPACT" id="ogTitle">
   <meta property="og:description" content="Innovation Management Passion Acceleration Creativity Technology" id="ogDescription">
   <meta property="og:image" content="https://impactceo.art/logo.png" id="ogImage">
+  <meta property="og:site_name" content="IMPACT Magazine">
+  <meta property="og:locale" content="ko_KR">
   
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image" id="twitterCard">
@@ -90,6 +101,46 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif !important;
     }
   </style>
+  
+  <!-- SEO: 기본 JSON-LD 구조화된 데이터 (Website 스키마) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "IMPACT Magazine",
+    "alternateName": "IMPACT",
+    "url": "https://impactceo.art/",
+    "description": "사회적 이슈와 기술 변화를 분석해 일상의 문제를 발견하고 그 본질을 탐구하는 이슈 기반 인사이트 매거진",
+    "inLanguage": "ko-KR",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://impactceo.art/search?q={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+  
+  <!-- SEO: Organization 스키마 -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "IMPACT",
+    "url": "https://impactceo.art/",
+    "logo": "https://impactceo.art/logo.png",
+    "sameAs": [
+      "https://www.instagram.com/ceo_impact_official"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer service",
+      "email": "impactceo@kakao.com"
+    }
+  }
+  </script>
   
   <!-- ⚡ 게시물 및 이미지 뷰어 CSS -->
   <style>
@@ -879,7 +930,7 @@
     bottom: 0;
     width: 400px;
     background: rgba(255,255,255,0.98);
-    z-index: 2000;
+    z-index: 10002;
     padding: 28px 20px 28px 28px;
     transform: translateX(100%);
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -2491,6 +2542,33 @@
       
     }
   </script>
+  
+  <!-- SEO: JavaScript 비활성화 시 검색엔진에 보여줄 기본 콘텐츠 -->
+  <noscript>
+    <div style="padding:20px;max-width:800px;margin:0 auto;font-family:sans-serif;">
+      <h1>IMPACT Magazine</h1>
+      <p>IMPACT는 사회적 이슈와 기술 변화를 분석해 일상의 문제를 발견하고 그 본질을 탐구하는 플랫폼입니다.</p>
+      <p>청년 창업가 인터뷰와 사회혁신 사례를 통해 문제를 기회로 전환하는 통찰을 제시하는 '이슈 기반 인사이트 매거진'입니다.</p>
+      <h2>카테고리</h2>
+      <ul>
+        <li><a href="/category/tech">TECH - 기술</a></li>
+        <li><a href="/category/eat">EAT - 음식</a></li>
+        <li><a href="/category/style">STYLE - 스타일</a></li>
+        <li><a href="/category/culture">CULTURE - 문화</a></li>
+        <li><a href="/category/life">LIFE - 라이프</a></li>
+        <li><a href="/category/editors-pick">EDITORS' PICK - 에디터 추천</a></li>
+      </ul>
+      <h2>링크</h2>
+      <ul>
+        <li><a href="/about">ABOUT - 소개</a></li>
+        <li><a href="/editors">EDITORS - 에디터</a></li>
+        <li><a href="/newsletter">NEWSLETTER - 뉴스레터</a></li>
+        <li><a href="https://www.instagram.com/ceo_impact_official" target="_blank">INSTAGRAM</a></li>
+      </ul>
+      <p>made by KAIST IP-CEO &amp; POSTECH CEO</p>
+      <p>이 사이트를 제대로 보시려면 JavaScript를 활성화해주세요.</p>
+    </div>
+  </noscript>
   
   <div class="page-transition" id="pageTransition"></div>
   <div class="progress-bar" id="progressBar"></div>
@@ -5857,7 +5935,7 @@ const router = {
     }
   }
 };
-async function openNavlessSearch(updateURL = true) {
+async function openNavlessSearch(updateURL = true, preserveQuery = false) {
   // [IMPACT-LOADING] 즉시 로딩 표시
   openLoading('검색 페이지를 불러오는 중...');
   
@@ -5869,14 +5947,17 @@ async function openNavlessSearch(updateURL = true) {
   // 수정됨: 모바일과 데스크탑 모두에서 메인 홈 스크롤 중단
   document.body.style.overflow = 'hidden';
   
-  // 메인 홈에서 검색창 진입 시 검색창 초기화 및 페이지네이션 제거
-  document.getElementById('searchInput').value = '';
-  document.getElementById('searchResults').innerHTML = '';
-  document.getElementById('searchLoading').textContent = '';
-  // 페이지네이션도 완전히 초기화
-  const existingPagination = document.querySelector('#searchResults .pagination');
-  if (existingPagination) {
-    existingPagination.remove();
+  // preserveQuery가 true이면 검색창 초기화 스킵 (새로고침 시 검색어 유지)
+  if(!preserveQuery) {
+    // 메인 홈에서 검색창 진입 시 검색창 초기화 및 페이지네이션 제거
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchResults').innerHTML = '';
+    document.getElementById('searchLoading').textContent = '';
+    // 페이지네이션도 완전히 초기화
+    const existingPagination = document.querySelector('#searchResults .pagination');
+    if (existingPagination) {
+      existingPagination.remove();
+    }
   }
   
   // [IMPACT-LOADING] 완료 후 스크롤 리셋 및 로딩 해제
@@ -5948,6 +6029,13 @@ async function performSearch(query, mode) {
     const loadingEl = document.getElementById('searchLoading');
     resultsEl.innerHTML = '';
     loadingEl.textContent = '검색 중...';
+    
+    // 검색어를 sessionStorage에 저장 (새로고침 시 복원용)
+    try {
+      sessionStorage.setItem('lastSearchQuery', query);
+    } catch(e) {
+      console.error('sessionStorage 저장 실패:', e);
+    }
 
     try {
       const res = await fetch(api(`posts?search=${encodeURIComponent(query)}&per_page=100&_embed`));
@@ -6881,7 +6969,7 @@ window.addEventListener('popstate', async (e) => {
     }
   }
   
-  // /search 체크
+  // /search 체크 (popstate 핸들러)
   if(path === '/search') {
     // 저장된 검색 상태 먼저 확인 (openNavlessSearch가 초기화하기 전에)
     let savedQuery = null;
@@ -6893,11 +6981,14 @@ window.addEventListener('popstate', async (e) => {
       console.error('sessionStorage 접근 실패:', e);
     }
     
-    // 검색 오버레이 열기 (초기화 포함)
-    await openNavlessSearch(false);
+    // 저장된 검색어가 있으면 검색창 초기화 스킵
+    const hasQuery = savedQuery && savedQuery.trim() !== '';
+    
+    // 검색 오버레이 열기 (저장된 쿼리가 있으면 초기화 스킵)
+    await openNavlessSearch(false, hasQuery);
     
     // 저장된 검색 상태 복원
-    if(savedQuery) {
+    if(hasQuery) {
       const searchInput = document.getElementById('searchInput');
       if(searchInput) {
         searchInput.value = savedQuery;
@@ -6995,7 +7086,7 @@ async function handleInitialRoute() {
     }
   }
   
-  // /search 체크
+  // /search 체크 (handleInitialRoute 함수)
   if(path === '/search') {
     // 저장된 검색 상태 먼저 확인 (openNavlessSearch가 초기화하기 전에)
     let savedQuery = null;
@@ -7007,11 +7098,14 @@ async function handleInitialRoute() {
       console.error('sessionStorage 접근 실패:', e);
     }
     
-    // 검색 오버레이 열기 (초기화 포함)
-    await openNavlessSearch(false);
+    // 저장된 검색어가 있으면 검색창 초기화 스킵
+    const hasQuery = savedQuery && savedQuery.trim() !== '';
+    
+    // 검색 오버레이 열기 (저장된 쿼리가 있으면 초기화 스킵)
+    await openNavlessSearch(false, hasQuery);
     
     // 저장된 검색 상태 복원
-    if(savedQuery) {
+    if(hasQuery) {
       const searchInput = document.getElementById('searchInput');
       if(searchInput) {
         searchInput.value = savedQuery;
