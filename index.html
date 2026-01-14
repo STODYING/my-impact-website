@@ -2621,9 +2621,9 @@
       </div>
       <ul class="nav-list" id="navList"></ul>
       <div class="nav-footer-links">
-        <a href="javascript:void(0)" onclick="handleNavAction(() => router.openAbout())">ABOUT</a>
-        <a href="javascript:void(0)" onclick="handleNavAction(() => router.openEditors())">EDITORS</a>
-        <a href="javascript:void(0)" onclick="ui.toggleNav(true); window.open('https://impactceo.art/newsletter', '_blank')">NEWSLETTER</a>
+        <a href="/about" onclick="event.preventDefault(); handleNavAction(() => router.openAbout())">ABOUT</a>
+        <a href="/editors" onclick="event.preventDefault(); handleNavAction(() => router.openEditors())">EDITORS</a>
+        <a href="https://impactceo.art/newsletter" target="_blank" rel="noopener" onclick="ui.toggleNav(true)">NEWSLETTER</a>
         <a href="https://www.instagram.com/ceo_impact_official" target="_blank" rel="noopener">INSTAGRAM</a>
       </div>
     </div>
@@ -2901,9 +2901,9 @@
         <div style="color:#ddd;font-size:14px;margin-top:8px">공식 계정 | <a href="/cdn-cgi/l/email-protection#ea898f85aa83879a8b899e898f85c48b989e"><span class="__cf_email__" data-cfemail="7112141e31181c0110120512141e5f100305">[email&#160;protected]</span></a></div>
       </div>
       <div class="footer-links">
-        <a href="javascript:void(0)" onclick="router.openAbout()">ABOUT</a>
-        <a href="javascript:void(0)" onclick="router.openEditors()">EDITORS</a>
-        <a href="javascript:void(0)" onclick="window.open('https://impactceo.art/newsletter', '_blank')">NEWSLETTER</a>
+        <a href="/about" onclick="event.preventDefault(); router.openAbout()">ABOUT</a>
+        <a href="/editors" onclick="event.preventDefault(); router.openEditors()">EDITORS</a>
+        <a href="https://impactceo.art/newsletter" target="_blank" rel="noopener">NEWSLETTER</a>
         <a href="https://www.instagram.com/ceo_impact_official" target="_blank" rel="noopener">INSTAGRAM</a>
       </div>
       <div class="footer-links footer-family">
