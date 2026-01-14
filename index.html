@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <!-- 수정됨: 모바일 화면 회전 시 텍스트 크기 고정 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>IMPACT – MAKE A IMPACT</title>
   <meta name="description" content="Innovation Management Passion Acceleration Creativity Technology" id="metaDescription">
   
@@ -2572,10 +2572,11 @@
   
   <div class="page-transition" id="pageTransition"></div>
   <div class="progress-bar" id="progressBar"></div>
+  <a href="#home" class="skip-link" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;z-index:10000;" onfocus="this.style.position='fixed';this.style.left='50%';this.style.transform='translateX(-50%)';this.style.top='10px';this.style.width='auto';this.style.height='auto';this.style.padding='12px 24px';this.style.background='#ff6b35';this.style.color='#fff';this.style.borderRadius='8px';this.style.fontWeight='700';this.style.textDecoration='none';" onblur="this.style.position='absolute';this.style.left='-9999px';this.style.width='1px';this.style.height='1px';">본문으로 바로가기</a>
   <header class="header" id="siteHeader">
     <div class="header-inner wrap">
       <div class="brand">
-        <div class="logo" id="logoBtn" onclick="goToHome()">
+        <div class="logo" id="logoBtn" onclick="goToHome()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){goToHome();event.preventDefault();}" aria-label="IMPACT 홈으로 이동">
           <img src="/logo.png" alt="IMPACT logo" width="36" height="36" style="width:36px;height:36px;border-radius:8px;object-fit:cover;" fetchpriority="high">
           <div class="logo-text">
             <div class="main-text">IMPACT</div>
@@ -2584,12 +2585,12 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn icon-btn" id="topSearchBtn" onclick="openNavlessSearch()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <button class="btn icon-btn" id="topSearchBtn" onclick="openNavlessSearch()" aria-label="검색">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
           </svg>
         </button>
-        <button class="btn icon-btn" onclick="ui.toggleNav()">☰</button>
+        <button class="btn icon-btn" onclick="ui.toggleNav()" aria-label="메뉴 열기">☰</button>
       </div>
     </div>
   </header>
@@ -2597,7 +2598,7 @@
   <div class="post-header-bar" id="postHeaderBar">
     <div class="header-inner wrap">
       <div class="brand">
-        <div class="logo" onclick="goToHome()">
+        <div class="logo" onclick="goToHome()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){goToHome();event.preventDefault();}" aria-label="IMPACT 홈으로 이동">
           <img src="/logo.png" alt="IMPACT logo" style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
           <div class="logo-text">
             <div class="main-text">IMPACT</div>
@@ -2606,20 +2607,20 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn icon-btn" onclick="handleNavToggle()">☰</button>
+        <button class="btn icon-btn" onclick="handleNavToggle()" aria-label="메뉴 열기">☰</button>
       </div>
     </div>
   </div>
-  <aside class="nav-overlay" id="navOverlay">
-    <button class="nav-close" onclick="ui.toggleNav(true)">✕</button>
+  <aside class="nav-overlay" id="navOverlay" role="dialog" aria-label="사이트 메뉴">
+    <button class="nav-close" onclick="ui.toggleNav(true)" aria-label="메뉴 닫기">✕</button>
     <div style="display:flex;flex-direction:column;gap:12px;">
       <div class="nav-search">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
         </svg>
-        <input type="search" id="globalNavSearch" placeholder="검색어 입력">
+        <input type="search" id="globalNavSearch" placeholder="검색어 입력" aria-label="사이트 검색">
       </div>
-      <ul class="nav-list" id="navList"></ul>
+      <ul class="nav-list" id="navList" role="navigation" aria-label="카테고리 메뉴"></ul>
       <div class="nav-footer-links">
         <a href="/about" onclick="event.preventDefault(); handleNavAction(() => router.openAbout())">ABOUT</a>
         <a href="/editors" onclick="event.preventDefault(); handleNavAction(() => router.openEditors())">EDITORS</a>
@@ -2736,7 +2737,7 @@
           <div class="category-sub" id="categoryOverlaySubtitle">카테고리 설명</div>
         </div>
         <div>
-          <button class="btn" onclick="router.closeCategory()">✕</button>
+          <button class="btn" onclick="router.closeCategory()" aria-label="카테고리 닫기">✕</button>
         </div>
       </div>
       <div class="category-grid" id="categoryGrid"></div>
@@ -2752,7 +2753,7 @@
           <div style="color:#666;font-size:14px;margin-top:8px">IMPACT에 참여하는 에디터 목록과 각 에디터의 작성 글을 확인할 수 있습니다.</div>
         </div>
         <div>
-          <button class="btn" onclick="router.closeEditors()">✕</button>
+          <button class="btn" onclick="router.closeEditors()" aria-label="에디터 페이지 닫기">✕</button>
         </div>
       </div>
       <div id="editorsGridWrapper">
@@ -2760,7 +2761,7 @@
         <div id="editorsLoading" style="text-align:center;color:#666;padding:28px 0"></div>
       </div>
       <div id="editorProfileSection" style="display:none">
-        <button class="btn" onclick="showEditorsList()" style="margin-bottom:20px">← 에디터 목록으로</button>
+        <button class="btn" onclick="showEditorsList()" style="margin-bottom:20px" aria-label="에디터 목록으로 돌아가기">← 에디터 목록으로</button>
         <h3 id="editorProfileName" style="font-size:28px;margin:0 0 12px"></h3>
         <p id="editorProfileBio" style="color:#666;margin-bottom:32px"></p>
         <div id="editorPostsGrid" class="category-grid"></div>
@@ -2768,15 +2769,15 @@
       </div>
     </div>
   </section>
-  <section class="search-overlay" id="searchOverlay">
+  <section class="search-overlay" id="searchOverlay" role="dialog" aria-label="검색">
     <div class="wrap" style="max-width:1200px">
       <div style="margin-bottom:32px">
         <div class="search-bar">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;" aria-hidden="true">
             <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
           </svg>
-          <input type="search" id="searchInput" placeholder="검색어를 입력하세요" autofocus>
-          <button class="close-btn" onclick="closeSearch()">✕</button>
+          <input type="search" id="searchInput" placeholder="검색어를 입력하세요" autofocus aria-label="검색어 입력">
+          <button class="close-btn" onclick="closeSearch()" aria-label="검색 닫기">✕</button>
         </div>
         <div id="searchLoading" style="text-align:center;padding:20px 0;font-size:24px;font-weight:700;min-height:60px"></div>
       </div>
@@ -2788,7 +2789,7 @@
     <div class="wrap">
       <div class="page-header">
         <h2>ABOUT</h2>
-        <button class="btn" onclick="router.closeAbout()">✕</button>
+        <button class="btn" onclick="router.closeAbout()" aria-label="소개 페이지 닫기">✕</button>
       </div>
       <div style="line-height:1.9;color:#444">
         <p style="font-size:22px;margin-bottom:16px;font-weight:700;color:#ff6b35">IMPACT MAGAZINE.</p>
@@ -2884,13 +2885,13 @@
     </div>
   </section>
 
-  <div class="image-modal" id="imageModal">
-    <button class="image-modal-close" onclick="history.back()">✕</button>
+  <div class="image-modal" id="imageModal" role="dialog" aria-label="이미지 확대 보기">
+    <button class="image-modal-close" onclick="history.back()" aria-label="이미지 닫기">✕</button>
     <img id="modalImage" src="" alt="확대 이미지">
   </div>
 
-  <button class="to-top" id="toTopBtn" onclick="scrollToTopButton()">↑</button>
-  <button class="post-to-top" id="postToTopBtn" onclick="scrollToTopButton()">↑</button>
+  <button class="to-top" id="toTopBtn" onclick="scrollToTopButton()" aria-label="맨 위로 이동">↑</button>
+  <button class="post-to-top" id="postToTopBtn" onclick="scrollToTopButton()" aria-label="맨 위로 이동">↑</button>
 
   <footer class="site-footer">
     <div class="wrap footer-inner">
@@ -2914,8 +2915,8 @@
       <div class="footer-right">
         <div style="font-weight:800;color:#fff;margin-bottom:16px">IMPACT CEO. ALL RIGHTS RESERVED.</div>
         <div class="theme-toggle">
-          <div class="theme-toggle-label">THEME</div>
-          <div class="theme-switch" onclick="toggleTheme()">
+          <div class="theme-toggle-label" id="themeToggleLabel">THEME</div>
+          <div class="theme-switch" onclick="toggleTheme()" role="switch" aria-checked="false" aria-labelledby="themeToggleLabel" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){toggleTheme();event.preventDefault();}">
             <div class="theme-switch-text">
               <span class="light-text">LIGHT</span>
               <span class="dark-text">DARK</span>
@@ -4647,7 +4648,7 @@ async function openPostOverlayById(id, updateURL = true) {
         gap: 16px;
       ">
         <p style="color: #e74c3c; font-size: 18px;">게시물을 불러올 수 없습니다.</p>
-        <button onclick="router.closePost()" class="btn" style="padding: 8px 16px;">돌아가기</button>
+        <button onclick="router.closePost()" class="btn" style="padding: 8px 16px;" aria-label="이전 페이지로 돌아가기">돌아가기</button>
       </div>
     `;
     // [IMPACT-LOADING] 에러 시에도 로딩 해제
@@ -4760,7 +4761,7 @@ async function renderPostOverlay(post) {
         gap: 12px;
         flex-wrap: wrap;
       ">
-        <button class="share-btn" onclick="shareToFacebook()" style="
+        <button class="share-btn" onclick="shareToFacebook()" aria-label="Facebook으로 공유" style="
           background: #f6f7f9;
           border: none;
           padding: 12px;
@@ -4773,11 +4774,11 @@ async function renderPostOverlay(post) {
           align-items: center;
           justify-content: center;
         " onmouseover="this.style.background='#1877f2';this.querySelector('svg').style.fill='white'" onmouseout="this.style.background='#f6f7f9';this.querySelector('svg').style.fill='#666'">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill:#666;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill:#666;" aria-hidden="true">
             <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
           </svg>
         </button>
-        <button class="share-btn" onclick="shareToTwitter()" style="
+        <button class="share-btn" onclick="shareToTwitter()" aria-label="X(Twitter)로 공유" style="
           background: #f6f7f9;
           border: none;
           padding: 12px;
@@ -4790,11 +4791,11 @@ async function renderPostOverlay(post) {
           align-items: center;
           justify-content: center;
         " onmouseover="this.style.background='#000';this.querySelector('svg').style.fill='white'" onmouseout="this.style.background='#f6f7f9';this.querySelector('svg').style.fill='#666'">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" style="fill:#666;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" style="fill:#666;" aria-hidden="true">
             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
           </svg>
         </button>
-        <button class="share-btn" onclick="shareToLinkedIn()" style="
+        <button class="share-btn" onclick="shareToLinkedIn()" aria-label="LinkedIn으로 공유" style="
           background: #f6f7f9;
           border: none;
           padding: 12px;
@@ -4807,11 +4808,11 @@ async function renderPostOverlay(post) {
           align-items: center;
           justify-content: center;
         " onmouseover="this.style.background='#0A66C2';this.querySelector('svg').style.fill='white'" onmouseout="this.style.background='#f6f7f9';this.querySelector('svg').style.fill='#666'">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" style="fill:#666;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" style="fill:#666;" aria-hidden="true">
             <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/>
           </svg>
         </button>
-        <button class="share-btn" onclick="shareEmail()" style="
+        <button class="share-btn" onclick="shareEmail()" aria-label="이메일로 공유" style="
           background: #f6f7f9;
           border: none;
           padding: 12px;
@@ -4824,11 +4825,11 @@ async function renderPostOverlay(post) {
           align-items: center;
           justify-content: center;
         " onmouseover="this.style.background='#EA4335';this.querySelector('svg').style.fill='white'" onmouseout="this.style.background='#f6f7f9';this.querySelector('svg').style.fill='#666'">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" style="fill:#666;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" style="fill:#666;" aria-hidden="true">
             <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
           </svg>
         </button>
-        <button class="share-btn" onclick="copyLink()" style="
+        <button class="share-btn" onclick="copyLink()" aria-label="링크 복사" style="
           background: #f6f7f9;
           border: none;
           padding: 12px;
@@ -4841,7 +4842,7 @@ async function renderPostOverlay(post) {
           align-items: center;
           justify-content: center;
         " onmouseover="this.style.background='#666';this.querySelector('svg').style.fill='white'" onmouseout="this.style.background='#f6f7f9';this.querySelector('svg').style.fill='#666'">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" style="fill:#666;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" style="fill:#666;" aria-hidden="true">
             <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
           </svg>
         </button>
@@ -8098,12 +8099,14 @@ function openImageViewer(src, alt, currentIndex, allImages) {
   // 뷰어 HTML 생성
   const viewer = document.createElement('div');
   viewer.className = 'image-viewer-overlay active';
+  viewer.setAttribute('role', 'dialog');
+  viewer.setAttribute('aria-label', '이미지 뷰어');
   viewer.innerHTML = `
     <div class="image-viewer-container">
       <img src="${src}" alt="${alt}" class="image-viewer-img" draggable="false">
-      <div class="image-viewer-close"></div>
-      <div class="image-viewer-info">${alt}</div>
-      <div class="image-viewer-controls">
+      <button class="image-viewer-close" aria-label="이미지 뷰어 닫기"></button>
+      <div class="image-viewer-info" aria-live="polite">${alt}</div>
+      <div class="image-viewer-controls" aria-hidden="true">
         📱 핀치줌 | 🖱️ Ctrl+휠 | ⬅️➡️ 화살표키
       </div>
     </div>
