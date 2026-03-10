@@ -3109,55 +3109,29 @@ function nextFrame() {
   return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 }
 
-// Netlify Functions를 통한 WordPress API 호출 - 최적화: 필요할 때만 _embed
+// Cloudflare Pages Functions 프록시를 통한 WordPress API 호출
 function api(path, includeEmbed = false) {
   let p = path;
   if (includeEmbed && !path.includes('_embed')) {
     p = path + (path.includes('?') ? '&' : '?') + '_embed';
   }
-  
-  // Netlify Functions를 통한 프록시만 사용 (CORS 문제 해결)
-  return `/.netlify/functions/wpProxy?path=${encodeURIComponent(p)}`;
+  return `/api/wp?path=${encodeURIComponent(p)}`;
 }
 
-// Netlify Functions를 통해 전체 게시물 수를 가져오는 헬퍼 함수
 async function getTotalPostsCount() {
-  
-  
   try {
-    // Netlify Functions를 통한 호출 (per_page=1로 최소 데이터만, _embed 불필요)
-    const proxyUrl = api('posts?per_page=1&page=1', false);
-    
-    const res = await fetch(proxyUrl);
-    
-    const totalFromProxy = parseInt(res.headers.get('X-WP-Total') || '0');
-    const totalPagesFromProxy = parseInt(res.headers.get('X-WP-TotalPages') || '0');
-    
-    
-    
-    if(totalFromProxy > 0) {
-      return {
-        total: totalFromProxy,
-        totalPages: Math.ceil(totalFromProxy / HOME_PER_PAGE)
-      };
+    const res = await fetch(api('posts?per_page=1&page=1', false));
+    const total = parseInt(res.headers.get('X-WP-Total') || '0');
+    if(total > 0) {
+      return { total, totalPages: Math.ceil(total / HOME_PER_PAGE) };
     }
-    
-    // 헤더가 없으면 응답 본문 확인
     const data = await res.json();
-    
-    
     if(Array.isArray(data) && data.length > 0) {
-      
-      return {
-        total: 1,
-        totalPages: 1
-      };
+      return { total: 1, totalPages: 1 };
     }
   } catch(e) {
-    console.error('  → Netlify Functions 호출 실패:', e);
+    console.error('getTotalPostsCount 실패:', e);
   }
-  
-  
   return null;
 }
 function formatDate(dstr) {
@@ -4381,43 +4355,190 @@ async function loadCategory(slug, page = 1) {
     state.isProcessing = false;
   }
 }
-async function loadEditors() {
-  if(state.editorsLoaded) return;
-  document.getElementById('editorsLoading').textContent = '로딩 중...';
+async function loadEditors(forceReload = false) {
+  // 이미 로드되었고 에디터 목록이 있으면 재로드하지 않음 (강제 재로드 제외)
+  if(state.editorsLoaded && state.editorsList.length > 0 && !forceReload) return;
+  
+  const loadingEl = document.getElementById('editorsLoading');
+  if(loadingEl) loadingEl.textContent = '로딩 중...';
+  
+  // 방법 1: users API 직접 호출 (최대 2회 재시도)
+  for(let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const res = await fetch(api('users?per_page=100', false));
+      if(!res.ok) throw new Error('editors api fail ' + res.status);
+      const users = await res.json();
+      if(Array.isArray(users) && users.length > 0) {
+        state.editorsList = users;
+        renderEditorsGrid();
+        state.editorsLoaded = true;
+        if(loadingEl) loadingEl.textContent = '';
+        return;
+      }
+    } catch(e) {
+      console.error(`loadEditors users API 시도 ${attempt}/2 실패:`, e);
+      if(attempt < 2) await new Promise(r => setTimeout(r, 600));
+    }
+  }
+  
+  // 방법 2: posts에서 _embed된 저자 정보 추출 (fallback)
+  console.log('loadEditors: users API 실패, posts _embed fallback 시도');
   try {
-    // 최적화: users API는 _embed 불필요
-    const res = await fetch(api(`users?per_page=100`, false));
-    if(!res.ok) throw new Error('editors api fail ' + res.status);
-    const users = await res.json();
-    state.editorsList = Array.isArray(users) ? users : [];
-    renderEditorsGrid();
-    state.editorsLoaded = true;
-    document.getElementById('editorsLoading').textContent = '';
+    const res = await fetch(api('posts?per_page=100&_embed', false));
+    if(!res.ok) throw new Error('posts fallback fail ' + res.status);
+    const posts = await res.json();
+    if(Array.isArray(posts) && posts.length > 0) {
+      // _embed에서 저자 정보 추출 및 중복 제거
+      const authorMap = new Map();
+      posts.forEach(post => {
+        const embedded = post._embedded || post.embedded;
+        if(embedded && embedded.author && embedded.author[0]) {
+          const author = embedded.author[0];
+          if(author.id && !authorMap.has(author.id)) {
+            authorMap.set(author.id, {
+              id: author.id,
+              name: author.name || author.slug || '',
+              slug: author.slug || '',
+              description: author.description || '',
+              avatar_urls: author.avatar_urls || {},
+              link: author.link || ''
+            });
+          }
+        }
+        // _embed가 없는 경우 author ID만으로 기본 정보 생성
+        if(!embedded && post.author && !authorMap.has(post.author)) {
+          authorMap.set(post.author, {
+            id: post.author,
+            name: '',
+            slug: '',
+            description: '',
+            avatar_urls: {},
+            link: ''
+          });
+        }
+      });
+      
+      // _embed가 없었던 저자들의 정보를 개별 조회
+      const incompleteAuthors = [...authorMap.values()].filter(a => !a.name);
+      for(const author of incompleteAuthors) {
+        try {
+          const uRes = await fetch(api(`users/${author.id}`, false));
+          if(uRes.ok) {
+            const uData = await uRes.json();
+            authorMap.set(author.id, {
+              id: uData.id,
+              name: uData.name || uData.slug || '',
+              slug: uData.slug || '',
+              description: uData.description || '',
+              avatar_urls: uData.avatar_urls || {},
+              link: uData.link || ''
+            });
+          }
+        } catch(ue) {
+          console.error(`개별 저자 ${author.id} 조회 실패:`, ue);
+        }
+      }
+      
+      state.editorsList = [...authorMap.values()].filter(a => a.name);
+      if(state.editorsList.length > 0) {
+        renderEditorsGrid();
+        state.editorsLoaded = true;
+        if(loadingEl) loadingEl.textContent = '';
+        return;
+      }
+    }
   } catch(e) {
-    console.error(e);
-    document.getElementById('editorsLoading').textContent = '에디터 목록을 불러오지 못했습니다.';
+    console.error('loadEditors posts fallback 실패:', e);
+  }
+  
+  // 모든 방법 실패 시 - 다시 시도 버튼
+  console.error('loadEditors 모든 방법 실패');
+  if(loadingEl) {
+    loadingEl.innerHTML = `
+      <span>에디터 목록을 불러오지 못했습니다.</span>
+      <button onclick="loadEditors(true)" style="margin-left:12px;padding:6px 16px;background:#333;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:14px">다시 시도</button>
+    `;
   }
 }
+
+// 에디터 그리드 렌더링 함수
 function renderEditorsGrid() {
-  const wrap = document.getElementById('editorsGrid');
-  wrap.innerHTML = '';
-  const tpl = document.getElementById('editorTpl');
-  state.editorsList.forEach(u => {
-    const node = tpl.content.firstElementChild.cloneNode(true);
-    const img = node.querySelector('.editor-avatar');
-    img.src = (u.avatar_urls && (u.avatar_urls['96']||u.avatar_urls['48']||u.avatar_urls['24'])) ? (u.avatar_urls['96']||u.avatar_urls['48']||u.avatar_urls['24']) : placeholderDataURI(96,96,'U');
-    img.alt = u.name || u.slug || 'editor';
-    node.querySelector('.editor-name').textContent = u.name || u.slug || 'unknown';
-    node.querySelector('.editor-bio').textContent = u.description || '';
-    node.addEventListener('click', () => router.openEditorProfile(u));
-    wrap.appendChild(node);
+  const grid = document.getElementById('editorsGrid');
+  if(!grid) return;
+  
+  grid.innerHTML = '';
+  
+  if(state.editorsList.length === 0) {
+    grid.innerHTML = '<div style="text-align:center;color:#666;padding:40px">등록된 에디터가 없습니다.</div>';
+    return;
+  }
+  
+  state.editorsList.forEach(editor => {
+    const card = document.createElement('div');
+    card.className = 'editor-card';
+    card.onclick = () => {
+      openLoading('에디터 프로필을 불러오는 중...');
+      router.openEditorProfile(editor, true);
+    };
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('aria-label', `${editor.name || editor.slug} 에디터 프로필 보기`);
+    
+    // 키보드 접근성
+    card.onkeydown = (e) => {
+      if(e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openLoading('에디터 프로필을 불러오는 중...');
+        router.openEditorProfile(editor, true);
+      }
+    };
+    
+    // 프로필 이미지 (Gravatar 또는 기본 아바타)
+    const avatarUrl = editor.avatar_urls && editor.avatar_urls['96'] 
+      ? editor.avatar_urls['96'] 
+      : `https://www.gravatar.com/avatar/${editor.id}?d=mp&s=96`;
+    
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+        <img src="${avatarUrl}" alt="${editor.name || editor.slug}" 
+             style="width:64px;height:64px;border-radius:50%;object-fit:cover;background:#f0f0f0"
+             loading="lazy" onerror="this.src='https://www.gravatar.com/avatar/0?d=mp&s=96'">
+        <div>
+          <h3 style="font-size:18px;font-weight:600;margin:0">${editor.name || editor.slug}</h3>
+        </div>
+      </div>
+      <p style="color:#666;font-size:14px;line-height:1.6;margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">
+        ${editor.description || '설명이 없습니다.'}
+      </p>
+    `;
+    
+    grid.appendChild(card);
   });
 }
+
+// 에디터 목록으로 돌아가기 함수
 function showEditorsList() {
   document.getElementById('editorProfileSection').style.display = 'none';
   document.getElementById('editorsGridWrapper').style.display = 'block';
-  history.pushState({page:'editors'}, '', '#editors');
+  
+  // URL 업데이트
+  const newUrl = `${window.location.origin}/editors`;
+  history.pushState({page:'editors'}, '', newUrl);
+  
+  // 메타태그 업데이트
+  updateMetaTags({
+    title: 'EDITORS - IMPACT',
+    description: 'IMPACT에 참여하는 에디터 목록과 각 에디터의 작성 글을 확인할 수 있습니다.',
+    url: newUrl
+  });
+  
+  // 스크롤 리셋
+  const editorsOverlay = document.getElementById('editorsOverlay');
+  if(editorsOverlay) {
+    editorsOverlay.scrollTop = 0;
+  }
 }
+
 async function loadRelatedPosts(categories, currentPostId) {
   if(!categories || categories.length === 0) return [];
 
@@ -7057,11 +7178,25 @@ window.addEventListener('popstate', async (e) => {
         }
         
         // 에디터 프로필 찾기 (slug 또는 name으로)
-        const editor = state.editorsList.find(e => 
+        let editor = state.editorsList.find(e => 
           e.slug === editorSlug || 
           e.name === editorSlug || 
           String(e.id) === editorSlug
         );
+        
+        // fallback: 목록에서 못 찾으면 slug로 직접 API 조회
+        if(!editor) {
+          try {
+            const slugRes = await fetch(api(`users?slug=${encodeURIComponent(editorSlug)}`, false));
+            if(slugRes.ok) {
+              const slugData = await slugRes.json();
+              if(Array.isArray(slugData) && slugData.length > 0) {
+                editor = slugData[0];
+              }
+            }
+          } catch(se) { console.error('editor slug fallback 실패:', se); }
+        }
+        
         if(editor) {
           await router.openEditorProfile(editor, false);
         }
@@ -7093,7 +7228,32 @@ window.addEventListener('popstate', async (e) => {
 
 // 페이지 초기 로드 시 URL 체크 및 라우팅
 async function handleInitialRoute() {
-  const path = window.location.pathname;
+  // SPA 404 리다이렉트 처리
+  let path = window.location.pathname;
+  
+  // 세션 스토리지에서 리다이렉트 경로 확인
+  try {
+    const savedPath = sessionStorage.getItem('spa_redirect_path');
+    if(savedPath) {
+      sessionStorage.removeItem('spa_redirect_path');
+      // 저장된 경로로 히스토리 업데이트
+      const fullUrl = window.location.origin + savedPath;
+      history.replaceState(null, '', fullUrl);
+      path = savedPath.split('?')[0].split('#')[0]; // 순수 경로만 추출
+    }
+  } catch(e) {
+    console.error('sessionStorage 접근 실패:', e);
+  }
+  
+  // 쿼리 파라미터에서 리다이렉트 경로 확인 (sessionStorage 실패 시 대비)
+  const urlParams = new URLSearchParams(window.location.search);
+  const redirectPath = urlParams.get('redirect');
+  if(redirectPath && path === '/') {
+    const decodedPath = decodeURIComponent(redirectPath);
+    const fullUrl = window.location.origin + decodedPath;
+    history.replaceState(null, '', fullUrl);
+    path = decodedPath.split('?')[0].split('#')[0]; // 순수 경로만 추출
+  }
   
   // /post/게시물슬러그 형식 체크
   if(path.startsWith('/post/')) {
@@ -7178,11 +7338,25 @@ async function handleInitialRoute() {
         }
         
         // 에디터 프로필 찾기 (slug 또는 name으로)
-        const editor = state.editorsList.find(e => 
+        let editor = state.editorsList.find(e => 
           e.slug === editorSlug || 
           e.name === editorSlug || 
           String(e.id) === editorSlug
         );
+        
+        // fallback: 목록에서 못 찾으면 slug로 직접 API 조회
+        if(!editor) {
+          try {
+            const slugRes = await fetch(api(`users?slug=${encodeURIComponent(editorSlug)}`, false));
+            if(slugRes.ok) {
+              const slugData = await slugRes.json();
+              if(Array.isArray(slugData) && slugData.length > 0) {
+                editor = slugData[0];
+              }
+            }
+          } catch(se) { console.error('editor slug fallback 실패:', se); }
+        }
+        
         if(editor) {
           await router.openEditorProfile(editor, false);
         }
