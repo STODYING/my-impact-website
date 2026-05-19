@@ -1,13 +1,13 @@
 # Netlify 설정 파일
 
 [build]
-  # 빌드 명령이 없으면 생략
+  # 빌드 명령 없음 (정적 사이트)
   publish = "."
 
 # Netlify Prerender Extension을 위한 설정
-# Extension이 sitemap.xml을 자동으로 감지하여 프리렌더링합니다
+# Extension이 빌드 시 생성된 sitemap.xml을 자동으로 감지하여 프리렌더링합니다
 
-# 동적 sitemap을 위한 redirect 설정
+# 동적 sitemap을 위한 redirect 설정 (가장 먼저 매칭)
 [[redirects]]
   from = "/sitemap.xml"
   to = "/.netlify/functions/sitemap"
