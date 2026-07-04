@@ -4,6 +4,12 @@
   # 빌드 명령 없음 (정적 사이트)
   publish = "."
 
+# 게시물별 동적 렌더링(Dynamic Rendering)
+# netlify/edge-functions/render-post.js 가 "/post/*" 요청을 처리합니다.
+#   - 사람 -> SPA(index.html) 그대로 통과
+#   - 봇/크롤러(카카오톡/페북/트위터/구글/네이버 등) -> 게시물별 SEO/OG HTML 즉시 렌더
+# 경로 매칭은 해당 파일의 `export const config = { path: "/post/*" }` 로 자동 등록됩니다.
+
 # Netlify Prerender Extension을 위한 설정
 # Extension이 빌드 시 생성된 sitemap.xml을 자동으로 감지하여 프리렌더링합니다
 
